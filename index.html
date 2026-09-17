@@ -12,11 +12,17 @@ html,body{margin:0;height:100%;background:#0b0c0f;color:#f4f5f7;font-family:Inte
 <div class="loading" id="loading"><strong>Loading Creative Network…</strong><span>v21 · profile editing + orbit mode</span></div>
 <script>
 (async()=>{
-  const url=new URL('legacy/v21/payload.gz',location.href);
-  url.searchParams.set('v','21-profile-orbit');
-  const response=await fetch(url,{cache:'no-store'});
-  if(!response.ok) throw new Error('v21 payload returned '+response.status);
-  const bytes=new Uint8Array(await response.arrayBuffer());
+  const files=['legacy/v21parts/p1.b64','legacy/v21parts/p2.b64','legacy/v21parts/p3.b64','legacy/v21parts/p4.b64'];
+  const parts=[];
+  for(const file of files){
+    const url=new URL(file,location.href);
+    url.searchParams.set('v','21-profile-orbit-exact');
+    const response=await fetch(url,{cache:'no-store'});
+    if(!response.ok) throw new Error(file+' returned '+response.status);
+    parts.push((await response.text()).trim());
+  }
+  const binary=atob(parts.join(''));
+  const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
   if(typeof DecompressionStream==='undefined') throw new Error('This browser does not support gzip decompression');
   const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
   const html=await new Response(stream).text();
