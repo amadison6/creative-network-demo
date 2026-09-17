@@ -1,86 +1,42 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width,initial-scale=1" name="viewport"/>
-<title>Creative Network · uh_sar</title>
-<link href="styles.css" rel="stylesheet"/></head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Creative Network</title>
+<style>
+html,body{margin:0;height:100%;background:#0b0c0f;color:#f4f5f7;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.loading{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px}.loading strong{font-size:18px}.loading span{font-size:12px;color:#8f99a8}
+</style>
+</head>
 <body>
-<div class="app" id="appShell">
-<aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">uh_sar · living creative constellation</div>
-<button class="sidebar-add" id="sidebarAdd">＋ Add Profile</button>
-<div class="section-title">Views</div>
-<button class="viewbtn active" data-view="relationship">Relationship View</button>
-<button class="viewbtn" data-view="hubs">Creative Hubs</button>
-<div class="view-explainer" id="viewExplainer"><strong>Relationship View</strong><br/>Who is close to you? Distance reflects direct relationship strength.</div>
-<div class="section-title">Filters</div>
-<button class="filter active" data-filter="All">All</button>
-<button class="filter" data-filter="God's Contraband">God's Contraband</button>
-<button class="filter" data-filter="Writing Camps">Writing Camps</button>
-<button class="filter" data-filter="Musicians">Musicians</button>
-<button class="filter" data-filter="Producers">Producers</button>
-<button class="filter" data-filter="Rising Artists">Rising Artists</button>
-<button class="filter" data-filter="Visual">Visual / Film</button>
-<button class="filter" data-filter="Connectors">Management / Connectors</button>
-<div class="section-title">Legend</div>
-<div class="legend"><div><span class="dot gold"></span>Core/direct relationship</div><div><span class="dot blue"></span>Bridge across scenes</div><div><span class="dot green"></span>Hub / infrastructure</div></div>
-</aside>
-<main class="main" id="mainStage">
-<div class="toolbar">
-<button class="icon-btn" id="toggleLeft" title="Toggle navigation">☰</button>
-<input class="search" id="search" placeholder="Search people, roles, hubs…"/>
-<div class="status" id="status">Relationship view</div>
-<button class="toolbtn" data-icon="profile" id="addProfileBtn">＋ Profile</button>
-<button class="toolbtn primary" data-icon="ai" id="askBtn">Ask Network</button>
-<button class="toolbtn" data-icon="edit" id="editBtn">Talk + Edit</button>
-<button class="toolbtn" data-icon="history" id="historyBtn">History</button>
-<button class="icon-btn" id="toggleRight" title="Toggle profile">◧</button>
-<button class="icon-btn" id="fullMap" title="Full map">⛶</button>
-<button class="icon-btn" id="zoomOut" title="Zoom out">−</button>
-<button class="icon-btn" id="zoomReset" title="Reset map">↺</button>
-<button class="icon-btn" id="zoomIn" title="Zoom in">＋</button>
-</div>
-<svg aria-label="Creative Network" class="map" id="map" viewBox="0 0 1000 720"><g id="viewport"></g></svg>
-</main>
-<aside class="profile" id="profile"><div class="empty">Select someone on the map to open their profile.</div></aside>
-</div>
-<div class="floating-panel hidden" id="askPanel">
-<div class="panel-head"><div><strong>Network Intelligence</strong><br/><span>Prototype · grounded in map data</span></div><button class="close" data-close="askPanel">×</button></div>
-<div class="panel-body">
-<div class="chatrow"><input id="askInput" placeholder="Who should I invite to a writing camp for Free?"/><button id="askSend">Ask</button></div>
-<div class="chips"><button class="cmdchip ask-suggestion">Who should I invite to a writing camp for Free?</button><button class="cmdchip ask-suggestion">Who are my strongest bridge nodes?</button><button class="cmdchip ask-suggestion">Who produces and plays keys?</button><button class="cmdchip ask-suggestion">Who has an upcoming show?</button></div>
-<div class="aianswer" id="askAnswer"><h3>Ask the network</h3>Questions can use roles, hubs, connections, and activity already represented in this demo.</div>
-</div>
-</div>
-<div class="floating-panel hidden" id="editPanel">
-<div class="panel-head"><div><strong>Talk + Edit</strong><br/><span>Local command prototype · undoable</span></div><button class="close" data-close="editPanel">×</button></div>
-<div class="panel-body">
-<div class="chatlog" id="editLog"><div class="msg system">Talk to the map naturally. This prototype handles a small set of safe local changes; the production version will use the real AI/database layer.</div></div>
-<div class="chatrow"><input id="editInput" placeholder='Try: "Move Baw$ closer to Addae"'/><button id="editSend">Send</button></div>
-<div class="chips"><button class="cmdchip edit-suggestion">Move Baw$ closer to Addae</button><button class="cmdchip edit-suggestion">Change Cam's role to Drummer / Multi-instrumentalist</button><button class="cmdchip edit-suggestion">Show only musicians</button><button class="cmdchip edit-suggestion">Switch to hub view</button><button class="cmdchip edit-suggestion">Hide the right sidebar</button></div>
-<div class="panel-foot"><span>Edits stay in this browser.</span><button class="smallbtn" id="undoEdit">Undo last change</button></div>
-</div>
-</div>
-<div class="modal-backdrop hidden" id="profileModal"><div class="modal"><div class="modal-head"><h2>Add to Creative Network</h2><button class="close" data-close="profileModal">×</button></div><div class="modal-body">
-<div class="form-grid">
-<div class="field"><label>Profile type</label><select id="newType"><option value="musician">Artist / Musician</option><option value="filmmaker">Filmmaker / Visual</option><option value="manager">Manager / Connector</option><option value="venue">Venue / Place</option><option value="studio">Studio / Resource</option><option value="other">Other</option></select></div>
-<div class="field"><label>Name</label><input id="newName" placeholder="Name"/></div>
-<div class="field"><label>Artist / public name</label><input id="newArtist" placeholder="Optional"/></div>
-<div class="field"><label>Primary role</label><input id="newRole" placeholder="Singer, director, manager…"/></div>
-<div class="field"><label>Hub / scene</label><input id="newHub" placeholder="God's Contraband, Visual / Management…"/></div>
-<div class="field"><label>Instagram / portfolio</label><input id="newLink" placeholder="https://…"/></div>
-<div class="field"><label>PRO affiliation</label><input id="newPRO" placeholder="BMI / ASCAP / SESAC"/></div>
-<div class="field"><label>IPI / CAE</label><input id="newIPI" placeholder="Optional"/></div>
-<div class="field full"><label>Connection to you</label><textarea id="newConnection" placeholder="How you know them / shared work" rows="2"></textarea></div>
-<div class="field full"><label>Connection to larger network</label><textarea id="newNetwork" placeholder="Mutuals, hubs, bridge role" rows="2"></textarea></div>
-</div>
-<div class="modal-actions"><button class="cancel" data-close="profileModal">Cancel</button><button class="save" id="saveProfile">Add Profile</button></div>
-</div></div></div>
-<div class="modal-backdrop hidden" id="historyModal"><div class="modal"><div class="modal-head"><h2>History</h2><button class="close" data-close="historyModal">×</button></div><div class="modal-body" id="historyBody"></div></div></div>
-<script src="data.js"></script>
-<script src="core.js"></script>
-<script src="assistant.js"></script>
-<script src="ui.js"></script>
+<div class="loading" id="loading"><strong>Loading Creative Network…</strong><span>Restoring the original v17 demo</span></div>
+<script>
+(async()=>{
+  const files=[
+    'legacy/v17/chunk01.txt',
+    'legacy/v17/exact02.b64',
+    'legacy/v17/exact03.b64'
+  ];
+  const parts=[];
+  for(const file of files){
+    const response=await fetch(file+'?v=17-exact');
+    if(!response.ok) throw new Error(file+' returned '+response.status);
+    parts.push((await response.text()).trim());
+  }
+  const b64=parts.join('');
+  const binary=atob(b64);
+  const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
+  if(typeof DecompressionStream==='undefined') throw new Error('This browser does not support gzip decompression');
+  const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+  const html=await new Response(stream).text();
+  document.open();
+  document.write(html);
+  document.close();
+})().catch(err=>{
+  const el=document.getElementById('loading');
+  el.innerHTML='<strong>Could not load the original demo.</strong><span>'+String(err.message||err)+'</span>';
+  console.error(err);
+});
+</script>
 </body>
 </html>
