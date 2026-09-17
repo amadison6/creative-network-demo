@@ -9,7 +9,7 @@ html,body{margin:0;height:100%;background:#0b0c0f;color:#f4f5f7;font-family:Inte
 </style>
 </head>
 <body>
-<div class="loading" id="loading"><strong>Loading Creative Network…</strong><span>v19 · bands + collectives</span></div>
+<div class="loading" id="loading"><strong>Loading Creative Network…</strong><span>v20 · orbital atmosphere</span></div>
 <script>
 (async()=>{
   const files=[
@@ -21,7 +21,7 @@ html,body{margin:0;height:100%;background:#0b0c0f;color:#f4f5f7;font-family:Inte
   ];
   async function fetchText(file){
     const url=new URL(file,location.href);
-    url.searchParams.set('v','19-collectives');
+    url.searchParams.set('v','20-orbital-atmosphere');
     const response=await fetch(url,{cache:'no-store'});
     if(!response.ok) throw new Error(file+' returned '+response.status);
     return (await response.text()).trim();
@@ -33,7 +33,110 @@ html,body{margin:0;height:100%;background:#0b0c0f;color:#f4f5f7;font-family:Inte
   const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
   if(typeof DecompressionStream==='undefined') throw new Error('This browser does not support gzip decompression');
   const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-  const html=await new Response(stream).text();
+  let html=await new Response(stream).text();
+
+  const orbitalCss=`
+  <style id="v20-orbital-css">
+    .relationship-ring{fill:none!important;stroke:#414957!important;stroke-width:.8!important;stroke-dasharray:2 10!important;opacity:.16!important;pointer-events:none;transition:opacity .35s ease,stroke .35s ease}
+    .relationship-ring-label{fill:#6a7483!important;font-size:9px!important;letter-spacing:.09em!important;text-transform:uppercase;pointer-events:none;opacity:.34!important;transition:opacity .35s ease}
+    .main.orbit-emphasis .relationship-ring{opacity:.24!important;stroke:#4a5260!important}
+    .main.orbit-emphasis .relationship-ring-label{opacity:.48!important}
+    .space-fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.58}
+    #map{position:relative;z-index:1}
+    .toolbar{z-index:5}
+    @media (prefers-reduced-motion: reduce){.space-fx{display:none}}
+  </style>`;
+  html=html.replace('</head>',orbitalCss+'</head>');
+  html=html.replace('<main class="main"><div class="toolbar">','<main class="main"><canvas id="spaceFx" class="space-fx" aria-hidden="true"></canvas><div class="toolbar">');
+
+  const patchJs=String.raw`
+  (()=>{
+    const mainEl=document.querySelector('.main');
+    const syncOrbitEmphasis=()=>{
+      if(!mainEl)return;
+      const active=document.querySelector('.filter.active');
+      mainEl.classList.toggle('orbit-emphasis',!!active&&active.dataset.filter!=='All');
+    };
+    document.querySelectorAll('.filter').forEach(btn=>btn.addEventListener('click',()=>setTimeout(syncOrbitEmphasis,0)));
+    syncOrbitEmphasis();
+
+    const canvas=document.getElementById('spaceFx');
+    if(canvas&&canvas.getContext&&!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)){
+      const ctx=canvas.getContext('2d');
+      let cssW=0,cssH=0,dpr=1,timer=null,raf=null,meteor=null;
+      function resizeSpaceFx(){
+        const rect=canvas.getBoundingClientRect();
+        cssW=Math.max(1,rect.width);cssH=Math.max(1,rect.height);
+        dpr=Math.min(window.devicePixelRatio||1,2);
+        canvas.width=Math.round(cssW*dpr);canvas.height=Math.round(cssH*dpr);
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+        ctx.clearRect(0,0,cssW,cssH);
+      }
+      function scheduleMeteor(){
+        clearTimeout(timer);
+        timer=setTimeout(spawnMeteor,8000+Math.random()*12000);
+      }
+      function spawnMeteor(){
+        if(document.hidden){scheduleMeteor();return;}
+        const fromLeft=Math.random()>.18;
+        const speed=9+Math.random()*5;
+        meteor={
+          x:fromLeft?-90-Math.random()*120:cssW+90+Math.random()*120,
+          y:24+Math.random()*Math.max(80,cssH*.42),
+          vx:fromLeft?speed:-speed,
+          vy:3.2+Math.random()*2.6,
+          age:0,
+          life:42+Math.floor(Math.random()*26),
+          len:70+Math.random()*75,
+          alpha:.28+Math.random()*.18
+        };
+        if(raf)cancelAnimationFrame(raf);
+        raf=requestAnimationFrame(drawMeteor);
+      }
+      function drawMeteor(){
+        ctx.clearRect(0,0,cssW,cssH);
+        if(!meteor){scheduleMeteor();return;}
+        const m=meteor;
+        m.x+=m.vx;m.y+=m.vy;m.age++;
+        const mag=Math.hypot(m.vx,m.vy)||1;
+        const ux=m.vx/mag,uy=m.vy/mag;
+        const tailX=m.x-ux*m.len,tailY=m.y-uy*m.len;
+        const fade=Math.min(1,m.age/8)*Math.min(1,(m.life-m.age)/10);
+        const grad=ctx.createLinearGradient(tailX,tailY,m.x,m.y);
+        grad.addColorStop(0,'rgba(255,255,255,0)');
+        grad.addColorStop(.72,'rgba(210,220,236,'+(m.alpha*.28*fade)+')');
+        grad.addColorStop(1,'rgba(248,241,220,'+(m.alpha*fade)+')');
+        ctx.strokeStyle=grad;ctx.lineWidth=1.15;
+        ctx.beginPath();ctx.moveTo(tailX,tailY);ctx.lineTo(m.x,m.y);ctx.stroke();
+        ctx.fillStyle='rgba(248,241,220,'+(m.alpha*.9*fade)+')';
+        ctx.beginPath();ctx.arc(m.x,m.y,1.15,0,Math.PI*2);ctx.fill();
+        if(m.age<m.life&&m.x>-220&&m.x<cssW+220&&m.y<cssH+140){
+          raf=requestAnimationFrame(drawMeteor);
+        }else{
+          meteor=null;raf=null;ctx.clearRect(0,0,cssW,cssH);scheduleMeteor();
+        }
+      }
+      resizeSpaceFx();
+      if(window.ResizeObserver){new ResizeObserver(resizeSpaceFx).observe(canvas.parentElement)}
+      else{window.addEventListener('resize',resizeSpaceFx,{passive:true})}
+      document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!meteor)scheduleMeteor()});
+      scheduleMeteor();
+    }
+
+    if(typeof APP_RELEASES!=='undefined'&&!APP_RELEASES.some(r=>r.version==='v20')){
+      APP_RELEASES.unshift({
+        version:'v20',file:null,date:'2026-09-17',title:'Subtle orbital guides + ambient shooting stars',
+        notes:[
+          'Softened relationship rings so they read as faint orbital guides instead of dominant diagram lines',
+          'Rings become slightly more visible when a filter is active',
+          'Added occasional lightweight shooting stars behind the network',
+          'Shooting-star animation sleeps between passes and respects reduced-motion preferences'
+        ]
+      });
+    }
+  })();
+  `;
+  html=html.replace('</body>','<script>'+patchJs+'<\\/script></body>');
   document.open();
   document.write(html);
   document.close();
