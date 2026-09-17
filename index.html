@@ -9,7 +9,7 @@ html,body{margin:0;height:100%;background:#0b0c0f;color:#f4f5f7;font-family:Inte
 </style>
 </head>
 <body>
-<div class="loading" id="loading"><strong>Loading Creative Network…</strong><span>Restoring the original v17 demo</span></div>
+<div class="loading" id="loading"><strong>Loading Creative Network…</strong><span>Restoring the original v17 baseline + v18 network updates</span></div>
 <script>
 (async()=>{
   const files=[
@@ -17,18 +17,105 @@ html,body{margin:0;height:100%;background:#0b0c0f;color:#f4f5f7;font-family:Inte
     'legacy/v17/exact02.b64',
     'legacy/v17/exact03.b64'
   ];
-  const parts=[];
-  for(const file of files){
-    const response=await fetch(file+'?v=17-exact');
-    if(!response.ok) throw new Error(file+' returned '+response.status);
-    parts.push((await response.text()).trim());
+  async function fetchTextWithRetry(file){
+    let lastErr;
+    for(let attempt=0;attempt<4;attempt++){
+      try{
+        const url=new URL(file,location.href);
+        url.searchParams.set('v','18-gc-gravity');
+        url.searchParams.set('attempt',String(attempt));
+        const response=await fetch(url,{cache:'no-store'});
+        if(!response.ok) throw new Error(file+' returned '+response.status);
+        return (await response.text()).trim();
+      }catch(err){
+        lastErr=err;
+        await new Promise(r=>setTimeout(r,350*(attempt+1)));
+      }
+    }
+    throw lastErr||new Error('Failed to fetch '+file);
   }
+  const parts=[];
+  for(const file of files) parts.push(await fetchTextWithRetry(file));
   const b64=parts.join('');
   const binary=atob(b64);
   const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
   if(typeof DecompressionStream==='undefined') throw new Error('This browser does not support gzip decompression');
   const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-  const html=await new Response(stream).text();
+  let html=await new Response(stream).text();
+
+  const patchJs=String.raw`
+  (()=>{
+    const uh=nodes.find(n=>n.id==="uh_sar");
+    if(uh){
+      if(!uh.tags.includes("God's Contraband"))uh.tags.push("God's Contraband");
+      if(!/God's Contraband/.test(uh.bio||""))uh.bio=(uh.bio||"")+" Co-founder and executive producer of God's Contraband.";
+    }
+
+    const sol=nodes.find(n=>n.id==="solomon");
+    if(sol){
+      sol.tags=(sol.tags||[]).filter(t=>t!=="God's Contraband");
+      if(!sol.tags.includes("Writing Camps"))sol.tags.push("Writing Camps");
+      sol.hub="Independent";
+      sol.hubAnchor="God's Contraband";
+      sol.periphery=true;
+      sol.bio="Contributor to God's Contraband, but not a member of the group. Part of Ausar's broader creative network and a future writing-room candidate; specific role details still need to be filled in.";
+      relationshipPos.solomon=[600,290];
+    }
+
+    const originalPos=pos;
+    pos=function(n){
+      if(n&&n.id==="solomon"&&currentView==="hubs"){
+        const c=hubCenters["God's Contraband"]||[470,190],o=offsets[n.id]||[42,0];
+        return[c[0]+o[0]*1.9,c[1]+o[1]*1.9];
+      }
+      return originalPos(n);
+    };
+
+    function nudgeVisibleTowardNearest(){
+      const visible=nodes.filter(visibleNode);
+      if(visible.length<2)return;
+      visible.forEach(n=>{
+        const s=ensureMotionState(n);
+        let nearest=null,nearestD=Infinity;
+        visible.forEach(other=>{
+          if(other.id===n.id)return;
+          const os=ensureMotionState(other),dx=os.x-s.x,dy=os.y-s.y,d=Math.hypot(dx,dy);
+          if(d<nearestD){nearestD=d;nearest=[dx,dy];}
+        });
+        if(!nearest||nearestD<1)return;
+        const impulse=n.id==="uh_sar"?.22:.34;
+        s.vx+=(nearest[0]/nearestD)*impulse;
+        s.vy+=(nearest[1]/nearestD)*impulse;
+      });
+    }
+
+    document.querySelectorAll(".filter").forEach(btn=>{
+      btn.onclick=()=>{
+        document.querySelectorAll(".filter").forEach(b=>b.classList.remove("active"));
+        btn.classList.add("active");
+        currentFilter=btn.dataset.filter;
+        render();
+        nudgeVisibleTowardNearest();
+        focusSelectedAtCurrentZoom();
+      };
+    });
+
+    if(typeof APP_RELEASES!=="undefined"&&!APP_RELEASES.some(r=>r.version==="v18")){
+      APP_RELEASES.unshift({
+        version:"v18",file:null,date:"2026-09-17",
+        title:"God's Contraband filter + network gravity",
+        notes:[
+          "uh_sar now stays visible in the God's Contraband filter",
+          "Solomon is modeled as a contributor rather than a member and sits on the hub periphery",
+          "Choosing a filter gives visible profiles a subtle pull toward their nearest visible node",
+          "Preserved the original v17 visual language and organic motion"
+        ]
+      });
+    }
+    render();
+  })();
+  `;
+  html=html.replace('</body>','<script>'+patchJs+'<\\/script></body>');
   document.open();
   document.write(html);
   document.close();
