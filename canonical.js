@@ -421,7 +421,49 @@
 
   // ---------- constellation labels / decoration / node photos ----------
   function clearLegacyLabels(){
-    $$(".v22-constellation-label,.v22-constellation-sub,.v27-cluster-label,.v28-cluster-label,.v31-constellation-label,.v31-constellation-sub,.canonical-constellation-label,.canonical-constellation-sub",viewport).forEach(el=>el.remove());
+    $(".v22-constellation-label,.v22-constellation-sub,.v27-cluster-label,.v28-cluster-label,.v31-constellation-label,.v31-constellation-sub,.canonical-constellation-label,.canonical-constellation-sub",viewport).forEach(el=>el.remove());
+  }
+
+  // DOM-level safety guard: the legacy renderer can still emit old band nodes even when
+  // the data-level visibility function says not to. Treat the rendered DOM as the final
+  // authority so group bubbles cannot leak into View All.
+  function renderedNodeIsGroup(g){
+    if(!g)return false;
+    const n=byId(g.dataset.id);
+    if(isGroupNode(n))return true;
+    const text=String(g.textContent||"").replace(/\s+/g," ").trim().toLowerCase();
+    return text.includes("god's contraband") ||
+      text.includes("gods contraband") ||
+      text.includes("professor what trio") ||
+      text.includes("band / collective") ||
+      text.includes("band / trio");
+  }
+
+  function enforceGroupDomState(){
+    const showGroups=currentView==="relationship"&&currentFilter==="Bands & Collectives";
+    const groupIds=new Set();
+
+    $(".node",viewport).forEach(g=>{
+      if(!renderedNodeIsGroup(g))return;
+      if(g.dataset.id)groupIds.add(g.dataset.id);
+
+      if(showGroups){
+        g.style.removeProperty("display");
+        g.classList.add("canonical-band-hub");
+      }else{
+        // Important: hide rather than only relying on visibleNode(), because the original
+        // renderer has its own older group visibility path.
+        g.style.setProperty("display","none","important");
+        g.classList.remove("canonical-band-hub");
+      }
+    });
+
+    $(".edge",viewport).forEach(line=>{
+      const touchesGroup=groupIds.has(line.dataset.a)||groupIds.has(line.dataset.b);
+      if(!touchesGroup)return;
+      if(showGroups)line.style.removeProperty("display");
+      else line.style.setProperty("display","none","important");
+    });
   }
 
   function drawConstellations(){
@@ -477,9 +519,11 @@
   render=function(){
     baseRender();
     requestAnimationFrame(()=>{
+      enforceGroupDomState();
       clearLegacyLabels();
       drawConstellations();
       decorateNodes();
+      enforceGroupDomState();
       const empty=$("#layerEmpty");
       if(empty && !(currentView==="venues"&&venueNodes().length===0))empty.style.display="none";
     });
@@ -678,14 +722,28 @@
 
   ensureEditPhotoCard();
 
+  // Keep the group visibility rule enforced even if legacy animation/render code mutates
+  // the SVG after the canonical render callback.
+  const groupDomGuard=new MutationObserver(()=>{
+    requestAnimationFrame(()=>{
+      enforceGroupDomState();
+      if(currentView==="relationship"&&currentFilter==="All"){
+        const hasLabel=$(".canonical-constellation-label",viewport);
+        if(!hasLabel)drawConstellations();
+      }
+    });
+  });
+  groupDomGuard.observe(viewport,{childList:true,subtree:true});
+  enforceGroupDomState();
+
   // ---------- release history ----------
   const sub=$(".sidebar .sub");
-  if(sub)sub.textContent="Creative Network Demo · v32 · canonical";
-  if(typeof APP_RELEASES!=="undefined"&&!APP_RELEASES.some(r=>r.version==="v32")){
+  if(sub)sub.textContent="Creative Network Demo · canonical";
+  if(typeof APP_RELEASES!=="undefined"&&!APP_RELEASES.some(r=>r.version==="v32.1")){
     APP_RELEASES.unshift({
-      version:"v32",file:null,date:"2026-09-18",title:"Canonical consolidated build",
+      version:"v32.1",file:null,date:"2026-09-18",title:"Canonical band visibility guard",
       notes:[
-        "Consolidated the runtime into one canonical layer instead of stacking v22-v31 patches",
+        "Added a DOM-level guard so legacy-rendered band bubbles cannot leak into View All",
         "One permanent URL remains the latest build; Git history preserves recoverable older versions",
         "View All hides band bubbles and shows constellation labels only",
         "Bands / Collectives reveals group nodes with member connections",
