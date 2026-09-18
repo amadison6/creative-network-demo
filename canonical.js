@@ -96,7 +96,23 @@
       role==="band" || role==="collective" || role==="trio";
   }
 
-  const groupNodes=()=>nodes.filter(isGroupNode);
+  // Keep group entities OUT of the ordinary node array.
+  // They are only inserted while the Bands / Collectives filter is active.
+  const GROUP_REGISTRY=nodes.filter(isGroupNode);
+  function setGroupNodesActive(active){
+    const ids=new Set(GROUP_REGISTRY.map(g=>g.id));
+    for(let i=nodes.length-1;i>=0;i--){
+      if(ids.has(nodes[i]?.id))nodes.splice(i,1);
+    }
+    if(active){
+      for(const g of GROUP_REGISTRY){
+        if(!nodes.some(n=>n.id===g.id))nodes.push(g);
+      }
+    }
+  }
+  setGroupNodesActive(false);
+
+  const groupNodes=()=>GROUP_REGISTRY;
   const studioNodes=()=>nodes.filter(n=>n.profileType==="studio");
   const venueNodes=()=>nodes.filter(n=>n.profileType==="venue");
 
@@ -517,6 +533,8 @@
 
   const baseRender=render;
   render=function(){
+    const showGroups=currentView==="relationship"&&currentFilter==="Bands & Collectives";
+    setGroupNodesActive(showGroups);
     baseRender();
     requestAnimationFrame(()=>{
       enforceGroupDomState();
@@ -739,11 +757,11 @@
   // ---------- release history ----------
   const sub=$(".sidebar .sub");
   if(sub)sub.textContent="Creative Network Demo · canonical";
-  if(typeof APP_RELEASES!=="undefined"&&!APP_RELEASES.some(r=>r.version==="v32.1")){
+  if(typeof APP_RELEASES!=="undefined"&&!APP_RELEASES.some(r=>r.version==="v32.2")){
     APP_RELEASES.unshift({
-      version:"v32.1",file:null,date:"2026-09-18",title:"Canonical band visibility guard",
+      version:"v32.2",file:null,date:"2026-09-18",title:"Band nodes removed from default data layer",
       notes:[
-        "Added a DOM-level guard so legacy-rendered band bubbles cannot leak into View All",
+        "Band / collective entities are removed from the ordinary node array and only inserted while the Bands / Collectives filter is active",
         "One permanent URL remains the latest build; Git history preserves recoverable older versions",
         "View All hides band bubbles and shows constellation labels only",
         "Bands / Collectives reveals group nodes with member connections",
