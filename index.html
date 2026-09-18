@@ -1,42 +1,1024 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Creative Network</title>
 <style>
-html,body{margin:0;height:100%;background:#0b0c0f;color:#f4f5f7;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-.loading{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px}
-.loading strong{font-size:18px}.loading span{font-size:12px;color:#8f99a8}
+:root{--bg:#0b0c0f;--panel:#12141a;--panel2:#171a21;--line:#2a2f39;--text:#f4f5f7;--muted:#9aa3b2;--accent:#d7b56d;--blue:#7fb3ff;--green:#8fd6a8}*{box-sizing:border-box}html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{overflow:hidden}.app{display:grid;grid-template-columns:250px 1fr 360px;height:100vh}.sidebar,.profile{background:rgba(18,20,26,.97);border-color:var(--line)}.sidebar{border-right:1px solid var(--line);padding:22px 18px;overflow:auto}.profile{border-left:1px solid var(--line);padding:22px;overflow:auto}.brand{font-weight:800;letter-spacing:.02em;font-size:20px;margin-bottom:4px}.sub{color:var(--muted);font-size:12px;margin-bottom:24px}.section-title{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:22px 0 8px}.filter,.viewbtn{width:100%;text-align:left;background:transparent;border:1px solid transparent;color:#c9d0da;padding:9px 10px;border-radius:10px;cursor:pointer}.filter:hover,.viewbtn:hover{background:var(--panel2)}.filter.active,.viewbtn.active{background:#1d212a;border-color:#353b47;color:white}.toolbar{position:absolute;top:18px;left:18px;right:18px;display:flex;gap:10px;align-items:center;z-index:5}.search{flex:1;background:rgba(18,20,26,.92);border:1px solid var(--line);border-radius:12px;padding:11px 13px;color:white;outline:none}.pill{background:rgba(18,20,26,.92);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:#d7dce4;font-size:12px}.zoom-controls{display:flex;gap:6px}.zoom-btn{width:38px;height:38px;background:rgba(18,20,26,.92);border:1px solid var(--line);border-radius:10px;color:#eef1f5;font-size:18px;cursor:pointer}.zoom-btn:hover{background:#1d212a}.main{position:relative;overflow:hidden;background:radial-gradient(circle at center,rgba(215,181,109,.05),transparent 38%),linear-gradient(180deg,#0b0c0f,#0a0b0d)}svg{width:100%;height:100%;display:block}.edge{stroke:#465061;stroke-width:1.2;opacity:.42}.edge.strong{stroke:#a58d59;stroke-width:1.7;opacity:.72}.edge.future,.edge.potential{stroke-dasharray:8 7;opacity:.27;stroke-width:1.05}.edge.budding{stroke-dasharray:2 5;opacity:.44;stroke-width:1.25}.hub-label{fill:#778193;font-size:11px;letter-spacing:.08em;text-transform:uppercase}.node{cursor:pointer}.node circle.core{stroke:#f6deb0;stroke-width:2.4}.node circle.person{stroke:#303744;stroke-width:1.4}.node circle.bridge{stroke:#8bb9f0;stroke-width:2}.node circle.hubnode{stroke:#8fd6a8;stroke-width:2}.node text.name{fill:#f6f7f8;font-size:11px;font-weight:700;pointer-events:none}.node text.role{fill:#98a1af;font-size:9px;pointer-events:none}.profile-photo{width:100%;height:230px;object-fit:cover;border-radius:16px;border:1px solid #303744;background:#20242c;margin-bottom:16px;display:block}.photo-missing{width:100%;height:180px;border-radius:16px;border:1px dashed #3a4150;background:#171a21;display:flex;align-items:center;justify-content:center;color:#7f8998;font-size:13px;margin-bottom:16px;text-align:center;padding:24px}.avatar{width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;background:#252a34;border:1px solid #3a4150;margin-bottom:14px}.profile h2{margin:0;font-size:24px}.roleline{color:#b9c0cb;margin:4px 0 16px}.chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 18px}.chip{font-size:11px;padding:5px 8px;border:1px solid #353b47;border-radius:999px;color:#cbd2dc}.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.card{background:#171a21;border:1px solid #2b303b;border-radius:12px;padding:12px}.card .k{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:#7f8998}.card .v{margin-top:4px;font-size:13px}.links a{display:block;color:#a9caff;text-decoration:none;margin:7px 0;font-size:13px;word-break:break-word}textarea{width:100%;background:#111319;border:1px solid #2e3440;border-radius:10px;color:white;padding:10px;outline:none;min-height:92px;resize:vertical}.save{margin-top:8px;background:#f0d49a;color:#16130d;border:0;border-radius:9px;padding:8px 12px;font-weight:700;cursor:pointer}.empty{color:#7e8795;font-size:13px;line-height:1.5}.legend{font-size:11px;color:#8892a0;line-height:1.7}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}.gold{background:#d7b56d}.blue{background:#7fb3ff}.green{background:#8fd6a8}.small{font-size:11px;color:#7f8897}@media(max-width:1100px){.app{grid-template-columns:210px 1fr}.profile{position:absolute;right:0;top:0;bottom:0;width:340px;z-index:10;box-shadow:-10px 0 30px rgba(0,0,0,.3)}}
+
+.ai-toggle{background:#f0d49a;color:#17130d;border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer;white-space:nowrap}
+.ai-panel{position:absolute;left:18px;bottom:18px;width:min(560px,calc(100% - 36px));background:rgba(15,17,22,.98);
+  border:1px solid #353b47;border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.45);z-index:8;overflow:hidden}
+.ai-panel.hidden{display:none}
+.ai-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #2b303b}
+.ai-head strong{font-size:14px}.ai-head span{font-size:11px;color:#8d97a6}
+.ai-body{padding:14px 16px}
+.ai-row{display:flex;gap:8px}
+.ai-input{flex:1;background:#0e1015;border:1px solid #313744;border-radius:10px;color:white;padding:11px 12px;outline:none}
+.ai-send{background:#f0d49a;color:#17130d;border:0;border-radius:10px;padding:0 14px;font-weight:800;cursor:pointer}
+.ai-suggestions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.ai-suggestion{font-size:11px;border:1px solid #343b48;background:#171a21;color:#cbd2dc;padding:7px 9px;border-radius:999px;cursor:pointer}
+.ai-answer{margin-top:13px;background:#111319;border:1px solid #292f39;border-radius:12px;padding:13px;min-height:72px;max-height:260px;overflow:auto}
+.ai-answer h3{margin:0 0 8px;font-size:14px}
+.ai-answer p{font-size:12.5px;line-height:1.55;color:#c8ced8;margin:6px 0}
+.ai-answer .reason{border-left:2px solid #7fb3ff;padding-left:9px;margin:8px 0}
+.ai-answer .evidence{font-size:10.5px;color:#8e98a7;margin-top:10px}
+.ai-highlight{filter:drop-shadow(0 0 12px rgba(240,212,154,1)) drop-shadow(0 0 26px rgba(127,179,255,.65))}
+  .ai-highlight circle{stroke:#f0d49a !important;stroke-width:3.2 !important}
+  .ai-highlight text.name{fill:#fff9ea}
+  @keyframes pulseRing{
+    0%{transform:scale(1)}
+    50%{transform:scale(1.05)}
+    100%{transform:scale(1)}
+  }
+  .ai-highlight{animation:pulseRing 1.8s ease-in-out infinite}
+
+
+/* v9 visual + camera overrides */
+.main{
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(87,125,190,.12), transparent 20%),
+    radial-gradient(circle at 82% 14%, rgba(190,150,90,.08), transparent 18%),
+    radial-gradient(circle at 54% 58%, rgba(90,70,135,.07), transparent 28%),
+    linear-gradient(180deg,#060810 0%,#090b13 48%,#05070c 100%) !important;
+}
+.main::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  opacity:.42;
+  background-image:
+    radial-gradient(circle at 6% 11%,rgba(255,255,255,.85) 0 1px,transparent 1.35px),
+    radial-gradient(circle at 14% 61%,rgba(255,255,255,.48) 0 1px,transparent 1.45px),
+    radial-gradient(circle at 23% 27%,rgba(255,255,255,.65) 0 1px,transparent 1.3px),
+    radial-gradient(circle at 31% 77%,rgba(255,255,255,.40) 0 1px,transparent 1.5px),
+    radial-gradient(circle at 42% 16%,rgba(255,255,255,.72) 0 1px,transparent 1.35px),
+    radial-gradient(circle at 51% 48%,rgba(255,255,255,.32) 0 1px,transparent 1.5px),
+    radial-gradient(circle at 61% 82%,rgba(255,255,255,.50) 0 1px,transparent 1.45px),
+    radial-gradient(circle at 69% 29%,rgba(255,255,255,.68) 0 1px,transparent 1.35px),
+    radial-gradient(circle at 78% 64%,rgba(255,255,255,.42) 0 1px,transparent 1.5px),
+    radial-gradient(circle at 89% 18%,rgba(255,255,255,.74) 0 1px,transparent 1.3px),
+    radial-gradient(circle at 94% 73%,rgba(255,255,255,.45) 0 1px,transparent 1.5px);
+}
+.main::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  opacity:.18;
+  background:
+    radial-gradient(ellipse at 52% 112%,rgba(88,126,190,.15),transparent 45%),
+    radial-gradient(ellipse at 48% -12%,rgba(187,145,85,.08),transparent 35%);
+}
+#map{position:relative;z-index:1;cursor:grab}
+.node.selected-node circle{stroke:#fff !important;stroke-width:3.4 !important}
+.node.selected-node{filter:drop-shadow(0 0 8px rgba(255,255,255,.55))}
+
+
+/* v11 — organic / living network motion */
+.edge{transition:opacity .35s ease,stroke-width .35s ease}
+.node{will-change:transform}
+.node circle{transition:stroke .25s ease,stroke-width .25s ease,filter .25s ease}
+.node.selected-node circle{stroke:#fff !important;stroke-width:3.2 !important}
+.node.selected-node{filter:drop-shadow(0 0 10px rgba(255,255,255,.35))}
+.node.ai-highlight{filter:drop-shadow(0 0 13px rgba(240,212,154,.95)) drop-shadow(0 0 25px rgba(127,179,255,.45))}
+.node.ai-highlight circle{stroke:#f0d49a !important;stroke-width:3.1 !important}
+
+
+/* v13 — profile system / entity onboarding / collapsible sidebars */
+.app{transition:grid-template-columns .35s cubic-bezier(.22,.8,.2,1)}
+.app.left-hidden{grid-template-columns:0 1fr 360px}
+.app.right-hidden{grid-template-columns:250px 1fr 0}
+.app.left-hidden.right-hidden{grid-template-columns:0 1fr 0}
+.sidebar,.profile{
+  transition:opacity .25s ease,transform .35s cubic-bezier(.22,.8,.2,1),padding .25s ease,border .25s ease;
+}
+.app.left-hidden .sidebar{opacity:0;pointer-events:none;transform:translateX(-100%);padding-left:0;padding-right:0;border-right:0;overflow:hidden}
+.app.right-hidden .profile{opacity:0;pointer-events:none;transform:translateX(100%);padding-left:0;padding-right:0;border-left:0;overflow:hidden}
+.icon-btn,.add-btn{
+  height:38px;border-radius:10px;border:1px solid var(--line);background:rgba(18,20,26,.94);
+  color:#eef1f5;cursor:pointer;padding:0 11px;font-weight:750;white-space:nowrap
+}
+.icon-btn:hover,.add-btn:hover{background:#1d212a}
+.add-btn{background:#1d2733;border-color:#40516a;color:#dceaff}
+.sidebar-add{
+  width:100%;margin-top:12px;padding:10px 12px;border-radius:10px;border:1px solid #40516a;
+  background:#182231;color:#dceaff;font-weight:800;cursor:pointer
+}
+.sidebar-add:hover{background:#1d2b3d}
+.entity-badge{display:inline-flex;align-items:center;gap:6px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#9ba6b5;margin-bottom:8px}
+.rights-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.rights-card{background:#141820;border:1px solid #2b3442;border-radius:11px;padding:10px}
+.rights-card .k{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:#7f8998}
+.rights-card .v{font-size:12px;margin-top:4px;color:#e6e9ee}
+.missing-value{color:#788291;font-style:italic}
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(3,5,10,.72);backdrop-filter:blur(8px);z-index:40;
+  display:flex;align-items:center;justify-content:center;padding:24px
+}
+.modal-backdrop.hidden{display:none}
+.modal{
+  width:min(760px,96vw);max-height:90vh;overflow:auto;background:#10131a;border:1px solid #333b49;
+  border-radius:18px;box-shadow:0 30px 90px rgba(0,0,0,.55)
+}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid #272d38}
+.modal-head h2{margin:0;font-size:18px}
+.close-modal{background:transparent;border:1px solid #343b48;color:#cbd2dc;border-radius:9px;width:34px;height:34px;cursor:pointer}
+.modal-body{padding:18px 20px 22px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-field{display:flex;flex-direction:column;gap:6px}
+.form-field.full{grid-column:1/-1}
+.form-field label{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:#8993a2}
+.form-field input,.form-field select,.form-field textarea{
+  width:100%;background:#0c0f15;border:1px solid #303744;border-radius:10px;color:#f2f4f7;padding:10px 11px;outline:none
+}
+.form-field textarea{min-height:76px}
+.dynamic-section{margin-top:16px;padding-top:14px;border-top:1px solid #282e38}
+.dynamic-title{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#9aa3b2;margin-bottom:10px}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.secondary-btn{border:1px solid #353d49;background:#171b23;color:#d6dbe3;border-radius:10px;padding:10px 13px;cursor:pointer}
+.primary-btn{border:0;background:#f0d49a;color:#17130d;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
+.type-help{font-size:11px;color:#7f8998;line-height:1.5;margin-top:8px}
+.fullmap-hint{font-size:10px;color:#747e8c;margin-top:8px}
+@media(max-width:1100px){
+  .app,.app.right-hidden,.app.left-hidden{grid-template-columns:210px 1fr}
+  .app.left-hidden{grid-template-columns:0 1fr}
+  .app.left-hidden.right-hidden{grid-template-columns:0 1fr}
+}
+
+
+/* v14 — canonical demo + version history */
+.version-btn{
+  height:38px;border-radius:10px;border:1px solid var(--line);background:#171b22;
+  color:#dce2ea;cursor:pointer;padding:0 11px;font-weight:750;white-space:nowrap
+}
+.version-btn:hover{background:#202630}
+.history-list{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.history-item{border:1px solid #2d3440;background:#13171e;border-radius:12px;padding:12px}
+.history-top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+.history-version{font-weight:850;color:#f1f3f6}
+.history-date{font-size:10px;color:#788392}
+.history-notes{font-size:12px;line-height:1.5;color:#b8c0cb;margin-top:7px}
+.history-actions{display:flex;gap:8px;margin-top:10px}
+.history-actions button{
+  border:1px solid #343d49;background:#1a1f28;color:#dce2ea;border-radius:9px;
+  padding:7px 9px;cursor:pointer;font-size:11px
+}
+.history-note{
+  margin-top:12px;font-size:11px;line-height:1.55;color:#7f8997;padding:10px;
+  border-radius:10px;background:#0e1117;border:1px solid #252c36
+}
+.alias{font-size:12px;color:#9fa9b7;margin-top:-5px;margin-bottom:8px}
+
+
+/* v15 — conversational modification */
+.convo-panel{
+  position:absolute;right:18px;bottom:18px;width:min(620px,calc(100% - 36px));
+  background:rgba(13,16,22,.985);border:1px solid #343c49;border-radius:16px;
+  box-shadow:0 22px 60px rgba(0,0,0,.5);z-index:12;overflow:hidden
+}
+.convo-panel.hidden{display:none}
+.convo-tabs{display:flex;border-bottom:1px solid #2b313c}
+.convo-tab{
+  flex:1;background:transparent;border:0;color:#8f99a8;padding:12px;cursor:pointer;font-weight:800
+}
+.convo-tab.active{color:#f2f4f7;background:#171b23}
+.convo-body{padding:14px 16px}
+.convo-log{max-height:270px;overflow:auto;display:flex;flex-direction:column;gap:9px;margin-bottom:12px}
+.msg{max-width:92%;padding:9px 11px;border-radius:12px;font-size:12px;line-height:1.5}
+.msg.user{align-self:flex-end;background:#243044;color:#eef4ff}
+.msg.system{align-self:flex-start;background:#151920;border:1px solid #29313c;color:#cbd2dc}
+.msg.change{align-self:flex-start;background:#19221b;border:1px solid #334635;color:#d9ead9}
+.convo-input-row{display:flex;gap:8px}
+.convo-input{
+  flex:1;background:#0d1016;border:1px solid #303745;border-radius:10px;color:#f2f4f7;
+  padding:11px 12px;outline:none
+}
+.convo-send{
+  border:0;background:#f0d49a;color:#17130d;border-radius:10px;padding:0 14px;font-weight:850;cursor:pointer
+}
+.command-examples{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.command-chip{
+  font-size:10.5px;border:1px solid #353d49;background:#171b22;color:#bfc7d3;
+  padding:6px 8px;border-radius:999px;cursor:pointer
+}
+.undo-bar{display:flex;align-items:center;justify-content:space-between;margin-top:10px;font-size:10.5px;color:#7f8997}
+.undo-btn{background:#181d25;border:1px solid #333b47;color:#cdd4dd;border-radius:8px;padding:6px 9px;cursor:pointer}
+
+
+/* v16 — relationship rings, hub fields, and reliable conversational drawer */
+.convo-panel{
+  position:fixed !important;
+  right:18px !important;
+  bottom:18px !important;
+  width:min(640px,calc(100vw - 36px)) !important;
+  z-index:60 !important;
+  max-height:min(560px,calc(100vh - 36px));
+  overflow:auto;
+}
+.convo-headline{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:12px 14px;border-bottom:1px solid #2b313c
+}
+.convo-status{
+  display:inline-flex;align-items:center;gap:7px;font-size:10px;color:#9aa5b5
+}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#8fd6a8;box-shadow:0 0 10px rgba(143,214,168,.65)}
+.convo-close{
+  width:30px;height:30px;border-radius:8px;border:1px solid #343b48;background:#171b22;color:#dce2ea;cursor:pointer
+}
+.view-explainer{
+  margin-top:10px;padding:11px;border:1px solid #2d3440;border-radius:11px;
+  background:#11151b;color:#9aa4b3;font-size:11px;line-height:1.55
+}
+.view-explainer strong{color:#e6e9ee}
+.relationship-ring{
+  fill:none;stroke:#414957;stroke-width:.8;stroke-dasharray:2 10;opacity:.16;pointer-events:none;transition:opacity .35s ease,stroke .35s ease
+}
+.relationship-ring-label{
+  fill:#6a7483;font-size:9px;letter-spacing:.09em;text-transform:uppercase;pointer-events:none;opacity:.34;transition:opacity .35s ease
+}
+.main.orbit-emphasis .relationship-ring{opacity:.24;stroke:#4a5260}
+.main.orbit-emphasis .relationship-ring-label{opacity:.48}
+.space-fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.58}
+#map{position:relative;z-index:1}
+.toolbar{z-index:5}
+.toolbar{overflow-x:auto;overflow-y:hidden;white-space:nowrap;padding-bottom:5px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+.toolbar::-webkit-scrollbar{height:5px}
+.toolbar::-webkit-scrollbar-thumb{background:#313844;border-radius:999px}
+.toolbar>*{flex:0 0 auto}
+.toolbar .search{flex:1 0 240px;min-width:240px}
+@media (prefers-reduced-motion: reduce){.space-fx{display:none}}
+.hub-field{
+  fill:rgba(127,179,255,.025);stroke:#334052;stroke-width:1.1;stroke-dasharray:6 8;opacity:.82;pointer-events:none
+}
+.hub-field.core-hub{fill:rgba(215,181,109,.025);stroke:#4b4332}
+.hub-label{
+  cursor:pointer;pointer-events:auto;font-weight:800
+}
+.hub-count{
+  fill:#667181;font-size:9px;pointer-events:none
+}
+.edge.hub-cross{stroke:#7fb3ff;opacity:.46;stroke-dasharray:4 5}
+.edge.hub-local{opacity:.22}
+.view-badge{
+  font-size:10px;color:#7f8997;margin-top:6px
+}
+
+
+/* v22 — constellation labels, connection stages, experimental gravity */
+.collective-constellation-label{fill:#d8dde5;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;opacity:.82;paint-order:stroke;stroke:#0b0c0f;stroke-width:4px;stroke-linejoin:round}
+.collective-constellation-sub{fill:#7f8998;font-size:9px;letter-spacing:.08em;text-transform:uppercase;pointer-events:none;opacity:.8}
+#gravityBtn.active{background:#1f2e40;border-color:#557aa6;color:#dcecff}
+.line-key{display:inline-block;width:26px;height:0;vertical-align:middle;margin-right:7px;border-top:1.5px solid #687384;opacity:.85}.line-key.strong{border-top:2px solid #a58d59}.line-key.budding{border-top:2px dotted #687384}.line-key.potential{border-top:2px dashed #687384;opacity:.58}
+
+/* v21 profile editing + sync queue + orbit mode */
+#orbitBtn.active{background:#f0d49a;color:#17130d;border-color:#f0d49a}
+#syncBtn.has-changes{border-color:#d7b56d;color:#f0d49a}
+.profile-actions{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
+.profile-actions .save{margin-top:0}
+.sync-note{font-size:11px;color:#8f99a8;line-height:1.5;margin-top:9px}
+.sync-payload{min-height:220px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.45}
+
+
+.layer-empty{position:absolute;left:50%;top:54%;transform:translate(-50%,-50%);z-index:7;width:min(430px,72%);padding:20px 22px;border:1px solid #2c323d;border-radius:16px;background:rgba(18,20,26,.92);backdrop-filter:blur(10px);text-align:center;color:#aeb6c2;box-shadow:0 14px 38px rgba(0,0,0,.22)}
+.layer-empty strong{display:block;color:#f3f4f6;font-size:16px;margin-bottom:7px}.layer-empty p{margin:0 0 13px;font-size:12px;line-height:1.55}.layer-empty button{border:0;border-radius:9px;padding:8px 11px;background:#f0d49a;color:#16130d;font-weight:800;cursor:pointer}
+.photo-edit-card{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:center;border:1px solid #2b303b;background:#171a21;border-radius:14px;padding:12px;margin-bottom:14px}.photo-edit-preview{width:120px;height:120px;border:1px dashed #3a4150;border-radius:14px;background:#111319;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#778193;font-size:11px;text-align:center}.photo-edit-preview img{width:100%;height:100%;object-fit:cover}.photo-edit-controls{display:flex;flex-direction:column;align-items:flex-start;gap:8px}.photo-upload-btn{display:inline-flex;align-items:center;justify-content:center;padding:9px 12px;border-radius:9px;background:#f0d49a;color:#17130d;font-size:12px;font-weight:800;cursor:pointer}.photo-remove-btn{margin:0}.studio-node circle{fill:#242b2a!important;stroke:#87b59a!important;stroke-width:1.6!important;stroke-dasharray:3 3}.venue-node circle{fill:#2b2630!important;stroke:#b18ac7!important;stroke-width:1.6!important;stroke-dasharray:5 3}.infra-label{fill:#aeb7c5;font-size:9px;text-transform:uppercase;letter-spacing:.08em}.entity-rate-note{font-size:10px;color:#7f8998;line-height:1.45;margin-top:8px}.viewbtn[data-view="studios"],.viewbtn[data-view="venues"]{margin-top:3px}
+.layer-empty.hidden,.layer-empty:empty{display:none!important}
+.relationship-collective-label{fill:#b7c0cd;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.55;pointer-events:none;paint-order:stroke;stroke:#0b0c0f;stroke-width:5px;stroke-linejoin:round}
+.node.band-hub circle{fill:#352f24!important;stroke:#e0c58c!important;stroke-width:2.3!important;stroke-dasharray:none!important}
+.node.studio-hub circle{fill:#1f2c29!important;stroke:#91c3a4!important;stroke-width:2.3!important;stroke-dasharray:none!important}
+.edge.membership{stroke:#9b8861;stroke-width:1.55;stroke-dasharray:none;opacity:.58}
+
+
 </style>
 </head>
 <body>
-<div class="loading" id="loading"><strong>Loading Creative Network…</strong><span>Creative Network</span></div>
+<div class="app">
+<aside class="sidebar">
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v33 · full interactive source</div>
+<button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
+<button class="viewbtn active" data-view="relationship">Relationship View</button>
+<button class="viewbtn" data-view="hubs">Creative Hubs</button>
+<button class="viewbtn" data-view="studios">Studio View</button>
+<button class="viewbtn" data-view="venues">Venue View</button>
+<div class="view-explainer" id="viewExplainer">
+  <strong>Relationship View</strong><br>
+  Who is close to you? Distance represents direct relationship strength; rings separate core, working network, and outer orbit.
+</div>
+<div class="section-title">Filters</div><button class="filter active" data-filter="All">All</button><button class="filter" data-filter="Bands & Collectives">Bands / Collectives</button><button class="filter" data-filter="God's Contraband">God's Contraband</button><button class="filter" data-filter="Writing Camps">Writing Camps</button><button class="filter" data-filter="Singer-Songwriters">Singer-Songwriters</button><button class="filter" data-filter="Musicians">Musicians</button><button class="filter" data-filter="Producers">Producers</button><button class="filter" data-filter="Visual">Visual / Management</button><button class="filter" data-filter="Rising Artists">Rising Artists</button><button class="filter" data-filter="Industry">Industry / Business</button><button class="filter" data-filter="Places">Venues / Places</button>
+<div class="section-title">Legend</div><div class="legend"><div><span class="dot gold"></span>Core/direct relationship</div><div><span class="dot blue"></span>Bridge / connector</div><div><span class="dot green"></span>Hub / infrastructure</div><div style="margin-top:7px"><span class="line-key strong"></span>Established / strong</div><div><span class="line-key budding"></span>Budding connection</div><div><span class="line-key potential"></span>Potential connection</div></div>
+<div class="section-title">Weekly Review</div><div class="small">Use your Tuesday check-in to refresh social links, photos, releases, sessions, and map relationships.</div>
+</aside>
+<main class="main"><canvas id="spaceFx" class="space-fx" aria-hidden="true"></canvas><div class="toolbar"><button class="icon-btn" id="toggleLeft" title="Hide/show navigation">☰</button><input id="search" class="search" placeholder="Search people, roles, hubs..." /><div class="pill" id="status">Relationship view</div><button class="add-btn" id="addProfile">＋ Profile</button><button class="ai-toggle" id="aiToggle">Ask Network</button><button class="version-btn" id="orbitBtn" title="Orbit visible profiles clockwise around uh_sar">◎ Orbit</button><button class="version-btn" id="gravityBtn" title="Experimental: connected profiles exert a subtle pull in Orbit mode">◌ Gravity</button><button class="version-btn" id="syncBtn" title="Review profile changes waiting to sync">↗ Sync<span id="syncCount"></span></button><button class="version-btn" id="versionLogBtn">History</button><button class="version-btn" id="talkEditBtn">Talk + Edit</button><button class="icon-btn" id="toggleRight" title="Hide/show profile panel">◧</button><button class="icon-btn" id="focusMode" title="Toggle full map">⛶</button><div class="zoom-controls"><button class="zoom-btn" id="zoomOut" title="Zoom out">−</button><button class="zoom-btn" id="zoomReset" title="Reset map">↺</button><button class="zoom-btn" id="zoomIn" title="Zoom in">+</button></div></div><svg id="map" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet"><g id="viewport"></g></svg>
+<div class="ai-panel hidden" id="aiPanel">
+  <div class="ai-head">
+    <strong>Network Intelligence</strong>
+    <span>Local prototype · grounded in your map data</span>
+  </div>
+  <div class="ai-body">
+    <div class="ai-row">
+      <input class="ai-input" id="aiInput" placeholder="Ask about collaborators, hubs, skills, or connections..." />
+      <button class="ai-send" id="aiSend">Ask</button>
+    </div>
+    <div class="ai-suggestions">
+      <button class="ai-suggestion">Who should I invite to a writing camp for Free?</button>
+      <button class="ai-suggestion">Who connects me to the TDE orbit?</button>
+      <button class="ai-suggestion">Who produces and plays keys?</button>
+      <button class="ai-suggestion">Show me my strongest bridge nodes.</button>
+    </div>
+    <div class="ai-answer" id="aiAnswer">
+      <p>Ask a question. The demo will answer from the collaborator data already in this map.</p>
+    </div>
+  </div>
+</div>
+<div class="layer-empty hidden" id="layerEmpty"></div>
+
+</main>
+<aside class="profile" id="profile"><div class="empty">Select someone on the map to open their profile.</div></aside>
+</div>
+
+
+<div class="convo-panel hidden" id="convoPanel">
+  <div class="convo-headline">
+    <div>
+      <strong>Talk + Edit</strong>
+      <div class="convo-status"><span class="live-dot"></span>Demo command interpreter active</div>
+    </div>
+    <button class="convo-close" id="closeConvoPanel">×</button>
+  </div>
+  <div class="convo-tabs">
+    <button class="convo-tab active" data-convo-mode="edit">Modify Network</button>
+    <button class="convo-tab" data-convo-mode="help">What can I say?</button>
+  </div>
+  <div class="convo-body">
+    <div class="convo-log" id="convoLog">
+      <div class="msg system">
+        Talk to the network like you talk to ChatGPT. In this static demo I can execute a limited set of local commands.
+        The production version would send the request to the real AI layer, show the proposed changes, and write them to the database.
+      </div>
+    </div>
+    <div class="convo-input-row">
+      <input class="convo-input" id="convoInput" placeholder='Try: "Move Baw$ closer to Addae"'>
+      <button class="convo-send" id="convoSend">Send</button>
+    </div>
+    <div class="command-examples" id="commandExamples">
+      <button class="command-chip">Move Baw$ closer to Addae</button>
+      <button class="command-chip">Change Cam's role to Drummer / Multi-instrumentalist</button>
+      <button class="command-chip">Add IPI 123456789 to Balam</button>
+      <button class="command-chip">Show only musicians</button>
+      <button class="command-chip">Hide the right sidebar</button>
+    </div>
+    <div class="undo-bar">
+      <span>Changes in this prototype are local to this browser.</span>
+      <button class="undo-btn" id="undoLastChange">Undo last change</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-backdrop hidden" id="versionModal">
+  <div class="modal">
+    <div class="modal-head"><h2>Creative Network History</h2><button class="close-modal" id="closeVersionModal">×</button></div>
+    <div class="modal-body"><div id="historyList"></div></div>
+  </div>
+</div>
+
+<div class="modal-backdrop hidden" id="profileModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Add to Creative Network</h2>
+      <button class="close-modal" id="closeProfileModal">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Profile type</label>
+          <select id="newProfileType">
+            <option value="musician">Artist / Musician</option>
+            <option value="collective">Band / Collective</option>
+            <option value="filmmaker">Filmmaker / Visual</option>
+            <option value="manager">Manager / Agent</option>
+            <option value="promoter">Promoter / Booker</option>
+            <option value="venue">Venue / Place</option>
+            <option value="studio">Studio / Resource</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Name / Entity name</label>
+          <input id="newName" placeholder="Name">
+        </div>
+        <div class="form-field">
+          <label>Primary role</label>
+          <input id="newRole" placeholder="e.g. Drummer / Producer">
+        </div>
+        <div class="form-field">
+          <label>Hub / Scene</label>
+          <input id="newHub" placeholder="e.g. LA R&B orbit">
+        </div>
+        <div class="form-field full">
+          <label>How are you connected?</label>
+          <textarea id="newRelationship" placeholder="Introduced by..., worked together on..., met at..."></textarea>
+        </div>
+        <div class="form-field full">
+          <label>Public link</label>
+          <input id="newLink" placeholder="Instagram, website, Spotify, reel, venue page...">
+        </div>
+      </div>
+
+      <div class="dynamic-section">
+        <div class="dynamic-title" id="dynamicTitle">Music profile</div>
+        <div class="form-grid" id="dynamicFields"></div>
+      </div>
+      <div class="type-help">This is a prototype onboarding flow. Different profile types ask different questions instead of forcing everyone into the same form.</div>
+
+      <div class="modal-actions">
+        <button class="secondary-btn" id="cancelProfile">Cancel</button>
+        <button class="primary-btn" id="saveProfile">Add to Map</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop hidden" id="editProfileModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Edit profile</h2>
+      <button class="close-modal" id="closeEditProfileModal">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editProfileId">
+      <div class="photo-edit-card">
+        <div class="photo-edit-preview" id="editPhotoPreview"><span>No profile photo</span></div>
+        <div class="photo-edit-controls">
+          <label class="photo-upload-btn">Upload profile picture<input type="file" id="editPhotoFile" accept="image/*" hidden></label>
+          <button class="secondary-btn photo-remove-btn" id="removeProfilePhoto" type="button">Remove photo</button>
+          <div class="type-help" id="editPhotoStatus">In this prototype, uploaded images are resized and stored only in this browser. They are not uploaded to the public GitHub repo.</div>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-field"><label>Name</label><input id="editName"></div>
+        <div class="form-field"><label>Artist / public name</label><input id="editArtistName"></div>
+        <div class="form-field"><label>Primary role</label><input id="editRole"></div>
+        <div class="form-field"><label>Hub / scene</label><input id="editHub"></div>
+        <div class="form-field full"><label>Tags / filters</label><input id="editTags" placeholder="Musicians, Producers, Writing Camps"></div>
+        <div class="form-field full"><label>Profile / relationship context</label><textarea id="editBio"></textarea></div>
+        <div class="form-field"><label>Instagram</label><input id="editInstagram" placeholder="https://instagram.com/..."></div>
+        <div class="form-field"><label>Spotify / primary music link</label><input id="editSpotify" placeholder="https://open.spotify.com/..."></div>
+        <div class="form-field"><label>PRO</label><input id="editPRO" placeholder="ASCAP / BMI / SESAC"></div>
+        <div class="form-field"><label>IPI / CAE</label><input id="editIPI"></div>
+        <div class="form-field"><label>Legal writer name</label><input id="editLegalName"></div>
+        <div class="form-field"><label>Publisher / admin</label><input id="editPublisher"></div>
+      </div>
+      <div class="dynamic-section hidden" id="editEntitySection">
+        <div class="dynamic-title" id="editEntityTitle">Entity details</div>
+        <div class="form-grid" id="editEntityFields"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="secondary-btn" id="cancelEditProfile">Cancel</button>
+        <button class="primary-btn" id="saveProfileEdits">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop hidden" id="syncModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Sync network changes</h2>
+      <button class="close-modal" id="closeSyncModal">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="syncSummary" class="type-help"></div>
+      <textarea id="syncPayload" class="sync-payload" readonly></textarea>
+      <div class="sync-note">The current GitHub demo cannot write directly into this ChatGPT conversation. It keeps a local change queue now; copy this packet into our chat. Once the private backend is connected, this same queue can sync automatically.</div>
+      <div class="modal-actions">
+        <button class="secondary-btn" id="markSynced">Mark synced</button>
+        <button class="primary-btn" id="copySyncPayload">Copy update packet</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-(async()=>{
-  const files=['legacy/v21parts/p1a.b64','legacy/v21parts/p1b.b64','legacy/v21parts/p2.b64','legacy/v21parts/p3.b64','legacy/v21parts/p4.b64'];
-  const parts=[];
-  for(const file of files){
-    const url=new URL(file,location.href);
-    url.searchParams.set('v','32-2-group-registry');
-    const response=await fetch(url,{cache:'no-store'});
-    if(!response.ok)throw new Error(file+' returned '+response.status);
-    parts.push((await response.text()).trim());
-  }
-  const binary=atob(parts.join(''));
-  const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
-  if(typeof DecompressionStream==='undefined')throw new Error('This browser does not support gzip decompression');
-  const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-  let html=await new Response(stream).text();
-  html=html.replace('</body>','<script src="canonical.js?v=32-2-group-registry"><\\/script></body>');
-  document.open();
-  document.write(html);
-  document.close();
-})().catch(err=>{
-  const el=document.getElementById('loading');
-  el.innerHTML='<strong>Could not load Creative Network.</strong><span>'+String(err.message||err)+'</span>';
-  console.error(err);
+const nodes=[
+{id:"uh_sar",name:"uh_sar",role:"Producer / Artist / Director",type:"core",r:34,tags:["All","God's Contraband"],hub:"Center",bio:"Central creative node: producer, artist, arranger, multi-instrumentalist, and creative director. Co-founder and executive producer of God's Contraband."},
+{id:"addae",name:"Addae",role:"Manager / Visuals",profileType:"manager",organization:"Independent / artist support",type:"core",r:25,tags:["All","Visual"],hub:"Visual / Management",bio:"Brother, unofficial manager, visual collaborator, connector, and production support."},
+{id:"jordan",name:"Jordan Betine",profileType:"filmmaker",visualRoles:"Director / filmmaker",photo:"https://static.wixstatic.com/media/63aeba_5e50224cec7146ba8471d90fe49218d7~mv2.jpg/v1/fill/w_321%2Ch_343%2Cal_c%2Cq_80%2Cusm_0.66_1.00_0.01%2Cenc_avif%2Cquality_auto/63aeba_5e50224cec7146ba8471d90fe49218d7~mv2.jpg",role:"Director / Film",type:"person",r:19,tags:["All","Visual"],hub:"Visual / Management",bio:"Friend and filmmaker. Current visual collaborator on Unstoppable."},
+{id:"cam",name:"Cam",role:"Singer / Multi-inst.",profileType:"musician",instruments:"Drums, percussion, bass, multi-instrumentalist",genres:"Singer-songwriter / contemporary R&B adjacent",type:"bridge",r:28,tags:["All","Musicians","Singer-Songwriters","Writing Camps","God's Contraband"],hub:"Professor What Trio",bio:"Elite drummer and multi-instrumentalist with strong musical instincts. Singer-songwriter with significant unreleased material."},
+{id:"balam",name:"Balam",role:"Guitar / Bass",profileType:"musician",instruments:"Guitar, bass",genres:"R&B / live-band / songwriting",type:"person",r:24,tags:["All","Musicians","Writing Camps","God's Contraband"],hub:"Professor What Trio",bio:"Guitarist, bassist, composer and arranger. Strong writing-session fit with Cam, Free and uh_sar."},
+{id:"drew",name:"Drew",role:"Bass / Producer",profileType:"musician",instruments:"Bass, multi-instrumentalist",genres:"Production / live musicianship",type:"person",r:23,tags:["All","Musicians","Producers"],hub:"Professor What Trio",bio:"Elite musician, bassist, producer, engineer and multi-instrumentalist."},
+{id:"free",name:"Free",role:"Singer / Writer",type:"bridge",r:29,tags:["All","Singer-Songwriters","Writing Camps","God's Contraband","Rising Artists"],hub:"Delaware–Philly",bio:"Singer and writer with strong natural rhythm. Core bridge between God's Contraband and the Delaware/Philly artist scene.",links:{Spotify:"https://open.spotify.com/artist/4twpepGEgW66i8ZkhEg6yW"}},
+{id:"zeke",name:"ZekeUltra",photo:"https://dice-media.imgix.net/attachments/2024-03-26/57b7632a-43e5-400b-b1f7-19b8cf1cc09d.jpg?auto=format%2Ccompress&crop=faces%2Ccenter&fit=crop&h=722&q=80&rect=0%2C55%2C530%2C530&w=722",role:"Artist / Writer",type:"person",r:22,tags:["All","Rising Artists"],hub:"Delaware–Philly",bio:"Artist and writer, close friend/collaborator of Free, connected to the Delaware and Philly scene.",links:{Spotify:"https://open.spotify.com/artist/66rjQYZAzWZ9n933ytcoTg"}},
+{id:"camille",name:"Camille",role:"Songwriter",type:"core",r:25,tags:["All","Singer-Songwriters","Writing Camps"],hub:"R&B Writing Orbit",bio:"Good friend and developing songwriting partner focused on R&B writing and outside placements."},
+{id:"brit",name:"Brit",role:"R&B Artist",type:"person",r:21,tags:["All","Rising Artists"],hub:"R&B Writing Orbit",bio:"R&B artist in Camille's wider social/creative circle. Warm potential collaboration path.",links:{Spotify:"https://open.spotify.com/artist/2MdJ6HaAJ9lvopGsirEuz6"}},
+{id:"okay",name:"okay coleman!",photo:"https://i1.sndcdn.com/avatars-slswcIB5dHX2z29T-w2jjXw-t1080x1080.jpg",role:"Artist / Producer",type:"person",r:19,tags:["All","Rising Artists","Producers"],hub:"R&B Writing Orbit",bio:"Alternative R&B / indie soul artist and producer in an adjacent warm network.",links:{Spotify:"https://open.spotify.com/artist/2kAc58JeMNRXTVm3sVHrSN"}},
+{id:"sockjus",name:"Sockjus",photo:"https://24hip-hop.com/wp-content/uploads/2025/01/016_15-scaled-e1738371261615.jpg",role:"Artist",type:"bridge",r:25,tags:["All","Rising Artists"],hub:"Baw$ / Sockjus Orbit",bio:"Artist, collaborator and live performer. Around 25–26. Moving into a creative house with John and Baw$.",links:{Instagram:"https://www.instagram.com/sockjus_/",Spotify:"https://open.spotify.com/artist/00N2uEeIU49XMhjJmduP3Y"}},
+{id:"john",name:"John",role:"Multi-inst. / Producer",type:"person",r:22,tags:["All","Musicians","Producers","Writing Camps"],hub:"Baw$ / Sockjus Orbit",bio:"Guitarist, producer and multi-instrumentalist. Close collaborator of Sockjus and part of the new house with Baw$."},
+{id:"baws",name:"Baw$",role:"Producer / Artist / Hub",type:"hubnode",r:29,tags:["All","Producers","Rising Artists","Writing Camps"],hub:"Baw$ / Sockjus Orbit",bio:"Producer, artist and connector. Moving into a house with Sockjus and John. Has meaningful firsthand industry access and is connected to The Company / A Room Full of Mirrors orbit.",links:{Instagram:"https://www.instagram.com/baws._/"}},
+{id:"mempho",name:"Mempho",role:"Producer / Rapper / Drums",profileType:"musician",instruments:"Drums, keys",genres:"Hip-hop / melodic / production",type:"bridge",r:27,tags:["All","Producers","Musicians","Writing Camps","Rising Artists"],hub:"Baw$ / Sockjus Orbit",bio:"Around 26–27. Berklee School of Music background in drums. Unique rapper and versatile producer with strong swing/feel; also finds beautiful chords on keys. Sitting on an unreleased singing-based project that uh_sar thinks may be his strongest sound."},
+{id:"nick",name:"Nick Bison",role:"Versatile Artist",type:"person",r:20,tags:["All","Rising Artists"],hub:"Baw$ / Sockjus Orbit",bio:"Versatile artist, close friend and collaborator of Baw$ in the same creative orbit.",links:{Instagram:"https://www.instagram.com/nick.bison/"}},
+{id:"jonah",name:"Jonah",role:"Multi-inst. / Engineer",profileType:"musician",resources:"Recording studio, engineering, multi-instrumentalist",type:"hubnode",r:24,tags:["All","Musicians","Producers","Writing Camps"],hub:"Jonah Studio",bio:"Multi-instrumentalist, vocalist, recording engineer and songwriter. Recently opened his own studio with a friend."},
+{id:"joel",name:"Joel",role:"Trumpet / Horns",profileType:"musician",instruments:"Trumpet, woodwinds",genres:"Horns / studio / live",type:"hubnode",r:23,tags:["All","Musicians"],hub:"Joel's DTLA Studio",bio:"Elite musician, horn specialist and engineer with a DTLA studio loft. Best treated as a specialist/hired gun."},
+{id:"chris",name:"Chris",role:"Keys / Musician",profileType:"musician",instruments:"Keys",genres:"Live / band",type:"person",r:24,tags:["All","Musicians","God's Contraband"],hub:"God's Contraband",bio:"Elite keyboardist for God's Contraband. Fuller biography still needed."},
+{id:"dante",name:"Dante",role:"Rapper / Writer",type:"core",r:25,tags:["All","God's Contraband"],hub:"God's Contraband",bio:"Core/founding God's Contraband collaborator, rapper, lyricist and live creative partner."},
+{id:"diontae",name:"Diontae",artistName:"Son",role:"Rapper",profileType:"musician",genres:"Hip-hop / rap",type:"person",r:21,tags:["All","God's Contraband"],hub:"God's Contraband",bio:"Rapper in God's Contraband. Detailed profile still to be developed.",links:{Instagram:"https://www.instagram.com/diontaes1mpson/"}},
+{id:"solomon",name:"Solomon",role:"Artist / Collaborator",type:"person",r:21,tags:["All","Writing Camps"],hub:"Independent",hubAnchor:"God's Contraband",periphery:true,bio:"Contributor to God's Contraband, but not a member of the group. Part of Ausar's broader creative network and a future writing-room candidate; specific role details still need to be filled in."}
+,{id:"gods_contraband_group",name:"God's Contraband",role:"Band / Collective",profileType:"collective",collectiveType:"Band / creative collective",status:"Active",members:"Core roster still being defined in the app",founders:"uh_sar + Dante",type:"hubnode",r:30,tags:["All","Bands & Collectives"],hub:"God's Contraband",bio:"Band and creative collective co-founded by uh_sar and Dante. This profile represents the collective itself, separate from the individual collaborators and contributors around it."}
+,{id:"professor_what_group",name:"Professor What Trio",role:"Band / Trio",profileType:"collective",collectiveType:"Trio",status:"Active",members:"Balam · Cam · Drew",type:"hubnode",r:28,tags:["All","Bands & Collectives"],hub:"Professor What Trio",bio:"Three-person music group made up of Balam, Cam, and Drew. The group can now be tracked as its own creative entity in addition to the individual member profiles."}
+
+,{id:"studio_downtown_rehearsals",name:"Downtown Rehearsals",role:"Rehearsal / Recording Space",profileType:"studio",type:"hubnode",r:23,tags:["All","Studios"],hub:"Studio Spaces",location:"Downtown Los Angeles",capacity:"About 10 people max",access:"Access currently comes through Balam",availability:"Private / by arrangement",frequentPeople:"Balam · uh_sar · Dante · Drew (historical) · God's Contraband",resources:"Drums · multiple guitar amps · multiple bass amps · 16-channel Focusrite setup",rates:"TBD",history:"Balam has rented the room for more than a decade. Dante used to share the lease. Drew was also a long-time tenant. Most of God's Contraband was recorded here.",bio:"Long-running rehearsal and recording room central to the God's Contraband recording process. Public demo intentionally keeps the exact address private."}
+,{id:"studio_the_school",name:"The School",role:"Private Creative / Rehearsal Room",profileType:"studio",type:"hubnode",r:24,tags:["All","Studios"],hub:"Studio Spaces",location:"Los Angeles",capacity:"Roughly 3× the size of Downtown Rehearsals",access:"uh_sar controls access",availability:"Weekdays after 5 PM to avoid disrupting students",frequentPeople:"uh_sar · Free · Solomon",resources:"Fender Jazz Bass · Fender Telecaster · 64-key Nord (organ / piano / synth sections) · 2 medium KRK monitors · Akai MPC Mini · Solomon's bass · Solomon's microphone",rates:"Private / not commercially priced",history:"uh_sar and Free work here often. Solomon has also used the room; sessions have been less frequent while Solomon is in rollout mode.",bio:"Large second-floor creative room at the family school. Public demo intentionally omits the street address."}
+,{id:"studio_drew_hollywood",name:"Drew's Hollywood Studio",role:"Recording / Creative Studio",profileType:"studio",type:"hubnode",r:22,tags:["All","Studios"],hub:"Studio Spaces",location:"Hollywood, Los Angeles",capacity:"TBD",access:"Drew primary; Cam shares the space; Balam also uses it",availability:"TBD",frequentPeople:"Drew · Cam · Balam",resources:"Equipment inventory still needs to be mapped",rates:"TBD",history:"Drew moved into his own Hollywood studio after being a long-time Downtown Rehearsals tenant.",bio:"Hollywood studio used by Drew, Cam, and Balam. Equipment, capacity, and access details still need to be fleshed out."}
+,{id:"studio_jonah",name:"Jonah's Studio",role:"Recording Studio",profileType:"studio",type:"hubnode",r:21,tags:["All","Studios"],hub:"Studio Spaces",location:"TBD",capacity:"TBD",access:"Jonah",availability:"TBD",frequentPeople:"Jonah",resources:"TBD — needs an exploratory visit / conversation",rates:"TBD",history:"Known studio resource in Jonah's orbit; details are not mapped yet.",bio:"Studio to explore further. Equipment, room details, access, and regular collaborators are still open questions."}
+,{id:"studio_diontae_inglewood",name:"Diontae's Inglewood Space",role:"Private Recording / Rehearsal Space",profileType:"studio",type:"hubnode",r:21,tags:["All","Studios"],hub:"Studio Spaces",location:"Inglewood, California",capacity:"TBD",access:"Diontae",availability:"By arrangement",frequentPeople:"Diontae · God's Contraband",resources:"Equipment inventory still needs to be mapped",rates:"Private / TBD",history:"God's Contraband uses the space from time to time.",bio:"Private Inglewood creative space associated with Diontae. Exact residential details are intentionally excluded from the public demo."}
+
+,{id:"isis",name:"Isis / ICE9",artistName:"ICE9",role:"Rapper / Visual Artist",profileType:"musician",instruments:"Voice; multidisciplinary visual practice",genres:"Hip-hop / multidisciplinary art",type:"bridge",r:24,tags:["All","Rising Artists","Visual"],hub:"LA Visual Art Scene",bio:"Rapper, painter, graffiti artist and sculptor. Connected to Free and ZekeUltra; potential future art-gallery / live-show collaborator.",links:{Instagram:"https://www.instagram.com/handofisis?stkn=NjZqcWVhbnZ2dG14",Partiful:"https://partiful.com/e/cI43ocb5DeayrLzwQbko?c=Byft4AfX"}}
+,{id:"venue_gold_diggers",name:"Gold-Diggers",role:"Live Music Venue",profileType:"venue",type:"hubnode",r:28,tags:["All","Places"],hub:"East Hollywood",location:"5632 Santa Monica Blvd, Los Angeles, CA 90038",capacity:"175",bookingContact:"bookinginfo@gold-diggers.com",warmConnection:"Brit + okay coleman! recently performed here",audienceFit:"Intimate live sets, showcases, emerging artists, industry-facing room",potentialShowNotes:"Potential future God's Contraband / Light Show room; warm path through Brit and okay coleman!",links:{Website:"https://gold-diggers.com/"},bio:"East Hollywood live-music venue, bar, hotel and recording complex."}
+
+];
+
+// Load locally-added prototype profiles.
+const localProfiles=JSON.parse(localStorage.getItem("creativeNetworkCustomProfiles")||"[]");
+localProfiles.forEach(p=>{ if(!nodes.some(n=>n.id===p.id)) nodes.push(p); });
+
+function isCollectiveEntity(n){
+  if(!n)return false;
+  const name=String(n.name||"").trim().toLowerCase();
+  const role=String(n.role||"").trim().toLowerCase();
+  return n.profileType==="collective" || n.type==="collective" || !!n.collectiveType ||
+    name==="god's contraband" || name==="gods contraband" || name==="professor what trio" ||
+    role.includes("band / collective") || role.includes("band / trio") || role==="band" || role==="collective" || role==="trio";
+}
+nodes.forEach(n=>{if(isCollectiveEntity(n))n.profileType="collective"});
+const canonicalGroups={"god's contraband":"gods_contraband_group","gods contraband":"gods_contraband_group","professor what trio":"professor_what_group"};
+for(let i=nodes.length-1;i>=0;i--){
+  const n=nodes[i],key=String(n?.name||"").trim().toLowerCase();
+  const keep=canonicalGroups[key];
+  if(keep && n.id!==keep)nodes.splice(i,1);
+}
+
+const edges=[["uh_sar","addae","strong"],["addae","jordan","strong"],["addae","sockjus","strong"],["addae","baws","strong"],["uh_sar","cam","strong"],["uh_sar","balam","strong"],["uh_sar","free","strong"],["uh_sar","camille","strong"],["uh_sar","sockjus","strong"],["uh_sar","dante","strong"],["uh_sar","chris","strong"],["uh_sar","jonah","strong"],["uh_sar","joel","strong"],["cam","balam","strong"],["cam","drew","strong"],["balam","drew","strong"],["free","zeke","strong"],["camille","brit","strong"],["brit","okay","future"],["camille","okay","future"],["sockjus","john","strong"],["sockjus","baws","strong"],["baws","john","strong"],["baws","mempho","strong"],["baws","nick","strong"],["mempho","nick","strong"],["sockjus","mempho","strong"],["uh_sar","mempho",""],["uh_sar","john",""],["uh_sar","baws",""],["uh_sar","diontae",""],["uh_sar","solomon",""],["free","cam","future"],["free","balam","future"],["mempho","camille","future"],["mempho","free","future"],["uh_sar","isis","budding"],["free","isis","strong"],["zeke","isis","budding"],["venue_gold_diggers","brit","strong"],["venue_gold_diggers","okay","strong"],["gods_contraband_group","uh_sar","strong"],["gods_contraband_group","dante","strong"],["professor_what_group","cam","strong"],["professor_what_group","balam","strong"],["professor_what_group","drew","strong"],
+["studio_downtown_rehearsals","balam","strong"],["studio_downtown_rehearsals","uh_sar","strong"],["studio_downtown_rehearsals","dante","strong"],["studio_downtown_rehearsals","drew","budding"],
+["studio_the_school","uh_sar","strong"],["studio_the_school","free","strong"],["studio_the_school","solomon","budding"],
+["studio_drew_hollywood","drew","strong"],["studio_drew_hollywood","cam","strong"],["studio_drew_hollywood","balam","strong"],
+["studio_jonah","jonah","strong"],["studio_diontae_inglewood","diontae","strong"],["studio_diontae_inglewood","uh_sar","budding"]];
+// Explicit membership edges are visible only when the Bands / Collectives filter exposes the group nodes.
+nodes.filter(isCollectiveEntity).forEach(c=>{
+  collectiveMembers(c).forEach(m=>{
+    if(!edges.some(([a,b])=>(a===c.id&&b===m.id)||(a===m.id&&b===c.id)))edges.push([c.id,m.id,"membership"]);
+  });
 });
-</script>
-</body>
-</html>
+const relationshipPos={uh_sar:[500,360],addae:[330,215],jordan:[200,145],cam:[590,185],balam:[690,220],drew:[790,150],free:[650,355],zeke:[820,335],camille:[360,505],brit:[215,570],okay:[120,650],sockjus:[710,545],john:[820,565],baws:[860,470],mempho:[760,455],nick:[925,585],jonah:[535,600],joel:[430,650],chris:[475,155],dante:[390,165],diontae:[285,315],solomon:[600,290],gods_contraband_group:[455,95],professor_what_group:[755,95],studio_downtown_rehearsals:[295,245],studio_the_school:[690,500],studio_drew_hollywood:[355,555],studio_jonah:[775,245],studio_diontae_inglewood:[735,155],isis:[865,390],venue_gold_diggers:[500,330]};
+localProfiles.forEach((p,i)=>{
+  if(!relationshipPos[p.id]){
+    const a=(i*1.7)+.8,rad=150+(i%3)*35;
+    relationshipPos[p.id]=[500+Math.cos(a)*rad,360+Math.sin(a)*rad];
+  }
+})
+
+const hubCenters={Center:[500,360],"Visual / Management":[180,170],"Professor What Trio":[720,155],"Delaware–Philly":[825,320],"R&B Writing Orbit":[200,560],"Baw$ / Sockjus Orbit":[815,560],"Jonah Studio":[560,625],"Joel's DTLA Studio":[420,640],"God's Contraband":[470,190]};
+const offsets={},hubCounts={};nodes.forEach(n=>{hubCounts[n.hub]=(hubCounts[n.hub]||0)+1;const i=hubCounts[n.hub]-1,a=i*2.2,r=n.hub==="Center"?0:42+(i%2)*12;offsets[n.id]=[Math.cos(a)*r,Math.sin(a)*r]});let currentView="relationship",currentFilter="All",selected=null,selectedFocusId=null;const svg=document.getElementById("map"),viewport=document.getElementById("viewport"),ns="http://www.w3.org/2000/svg";function make(tag,attrs={}){
+  const el=document.createElementNS(ns,tag);
+  Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));
+  return el;
+}
+const studioHubCenters={
+  studio_downtown_rehearsals:[245,235],
+  studio_drew_hollywood:[505,185],
+  studio_jonah:[770,240],
+  studio_the_school:[330,525],
+  studio_diontae_inglewood:[700,520]
+};
+function hashUnit(str){
+  let h=2166136261;
+  for(const ch of String(str)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}
+  return((h>>>0)%10000)/10000;
+}
+function collectiveMembers(c){
+  if(!c)return[];
+  return nodes.filter(n=>{
+    if(!n||isCollectiveEntity(n)||n.profileType==="studio"||n.profileType==="venue")return false;
+    if(c.hub==="God's Contraband")return n.id!=="solomon" && ((n.tags||[]).includes("God's Contraband")||n.hub==="God's Contraband"||n.id==="uh_sar");
+    if(c.hub==="Professor What Trio")return ["cam","balam","drew"].includes(n.id);
+    const listed=String(c.members||"").split(/[·,;|]/).map(x=>x.trim().toLowerCase()).filter(Boolean);
+    const names=[n.id,n.name,n.artistName].filter(Boolean).map(x=>String(x).toLowerCase());
+    return (listed.length&&names.some(x=>listed.includes(x))) || n.hub===c.hub || (n.tags||[]).includes(c.name);
+  });
+}
+function collectiveMembershipsFor(n){
+  if(!n||isCollectiveEntity(n))return[];
+  return nodes.filter(c=>isCollectiveEntity(c)&&collectiveMembers(c).some(m=>m.id===n.id));
+}
+function studioConnectionsFor(n){
+  const studioIds=new Set(nodes.filter(x=>x.profileType==="studio").map(x=>x.id));
+  return edges.flatMap(([a,b])=>{
+    if(a===n.id&&studioIds.has(b))return[nodes.find(x=>x.id===b)];
+    if(b===n.id&&studioIds.has(a))return[nodes.find(x=>x.id===a)];
+    return[];
+  }).filter(Boolean);
+}
+function bandHubCenter(c,index,total){
+  if(total<=1)return[500,360];
+  const angle=-Math.PI/2+(index/total)*Math.PI*2;
+  return[500+Math.cos(angle)*205,360+Math.sin(angle)*145];
+}
+function pos(n){
+  if(currentView==="studios"){
+    if(n.profileType==="studio")return studioHubCenters[n.id]||relationshipPos[n.id]||[500,360];
+    const linked=studioConnectionsFor(n);
+    if(linked.length){
+      const centers=linked.map(s=>studioHubCenters[s.id]||relationshipPos[s.id]||[500,360]);
+      const cx=centers.reduce((a,p)=>a+p[0],0)/centers.length;
+      const cy=centers.reduce((a,p)=>a+p[1],0)/centers.length;
+      const angle=hashUnit(n.id)*Math.PI*2;
+      const radius=linked.length===1?82:34;
+      return[cx+Math.cos(angle)*radius,cy+Math.sin(angle)*radius];
+    }
+  }
+  if(currentView==="relationship"&&currentFilter==="Bands & Collectives"){
+    const groups=nodes.filter(isCollectiveEntity);
+    if(isCollectiveEntity(n)){
+      const i=groups.findIndex(x=>x.id===n.id);
+      return bandHubCenter(n,Math.max(0,i),Math.max(1,groups.length));
+    }
+    const memberships=collectiveMembershipsFor(n);
+    if(memberships.length){
+      const centers=memberships.map(c=>bandHubCenter(c,groups.findIndex(x=>x.id===c.id),groups.length));
+      const cx=centers.reduce((a,p)=>a+p[0],0)/centers.length;
+      const cy=centers.reduce((a,p)=>a+p[1],0)/centers.length;
+      const angle=hashUnit(n.id)*Math.PI*2;
+      const radius=memberships.length===1?105:45;
+      return[cx+Math.cos(angle)*radius,cy+Math.sin(angle)*radius];
+    }
+  }
+  if(currentView!=="hubs")return relationshipPos[n.id]||[500,360];
+  const anchor=n.hubAnchor||n.hub;
+  const c=hubCenters[anchor]||[500,360],o=offsets[n.id]||[0,0];
+  const scale=n.periphery?1.9:1;
+  return[c[0]+o[0]*scale,c[1]+o[1]*scale];
+}
+function visibleNode(n){
+  if(!n)return false;
+  const q=document.getElementById("search").value.trim().toLowerCase();
+  const searchHay=[n.name,n.role,n.hub,n.bio,n.location,n.resources,n.frequentPeople,n.history,n.bookingContact,n.talentBuyer,n.audienceFit,n.potentialShowNotes].filter(Boolean).join(" ").toLowerCase();
+  const searchOk=!q||searchHay.includes(q);
+
+  // Bands are hidden as bubbles in ordinary views, but become explicit hubs in the Bands filter.
+  if(isCollectiveEntity(n))return currentView==="relationship"&&currentFilter==="Bands & Collectives"&&searchOk;
+
+  // Infrastructure is hidden from ordinary relationship/hub views.
+  if(n.profileType==="studio")return currentView==="studios"&&searchOk;
+  if(n.profileType==="venue")return currentView==="venues"&&searchOk;
+
+  if(currentView==="studios")return studioConnectionsFor(n).length>0&&searchOk;
+  if(currentView==="venues"){
+    const venueIds=new Set(nodes.filter(x=>x.profileType==="venue").map(x=>x.id));
+    const linked=edges.some(([a,b])=>(venueIds.has(a)&&b===n.id)||(venueIds.has(b)&&a===n.id));
+    return linked&&searchOk;
+  }
+
+  const filterOk=currentFilter==="Bands & Collectives"
+    ? collectiveMembershipsFor(n).length>0
+    : currentFilter==="All"||(n.tags||[]).includes(currentFilter);
+  return filterOk&&searchOk;
+}
+
+let filterDriftStartedAt=0;
+const filterDriftVectors={};
+let orbitMode=false,orbitStartedAt=0;
+let gravityMode=false;
+const orbitConfig={};
+const collectiveLabelEls=[];
+function triggerFilterDrift(){
+  filterDriftStartedAt=performance.now();
+  Object.keys(filterDriftVectors).forEach(k=>delete filterDriftVectors[k]);
+  const visible=nodes.filter(visibleNode);
+  visible.forEach(n=>{
+    if(visible.length<2){filterDriftVectors[n.id]=[0,0];return;}
+    const [x,y]=pos(n);
+    let nearest=null,nearestD=Infinity;
+    visible.forEach(other=>{
+      if(other.id===n.id)return;
+      const [ox,oy]=pos(other),dx=ox-x,dy=oy-y,d=Math.hypot(dx,dy);
+      if(d<nearestD){nearestD=d;nearest=[dx,dy];}
+    });
+    if(!nearest||nearestD<1){filterDriftVectors[n.id]=[0,0];return;}
+    const strength=n.id==="uh_sar"?8:14;
+    filterDriftVectors[n.id]=[nearest[0]/nearestD*strength,nearest[1]/nearestD*strength];
+  });
+}
+function filterDriftOffset(n,now){
+  const v=filterDriftVectors[n.id];
+  if(!v||!filterDriftStartedAt)return[0,0];
+  const age=now-filterDriftStartedAt;
+  if(age>3200)return[0,0];
+  const rise=Math.min(1,age/650),fall=age<1900?1:Math.max(0,1-(age-1900)/1300);
+  const ease=(1-Math.pow(1-rise,3))*fall;
+  return[v[0]*ease,v[1]*ease];
+}
+
+const motionState={};
+const edgeEls=[];
+let motionRAF=null,lastMotionTime=performance.now();
+
+function seededNumber(str,salt=0){
+  let h=2166136261^salt;
+  for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}
+  return((h>>>0)%10000)/10000;
+}
+function ensureMotionState(n){
+  if(motionState[n.id]) return motionState[n.id];
+  const [bx,by]=pos(n);
+  const r1=seededNumber(n.id,11),r2=seededNumber(n.id,29),r3=seededNumber(n.id,47),r4=seededNumber(n.id,71);
+  return motionState[n.id]={
+    x:bx,y:by,vx:0,vy:0,
+    phaseX:r1*Math.PI*2,phaseY:r2*Math.PI*2,phaseB:r3*Math.PI*2,
+    speedX:.105+r3*.09,speedY:.095+r4*.085,
+    midX:.26+r4*.16,midY:.23+r1*.15,
+    ampX:6+r1*7.5,ampY:5.5+r2*7,
+    flow:r4*Math.PI*2
+  };
+}
+function render(){
+  viewport.innerHTML="";
+  edgeEls.length=0;
+  collectiveLabelEls.length=0;
+  const mainEl=document.querySelector(".main");
+  if(mainEl)mainEl.classList.toggle("orbit-emphasis",currentFilter!=="All");
+
+  if(currentView==="relationship"){
+    const rings=[
+      {r:125,label:"Core"},
+      {r:235,label:"Working Network"},
+      {r:345,label:"Extended / Orbit"}
+    ];
+    rings.forEach((ring,i)=>{
+      viewport.appendChild(make("circle",{cx:500,cy:360,r:ring.r,class:"relationship-ring"}));
+      const label=make("text",{x:500,y:360-ring.r+14,class:"relationship-ring-label","text-anchor":"middle"});
+      label.textContent=ring.label;
+      viewport.appendChild(label);
+    });
+  }
+
+  // In normal Relationship View, collectives are constellation names only — no extra bubble.
+  if(currentView==="relationship"&&currentFilter!=="Bands & Collectives"){
+    nodes.filter(isCollectiveEntity).forEach(c=>{
+      const memberIds=collectiveMembers(c).filter(visibleNode).map(n=>n.id);
+      if(memberIds.length<2)return;
+      const pts=memberIds.map(id=>ensureMotionState(nodes.find(n=>n.id===id)));
+      const cx=pts.reduce((a,x)=>a+x.x,0)/pts.length;
+      const minY=Math.min(...pts.map(x=>x.y));
+      const label=make("text",{x:cx,y:minY-46,class:"relationship-collective-label","text-anchor":"middle"});
+      label.textContent=c.name;
+      viewport.appendChild(label);
+      collectiveLabelEls.push({label,sub:null,memberIds,offsetY:46});
+    });
+  }
+
+
+  if(currentView==="hubs"){
+    Object.entries(hubCenters).filter(([name])=>name!=="Center").forEach(([name,c])=>{
+      const members=nodes.filter(n=>n.hub===name && !isCollectiveEntity(n) && visibleNode(n));
+      const radius=Math.max(72,64+members.length*6);
+      const field=make("circle",{cx:c[0],cy:c[1],r:radius,class:`hub-field ${name==="God's Contraband"?"core-hub":""}`});
+      viewport.appendChild(field);
+
+      const t=make("text",{x:c[0],y:c[1]-radius-12,class:"hub-label","text-anchor":"middle","data-hub":name});
+      t.textContent=name;
+      t.addEventListener("click",()=>{
+        const collective=nodes.find(n=>isCollectiveEntity(n) && n.hub===name);
+        if(collective){
+          showProfile(collective);
+        }else{
+          document.getElementById("search").value=name;
+          render();
+        }
+      });
+      viewport.appendChild(t);
+
+      const count=make("text",{x:c[0],y:c[1]-radius+2,class:"hub-count","text-anchor":"middle"});
+      count.textContent=`${members.length} ${members.length===1?"member":"members"}`;
+      viewport.appendChild(count);
+    });
+  }
+
+  edges.forEach(([a,b,kind])=>{
+    const na=nodes.find(n=>n.id===a),nb=nodes.find(n=>n.id===b);
+    if(!na||!nb||!visibleNode(na)||!visibleNode(nb))return;
+    const sa=ensureMotionState(na),sb=ensureMotionState(nb);
+    let extra="";
+    if(currentView==="hubs"){
+      extra=na.hub===nb.hub ? "hub-local" : "hub-cross";
+    }
+    const stage=kind==="membership"?"membership":kind==="strong"?"strong":(kind==="future"?"potential":"budding");
+    const line=make("line",{
+      x1:sa.x,y1:sa.y,x2:sb.x,y2:sb.y,
+      class:`edge ${stage} ${extra}`,
+      "data-a":a,"data-b":b,"data-stage":stage
+    });
+    viewport.appendChild(line);edgeEls.push(line);
+  });
+
+  nodes.filter(visibleNode).forEach(n=>{
+    const s=ensureMotionState(n);
+    const g=make("g",{class:"node",transform:`translate(${s.x},${s.y})`,"data-id":n.id});
+    const fill=n.type==="core"?"#3b3223":n.type==="bridge"?"#1f2e40":n.type==="hubnode"?"#1d3428":"#20242c";
+    const nodeClass=n.profileType==="studio"?"studio-node":n.profileType==="venue"?"venue-node":"";
+    if(nodeClass)g.classList.add(nodeClass);
+    if(currentView==="studios"&&n.profileType==="studio")g.classList.add("studio-hub");
+    if(currentView==="relationship"&&currentFilter==="Bands & Collectives"&&isCollectiveEntity(n))g.classList.add("band-hub");
+    const rr=(currentView==="studios"&&n.profileType==="studio")?31:((currentView==="relationship"&&currentFilter==="Bands & Collectives"&&isCollectiveEntity(n))?34:n.r);
+    g.appendChild(make("circle",{r:rr,fill,class:n.type==="core"?"core":n.type==="bridge"?"bridge":n.type==="hubnode"?"hubnode":"person"}));
+
+    const initials=n.name.split(/\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase();
+    const av=make("text",{x:0,y:4,"text-anchor":"middle",fill:"#dfe4ea","font-size":n.r>25?"13":"11","font-weight":"800"});
+    av.textContent=initials;g.appendChild(av);
+
+    const name=make("text",{x:0,y:n.r+16,"text-anchor":"middle",class:"name"});
+    name.textContent=n.name;g.appendChild(name);
+
+    const role=make("text",{x:0,y:n.r+29,"text-anchor":"middle",class:"role"});
+    role.textContent=currentView==="hubs" ? (isCollectiveEntity(n)?n.role:n.hub) : n.role;
+    g.appendChild(role);
+
+    if(selectedFocusId===n.id)g.classList.add("selected-node");
+    g.addEventListener("click",()=>showProfile(n));
+    viewport.appendChild(g);
+  });
+
+  updateLayerEmpty();
+  applyCamera();
+  startOrganicMotion();
+}
+
+function startOrganicMotion(){
+  if(motionRAF)return;
+  lastMotionTime=performance.now();
+
+  const frame=(now)=>{
+    const dt=Math.min(32,Math.max(8,now-lastMotionTime))/16.667;
+    lastMotionTime=now;
+    const t=now/1000;
+    const visible=nodes.filter(visibleNode);
+
+    visible.forEach(n=>{
+      const s=ensureMotionState(n);
+      const [bx,by]=pos(n);
+
+      let cx=500,cy=360;
+      if(currentView==="hubs"){
+        const hc=hubCenters[n.hub]||[500,360];cx=hc[0];cy=hc[1];
+      }
+
+      const dx0=bx-cx,dy0=by-cy;
+
+      // The whole graph slowly expands/contracts, like one breathing system.
+      const breathe=1+Math.sin(t*.22+s.phaseB)*.014;
+      const radialX=cx+dx0*breathe,radialY=cy+dy0*breathe;
+
+      // Layer several very slow waves so no node looks like it is following a simple loop.
+      // A small shared "current" also makes neighboring nodes feel like they occupy the same space.
+      const selectedFactor=n.id===selectedFocusId?.62:1;
+      const currentX=Math.sin(t*.115 + by*.006)*3.0 + Math.cos(t*.071 + bx*.004)*2.1;
+      const currentY=Math.cos(t*.103 + bx*.005)*2.7 + Math.sin(t*.077 + by*.004)*2.0;
+
+      const wanderX=(
+        Math.sin(t*s.speedX+s.phaseX)*s.ampX +
+        Math.sin(t*s.midX+s.phaseY)*s.ampX*.38 +
+        Math.cos(t*.061+s.flow)*s.ampX*.25 +
+        currentX
+      )*selectedFactor;
+
+      const wanderY=(
+        Math.cos(t*s.speedY+s.phaseY)*s.ampY +
+        Math.sin(t*s.midY+s.phaseX)*s.ampY*.36 +
+        Math.sin(t*.067+s.flow)*s.ampY*.27 +
+        currentY
+      )*selectedFactor;
+
+      const [filterDx,filterDy]=filterDriftOffset(n,now);
+      let tx=radialX+wanderX+filterDx,ty=radialY+wanderY+filterDy;
+
+      if(orbitMode && currentView==="relationship"){
+        if(n.id==="uh_sar"){
+          tx=500;ty=360;
+        }else{
+          const cfg=orbitConfig[n.id];
+          if(cfg){
+            const elapsed=(now-orbitStartedAt)/1000;
+            const angle=cfg.angle+elapsed*cfg.speed;
+            tx=500+Math.cos(angle)*cfg.radius+wanderX*.12;
+            ty=360+Math.sin(angle)*cfg.radius+wanderY*.12;
+          }
+        }
+      }
+
+      // Softer spring makes the circles coast and float instead of tracking a rigid target.
+      const spring=orbitMode&&currentView==="relationship"?.009:(n.id===selectedFocusId?.0068:.0052);
+      s.vx+=(tx-s.x)*spring*dt;
+      s.vy+=(ty-s.y)*spring*dt;
+    });
+
+    // Experimental gravity: connection strength creates a subtle mutual tug while orbiting.
+    // This is intentionally gentle so relationship distance/orbit remains the dominant structure.
+    if(gravityMode && orbitMode && currentView==="relationship"){
+      const visibleIds=new Set(visible.map(n=>n.id));
+      edges.forEach(([a,b,kind])=>{
+        if(!visibleIds.has(a)||!visibleIds.has(b))return;
+        const na=nodes.find(n=>n.id===a),nb=nodes.find(n=>n.id===b);
+        if(!na||!nb||isCollectiveEntity(na)||isCollectiveEntity(nb))return;
+        const sa=ensureMotionState(na),sb=ensureMotionState(nb);
+        let dx=sb.x-sa.x,dy=sb.y-sa.y,d=Math.hypot(dx,dy);
+        if(d<1)return;
+        const weight=kind==="strong"?1:(kind==="future"?.08:.38);
+        const force=Math.min(.0042,weight*.0028*Math.max(.35,Math.min(1.5,d/180)))*dt;
+        const nx=dx/d,ny=dy/d;
+        sa.vx+=nx*force;sa.vy+=ny*force;sb.vx-=nx*force;sb.vy-=ny*force;
+      });
+    }
+
+    for(let i=0;i<visible.length;i++){
+      const a=visible[i],sa=ensureMotionState(a);
+      for(let j=i+1;j<visible.length;j++){
+        const b=visible[j],sb=ensureMotionState(b);
+        let dx=sb.x-sa.x,dy=sb.y-sa.y,d2=dx*dx+dy*dy;
+        if(d2<.01){dx=.1;dy=.1;d2=.02}
+        const d=Math.sqrt(d2),desired=a.r+b.r+24;
+        if(d<desired){
+          const push=(desired-d)/desired*.035*dt,nx=dx/d,ny=dy/d;
+          sa.vx-=nx*push;sa.vy-=ny*push;sb.vx+=nx*push;sb.vy+=ny*push;
+        }
+      }
+    }
+
+    visible.forEach(n=>{
+      const s=ensureMotionState(n),damping=Math.pow(.958,dt);
+      s.vx*=damping;s.vy*=damping;s.x+=s.vx*dt;s.y+=s.vy*dt;
+      const el=viewport.querySelector(`.node[data-id="${n.id}"]`);
+      if(el)el.setAttribute("transform",`translate(${s.x.toFixed(2)},${s.y.toFixed(2)})`);
+    });
+
+    collectiveLabelEls.forEach(item=>{
+      const pts=item.memberIds.map(id=>motionState[id]).filter(Boolean);
+      if(!pts.length)return;
+      const cx=pts.reduce((a,x)=>a+x.x,0)/pts.length;
+      const minY=Math.min(...pts.map(x=>x.y));
+      const oy=item.offsetY||42;
+      item.label.setAttribute("x",cx.toFixed(2));item.label.setAttribute("y",(minY-oy).toFixed(2));
+      if(item.sub){item.sub.setAttribute("x",cx.toFixed(2));item.sub.setAttribute("y",(minY-28).toFixed(2));}
+    });
+
+    edgeEls.forEach(line=>{
+      const sa=motionState[line.dataset.a],sb=motionState[line.dataset.b];
+      if(!sa||!sb)return;
+      line.setAttribute("x1",sa.x.toFixed(2));line.setAttribute("y1",sa.y.toFixed(2));
+      line.setAttribute("x2",sb.x.toFixed(2));line.setAttribute("y2",sb.y.toFixed(2));
+    });
+
+    motionRAF=requestAnimationFrame(frame);
+  };
+  motionRAF=requestAnimationFrame(frame);
+}
+
+function isMusicProfile(n){
+  const hay=[n.role,...(n.tags||[])].join(" ").toLowerCase();
+  return /musician|producer|singer|songwriter|rapper|artist|drum|guitar|bass|keys|horn|vocal/.test(hay);
+}
+function profileCategory(n){
+  return n.profileType || (n.tags||[]).includes("Places") ? (n.profileType||"venue") :
+    (n.tags||[]).includes("Industry") ? (n.profileType||"industry") :
+    (n.tags||[]).includes("Visual") ? (n.profileType||"filmmaker") :
+    isMusicProfile(n) ? "music" : "person";
+}
+function showProfile(n){
+  selected=n;
+  selectedFocusId=n.id;
+  render();
+
+  const saved=JSON.parse(localStorage.getItem("creativeNetworkNotes")||"{}");
+  const note=saved[n.id]||"";
+  const links=n.links||{};
+  const chips=[...new Set([n.hub,...(n.tags||[]).filter(t=>t!=="All")])]
+    .map(x=>`<span class="chip">${x}</span>`).join("");
+
+  const linksHtml=Object.entries(links)
+    .map(([k,v])=>`<a href="${v}" target="_blank" rel="noopener">${k} ↗</a>`).join("")
+    || `<div class="empty">No public links saved yet.</div>`;
+
+  const photoBlock=n.photo
+    ? `<img class="profile-photo" src="${n.photo}" alt="${n.name}" referrerpolicy="no-referrer"
+         onerror="this.outerHTML='<div class=&quot;photo-missing&quot;>Photo could not load.<br>You can add a replacement image.</div>'">`
+    : `<div class="photo-missing">Photo needed<br><span style="font-size:11px;margin-top:6px">Add one when available.</span></div>`;
+
+  const category=profileCategory(n);
+  const categoryLabel={
+    music:"Music profile",collective:"Band / Collective",filmmaker:"Film / Visual",manager:"Management",promoter:"Promoter / Booking",
+    venue:"Venue / Place",studio:"Studio / Resource",industry:"Industry",person:"Profile"
