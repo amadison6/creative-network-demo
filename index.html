@@ -318,7 +318,7 @@
 <body>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v36 · editable categories</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v37 · broader image support</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -474,9 +474,9 @@
       <div class="photo-edit-card">
         <div class="photo-edit-preview" id="editPhotoPreview"><span>No profile photo</span></div>
         <div class="photo-edit-controls">
-          <label class="photo-upload-btn">Upload profile picture<input type="file" id="editPhotoFile" accept="image/*" hidden></label>
+          <label class="photo-upload-btn">Upload profile picture<input type="file" id="editPhotoFile" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.gif,.avif,.heic,.heif" hidden></label>
           <button class="secondary-btn photo-remove-btn" id="removeProfilePhoto" type="button">Remove photo</button>
-          <div class="type-help" id="editPhotoStatus">In this prototype, uploaded images are resized and stored only in this browser. They are not uploaded to the public GitHub repo.</div>
+          <div class="type-help" id="editPhotoStatus">Supports JPG/JPEG, PNG, WebP, GIF, AVIF, and HEIC/HEIF when your browser can decode them. Images are resized and stored only in this browser.</div>
         </div>
       </div>
       <div class="form-grid">
@@ -1343,13 +1343,31 @@ function renderEditPhotoPreview(photo){
   box.innerHTML=photo?`<img src="${photo}" alt="Profile picture preview">`:'<span>No profile photo</span>';
 }
 async function resizeProfilePhoto(file){
-  const maxDim=640,quality=.78;
+  const maxDim=720,quality=.82;
+  const allowed=/\.(jpe?g|png|webp|gif|avif|heic|heif)$/i;
+  if(!(file.type||"").startsWith("image/")&&!allowed.test(file.name||"")){
+    throw new Error("Unsupported image format");
+  }
   const url=URL.createObjectURL(file);
   try{
-    const img=await new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=reject;im.src=url});
+    const img=await new Promise((resolve,reject)=>{
+      const im=new Image();
+      im.onload=()=>resolve(im);
+      im.onerror=()=>reject(new Error("Browser could not decode this image format"));
+      im.src=url;
+    });
     let w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
     const scale=Math.min(1,maxDim/Math.max(w,h));w=Math.max(1,Math.round(w*scale));h=Math.max(1,Math.round(h*scale));
-    const c=document.createElement("canvas");c.width=w;c.height=h;const ctx=c.getContext("2d");ctx.drawImage(img,0,0,w,h);
+    const c=document.createElement("canvas");c.width=w;c.height=h;
+    const ctx=c.getContext("2d");ctx.drawImage(img,0,0,w,h);
+
+    // Preserve transparency when possible by normalizing PNG/WebP/GIF/AVIF to WebP.
+    // JPEG-like images normalize to JPEG for smaller local storage use.
+    const alphaFriendly=/png|webp|gif|avif/i.test(file.type||file.name||"");
+    if(alphaFriendly){
+      const webp=c.toDataURL("image/webp",quality);
+      if(webp.startsWith("data:image/webp"))return webp;
+    }
     return c.toDataURL("image/jpeg",quality);
   }finally{URL.revokeObjectURL(url)}
 }
@@ -1366,7 +1384,7 @@ function renderEditCategories(n){
 function openEditProfile(n){
   pendingEditPhotoData=null;
   document.getElementById("editPhotoFile").value="";
-  document.getElementById("editPhotoStatus").textContent="In this prototype, uploaded images are resized and stored only in this browser. They are not uploaded to the public GitHub repo.";
+  document.getElementById("editPhotoStatus").textContent="Supports JPG/JPEG, PNG, WebP, GIF, AVIF, and HEIC/HEIF when your browser can decode them. Images stay local to this browser.";
   renderEditPhotoPreview(n.photo||"");
   document.getElementById("editProfileId").value=n.id;
   document.getElementById("editName").value=n.name||"";
@@ -1395,7 +1413,7 @@ document.getElementById("editPhotoFile").addEventListener("change",async e=>{
   const file=e.target.files?.[0];if(!file)return;
   const status=document.getElementById("editPhotoStatus");status.textContent="Preparing image…";
   try{pendingEditPhotoData=await resizeProfilePhoto(file);renderEditPhotoPreview(pendingEditPhotoData);status.textContent="New photo ready. Save changes to keep it on this browser."}
-  catch(err){status.textContent="Could not read that image. Try a JPG, PNG, or HEIC supported by your browser."}
+  catch(err){status.textContent="Could not decode that image in this browser. JPG, PNG, WebP, GIF and AVIF are broadly supported; HEIC/HEIF support varies by browser."}
 });
 document.getElementById("removeProfilePhoto").onclick=()=>{pendingEditPhotoData="";renderEditPhotoPreview("");document.getElementById("editPhotoStatus").textContent="Photo will be removed when you save changes."};
 
@@ -2016,6 +2034,16 @@ document.getElementById("saveProfile").onclick=()=>{
 })();
 
 const APP_RELEASES=[
+  {
+    version:"v37",file:null,date:"2026-09-18",title:"Broader profile image support",
+    notes:[
+      "Profile uploads now explicitly accept JPG/JPEG, PNG, WebP, GIF, AVIF, HEIC and HEIF",
+      "Browser-decodable images are resized locally before saving",
+      "Transparency-friendly formats normalize to WebP when supported; other images normalize to JPEG",
+      "HEIC/HEIF remains browser-dependent in the static prototype",
+      "Animated GIFs are treated as a still profile image after resizing"
+    ]
+  },
   {
     version:"v36",file:null,date:"2026-09-18",title:"Editable profile categories",
     notes:[
