@@ -538,10 +538,7 @@ const nodes=[
 ,{id:"studio_the_school",name:"The School",role:"Private Creative / Rehearsal Room",profileType:"studio",type:"hubnode",r:24,tags:["All","Studios"],hub:"Studio Spaces",location:"Los Angeles",capacity:"Roughly 3× the size of Downtown Rehearsals",access:"uh_sar controls access",availability:"Weekdays after 5 PM to avoid disrupting students",frequentPeople:"uh_sar · Free · Solomon",resources:"Fender Jazz Bass · Fender Telecaster · 64-key Nord (organ / piano / synth sections) · 2 medium KRK monitors · Akai MPC Mini · Solomon's bass · Solomon's microphone",rates:"Private / not commercially priced",history:"uh_sar and Free work here often. Solomon has also used the room; sessions have been less frequent while Solomon is in rollout mode.",bio:"Large second-floor creative room at the family school. Public demo intentionally omits the street address."}
 ,{id:"studio_drew_hollywood",name:"Drew's Hollywood Studio",role:"Recording / Creative Studio",profileType:"studio",type:"hubnode",r:22,tags:["All","Studios"],hub:"Studio Spaces",location:"Hollywood, Los Angeles",capacity:"TBD",access:"Drew primary; Cam shares the space; Balam also uses it",availability:"TBD",frequentPeople:"Drew · Cam · Balam",resources:"Equipment inventory still needs to be mapped",rates:"TBD",history:"Drew moved into his own Hollywood studio after being a long-time Downtown Rehearsals tenant.",bio:"Hollywood studio used by Drew, Cam, and Balam. Equipment, capacity, and access details still need to be fleshed out."}
 ,{id:"studio_jonah",name:"Jonah's Studio",role:"Recording Studio",profileType:"studio",type:"hubnode",r:21,tags:["All","Studios"],hub:"Studio Spaces",location:"TBD",capacity:"TBD",access:"Jonah",availability:"TBD",frequentPeople:"Jonah",resources:"TBD — needs an exploratory visit / conversation",rates:"TBD",history:"Known studio resource in Jonah's orbit; details are not mapped yet.",bio:"Studio to explore further. Equipment, room details, access, and regular collaborators are still open questions."}
-,{id:"studio_diontae_inglewood",name:"Diontae's Inglewood Space",role:"Private Recording / Rehearsal Space",profileType:"studio",type:"hubnode",r:21,tags:["All","Studios"],hub:"Studio Spaces",location:"Inglewood, California",capacity:"TBD",access:"Diontae",availability:"By arrangement",frequentPeople:"Diontae · God's Contraband",resources:"Equipment inventory still needs to be mapped",rates:"Private / TBD",history:"God's Contraband uses the space from time to time.",bio:"Private Inglewood creative space associated with Diontae. Exact residential details are intentionally excluded from the public demo."}
-
-,{id:"isis",name:"Isis / ICE9",artistName:"ICE9",role:"Rapper / Visual Artist",profileType:"musician",instruments:"Voice; multidisciplinary visual practice",genres:"Hip-hop / multidisciplinary art",type:"bridge",r:24,tags:["All","Rising Artists","Visual"],hub:"LA Visual Art Scene",bio:"Rapper, painter, graffiti artist and sculptor. Connected to Free and ZekeUltra; potential future art-gallery / live-show collaborator.",links:{Instagram:"https://www.instagram.com/handofisis?stkn=NjZqcWVhbnZ2dG14",Partiful:"https://partiful.com/e/cI43ocb5DeayrLzwQbko?c=Byft4AfX"}}
-,{id:"venue_gold_diggers",name:"Gold-Diggers",role:"Live Music Venue",profileType:"venue",type:"hubnode",r:28,tags:["All","Places"],hub:"East Hollywood",location:"5632 Santa Monica Blvd, Los Angeles, CA 90038",capacity:"175",bookingContact:"bookinginfo@gold-diggers.com",warmConnection:"Brit + okay coleman! recently performed here",audienceFit:"Intimate live sets, showcases, emerging artists, industry-facing room",potentialShowNotes:"Potential future God's Contraband / Light Show room; warm path through Brit and okay coleman!",links:{Website:"https://gold-diggers.com/"},bio:"East Hollywood live-music venue, bar, hotel and recording complex."}
+,{id:"studio_diontae_inglewood",name:"Diontae's Inglewood Space",role:"Private Recording / Rehearsal Space",profileType:"studio",type:"hubnode",r:21,tags:["All","Studios"],hub:"Studio Spaces",location:"Inglewood, California",capacity:"TBD",access:"Diontae",availability:"By arrangement",frequentPeople:"Diontae · God's Contraband",resources:"Equipment inventory still needs to be mapped",rates:"Private / TBD",history:"God's Contraband uses the space from time to time.",bio:"Private Inglewood creative space associated with Diontae. Exact residential details are intentionally excluded from the public demo."},{id:"isis",name:"Isis / ICE9",artistName:"ICE9",role:"Rapper / Visual Artist",profileType:"musician",instruments:"Voice; multidisciplinary visual practice",genres:"Hip-hop / multidisciplinary art",type:"bridge",r:24,tags:["All","Rising Artists","Visual"],hub:"LA Visual Art Scene",bio:"Rapper, painter, graffiti artist and sculptor. Connected to Free and ZekeUltra; potential future art-gallery / live-show collaborator.",links:{Instagram:"https://www.instagram.com/handofisis?stkn=NjZqcWVhbnZ2dG14",Partiful:"https://partiful.com/e/cI43ocb5DeayrLzwQbko?c=Byft4AfX"}},{id:"venue_gold_diggers",name:"Gold-Diggers",role:"Live Music Venue",profileType:"venue",type:"hubnode",r:28,tags:["All","Places"],hub:"East Hollywood",location:"5632 Santa Monica Blvd, Los Angeles, CA 90038",capacity:"175",bookingContact:"bookinginfo@gold-diggers.com",warmConnection:"Brit + okay coleman! recently performed here",audienceFit:"Intimate live sets, showcases, emerging artists, industry-facing room",potentialShowNotes:"Potential future God's Contraband / Light Show room; warm path through Brit and okay coleman!",links:{Website:"https://gold-diggers.com/"},bio:"East Hollywood live-music venue, bar, hotel and recording complex."}
 
 ];
 
@@ -557,12 +554,12 @@ function isCollectiveEntity(n){
     name==="god's contraband" || name==="gods contraband" || name==="professor what trio" ||
     role.includes("band / collective") || role.includes("band / trio") || role==="band" || role==="collective" || role==="trio";
 }
-nodes.forEach(n=>{if(isCollectiveEntity(n))n.profileType="collective"});
-const canonicalGroups={"god's contraband":"gods_contraband_group","gods contraband":"gods_contraband_group","professor what trio":"professor_what_group"};
+const canonicalGroupIds={"god's contraband":"gods_contraband_group","gods contraband":"gods_contraband_group","professor what trio":"professor_what_group"};
 for(let i=nodes.length-1;i>=0;i--){
   const n=nodes[i],key=String(n?.name||"").trim().toLowerCase();
-  const keep=canonicalGroups[key];
-  if(keep && n.id!==keep)nodes.splice(i,1);
+  const canonical=canonicalGroupIds[key];
+  if(canonical && n.id!==canonical){nodes.splice(i,1);continue;}
+  if(isCollectiveEntity(n))n.profileType="collective";
 }
 
 const edges=[["uh_sar","addae","strong"],["addae","jordan","strong"],["addae","sockjus","strong"],["addae","baws","strong"],["uh_sar","cam","strong"],["uh_sar","balam","strong"],["uh_sar","free","strong"],["uh_sar","camille","strong"],["uh_sar","sockjus","strong"],["uh_sar","dante","strong"],["uh_sar","chris","strong"],["uh_sar","jonah","strong"],["uh_sar","joel","strong"],["cam","balam","strong"],["cam","drew","strong"],["balam","drew","strong"],["free","zeke","strong"],["camille","brit","strong"],["brit","okay","future"],["camille","okay","future"],["sockjus","john","strong"],["sockjus","baws","strong"],["baws","john","strong"],["baws","mempho","strong"],["baws","nick","strong"],["mempho","nick","strong"],["sockjus","mempho","strong"],["uh_sar","mempho",""],["uh_sar","john",""],["uh_sar","baws",""],["uh_sar","diontae",""],["uh_sar","solomon",""],["free","cam","future"],["free","balam","future"],["mempho","camille","future"],["mempho","free","future"],["uh_sar","isis","budding"],["free","isis","strong"],["zeke","isis","budding"],["venue_gold_diggers","brit","strong"],["venue_gold_diggers","okay","strong"],["gods_contraband_group","uh_sar","strong"],["gods_contraband_group","dante","strong"],["professor_what_group","cam","strong"],["professor_what_group","balam","strong"],["professor_what_group","drew","strong"],
@@ -1021,4 +1018,1377 @@ function showProfile(n){
   const category=profileCategory(n);
   const categoryLabel={
     music:"Music profile",collective:"Band / Collective",filmmaker:"Film / Visual",manager:"Management",promoter:"Promoter / Booking",
-    venue:"Venue / Place",studio:"Studio / Resource",industry:"Industry",person:"Profile"
+    venue:"Venue / Place",studio:"Studio / Resource",industry:"Industry",person:"Profile"  }[category] || category;
+
+  let specialized="";
+  if(category==="collective"){
+    specialized=`
+      <div class="section-title">Collective Profile</div>
+      <div class="profile-grid">
+        <div class="card"><div class="k">Type</div><div class="v">${n.collectiveType||"Band / Collective"}</div></div>
+        <div class="card"><div class="k">Status</div><div class="v">${n.status||'<span class="missing-value">Not added yet</span>'}</div></div>
+      </div>
+      <div class="card"><div class="k">Members / roster</div><div class="v">${n.members||'<span class="missing-value">Roster not mapped yet</span>'}</div></div>
+      ${n.founders?`<div class="card" style="margin-top:10px"><div class="k">Founders</div><div class="v">${n.founders}</div></div>`:""}`;
+  }else if(isMusicProfile(n)){
+    specialized=`
+      <div class="section-title">Rights / Publishing</div>
+      <div class="rights-grid">
+        <div class="rights-card"><div class="k">PRO</div><div class="v">${n.pro||'<span class="missing-value">Not added yet</span>'}</div></div>
+        <div class="rights-card"><div class="k">IPI / CAE</div><div class="v">${n.ipi||'<span class="missing-value">Not added yet</span>'}</div></div>
+        <div class="rights-card"><div class="k">Legal writer name</div><div class="v">${n.legalName||'<span class="missing-value">Not added yet</span>'}</div></div>
+        <div class="rights-card"><div class="k">Publisher / Admin</div><div class="v">${n.publisher||'<span class="missing-value">Not added yet</span>'}</div></div>
+      </div>
+      <div class="section-title">Music Profile</div>
+      <div class="profile-grid">
+        <div class="card"><div class="k">Instruments</div><div class="v">${n.instruments||'<span class="missing-value">Not fully mapped</span>'}</div></div>
+        <div class="card"><div class="k">Genres</div><div class="v">${n.genres||'<span class="missing-value">Not fully mapped</span>'}</div></div>
+      </div>`;
+  }else if(category==="filmmaker"){
+    specialized=`
+      <div class="section-title">Film / Visual Profile</div>
+      <div class="profile-grid">
+        <div class="card"><div class="k">Visual roles</div><div class="v">${n.visualRoles||n.role}</div></div>
+        <div class="card"><div class="k">Style / specialties</div><div class="v">${n.visualStyle||'<span class="missing-value">Not added yet</span>'}</div></div>
+      </div>
+      <div class="card"><div class="k">Reel / Portfolio</div><div class="v">${n.reel||'<span class="missing-value">Not added yet</span>'}</div></div>`;
+  }else if(["manager","promoter","industry"].includes(category)){
+    specialized=`
+      <div class="section-title">Industry Profile</div>
+      <div class="profile-grid">
+        <div class="card"><div class="k">Organization</div><div class="v">${n.organization||'<span class="missing-value">Not added yet</span>'}</div></div>
+        <div class="card"><div class="k">Market / Territory</div><div class="v">${n.market||'<span class="missing-value">Not added yet</span>'}</div></div>
+      </div>`;
+  }else if(category==="venue"){
+    specialized=`
+      <div class="section-title">Booking / Show Intelligence</div>
+      <div class="profile-grid">
+        <div class="card"><div class="k">Capacity</div><div class="v">${n.capacity||'<span class="missing-value">Not added yet</span>'}</div></div>
+        <div class="card"><div class="k">Location</div><div class="v">${n.location||'<span class="missing-value">Not added yet</span>'}</div></div>
+        <div class="card"><div class="k">Last quoted guarantee</div><div class="v">${n.lastQuotedGuarantee||'<span class="missing-value">Not added yet</span>'}</div></div>
+        <div class="card"><div class="k">Deal structure</div><div class="v">${n.dealStructure||'<span class="missing-value">Not added yet</span>'}</div></div>
+        <div class="card"><div class="k">Door split</div><div class="v">${n.doorSplit||'<span class="missing-value">Not added yet</span>'}</div></div>
+        <div class="card"><div class="k">Production / rental fee</div><div class="v">${n.productionFee||'<span class="missing-value">Not added yet</span>'}</div></div>
+        <div class="card"><div class="k">Talent buyer / promoter</div><div class="v">${n.talentBuyer||'<span class="missing-value">Not added yet</span>'}</div></div>
+        <div class="card"><div class="k">Warm connection</div><div class="v">${n.warmConnection||'<span class="missing-value">Not added yet</span>'}</div></div>
+      </div>
+      <div class="card"><div class="k">Booking contact</div><div class="v">${n.bookingContact||'<span class="missing-value">Not added yet</span>'}</div></div>
+      <div class="card" style="margin-top:10px"><div class="k">Audience / programming fit</div><div class="v">${n.audienceFit||n.genres||'<span class="missing-value">Not added yet</span>'}</div></div>
+      <div class="card" style="margin-top:10px"><div class="k">Potential show notes</div><div class="v">${n.potentialShowNotes||'<span class="missing-value">No show idea saved yet</span>'}</div></div>
+      <div class="entity-rate-note">Keep rates as dated quotes / offers. Confirm terms again before locking a show.</div>`;
+  }else if(category==="studio"){
+    specialized=`
+      <div class="section-title">Studio / Resource Profile</div>
+      <div class="profile-grid">
+        <div class="card"><div class="k">Location</div><div class="v">${n.location||'<span class="missing-value">Not added yet</span>'}</div></div>
+        <div class="card"><div class="k">Capacity</div><div class="v">${n.capacity||'<span class="missing-value">Not added yet</span>'}</div></div>
+        <div class="card"><div class="k">Access / control</div><div class="v">${n.access||'<span class="missing-value">Not added yet</span>'}</div></div>
+        <div class="card"><div class="k">Availability</div><div class="v">${n.availability||'<span class="missing-value">Not added yet</span>'}</div></div>
+      </div>
+      <div class="card"><div class="k">Equipment / resources</div><div class="v">${n.resources||'<span class="missing-value">Not added yet</span>'}</div></div>
+      <div class="card" style="margin-top:10px"><div class="k">Frequent people</div><div class="v">${n.frequentPeople||'<span class="missing-value">Not mapped yet</span>'}</div></div>
+      <div class="card" style="margin-top:10px"><div class="k">History / usage</div><div class="v">${n.history||'<span class="missing-value">Not mapped yet</span>'}</div></div>
+      <div class="card" style="margin-top:10px"><div class="k">Rates / cost</div><div class="v">${n.rates||'<span class="missing-value">Not mapped yet</span>'}</div></div>`;
+  }
+
+  document.getElementById("profile").innerHTML=`
+    ${photoBlock}
+    <div class="entity-badge">${categoryLabel}</div>
+    <h2>${n.name}</h2>
+    ${n.artistName?`<div class="alias">Also known as <strong>${n.artistName}</strong></div>`:""}
+    <div class="roleline">${n.role}</div>
+    <div class="chips">${chips}</div>
+    <div class="card"><div class="k">Profile</div><div class="v">${n.bio}</div></div>
+    <div class="profile-grid">
+      <div class="card"><div class="k">Hub</div><div class="v">${n.hub}</div></div>
+      <div class="card"><div class="k">Node type</div><div class="v">${n.type}</div></div>
+    </div>
+    ${specialized}
+    <div class="section-title">Public Links</div>
+    <div class="links">${linksHtml}</div>
+    <div class="profile-actions"><button class="save" id="editProfileBtn">Edit profile</button></div>
+    <div class="section-title">Private Relationship Notes</div>
+    <textarea id="notes">${note}</textarea>
+    <button class="save" id="saveNotes">Save note locally</button>
+    <div class="small" style="margin-top:8px">Prototype only: saved in this browser on this computer.</div>
+  `;
+
+  document.getElementById("editProfileBtn").onclick=()=>openEditProfile(n);
+
+  document.getElementById("saveNotes").onclick=()=>{
+    const all=JSON.parse(localStorage.getItem("creativeNetworkNotes")||"{}");
+    all[n.id]=document.getElementById("notes").value;
+    localStorage.setItem("creativeNetworkNotes",JSON.stringify(all));
+    document.getElementById("saveNotes").textContent="Saved";
+    setTimeout(()=>document.getElementById("saveNotes").textContent="Save note locally",900);
+  };
+}
+
+function updateLayerEmpty(){
+  const box=document.getElementById("layerEmpty");if(!box)return;
+  if(currentView==="venues" && !nodes.some(n=>n.profileType==="venue")){
+    box.classList.remove("hidden");
+    box.innerHTML='<strong>No venues mapped yet</strong><p>Add the first venue and start tracking capacity, booking contacts, warm introductions, quoted guarantees, deal structure, and potential show dates.</p><button id="emptyAddVenue">Add a venue</button>';
+    document.getElementById("emptyAddVenue").onclick=()=>{typeSelect.value="venue";renderDynamicFields();openProfileModal()};
+  }else if(currentView==="studios" && !nodes.some(n=>n.profileType==="studio")){
+    box.classList.remove("hidden");
+    box.innerHTML='<strong>No studios mapped yet</strong><p>Add a studio or rehearsal space to track access, equipment, capacity, cost, and the people who use it.</p><button id="emptyAddStudio">Add a studio</button>';
+    document.getElementById("emptyAddStudio").onclick=()=>{typeSelect.value="studio";renderDynamicFields();openProfileModal()};
+  }else box.classList.add("hidden");
+}
+
+document.querySelectorAll(".viewbtn").forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll(".viewbtn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    currentView=btn.dataset.view;
+    currentFilter="All";
+    document.querySelectorAll(".filter").forEach(b=>b.classList.toggle("active",b.dataset.filter==="All"));
+    if(currentView!=="relationship" && orbitMode)setOrbitMode(false);
+
+    const explainer=document.getElementById("viewExplainer");
+    if(currentView==="relationship"){
+      explainer.innerHTML="<strong>Relationship View</strong><br>People are primary. Bands and collectives appear only as subtle constellation names over their clusters.";
+    }else if(currentView==="hubs"){
+      explainer.innerHTML="<strong>Creative Hubs</strong><br>Where does everyone belong? People cluster by scene, project, studio, or community. Cross-hub lines reveal bridge relationships.";
+    }else if(currentView==="studios"){
+      explainer.innerHTML="<strong>Studio View</strong><br>Each studio is a hub. People cluster around the spaces they frequent; people tied to multiple rooms sit between those hubs.";
+    }else{
+      explainer.innerHTML="<strong>Venue View</strong><br>Track rooms you could play, booking relationships, capacity, audience fit, quoted rates, deal terms, and potential shows.";
+    }
+
+    Object.keys(motionState).forEach(k=>{if(motionState[k]){motionState[k].vx*=.35;motionState[k].vy*=.35}});
+    render();
+    updateLayerEmpty();
+    focusSelectedAtCurrentZoom();
+  };
+});
+document.querySelectorAll(".filter").forEach(btn=>{btn.onclick=()=>{
+  document.querySelectorAll(".filter").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  currentView="relationship";
+  document.querySelectorAll(".viewbtn").forEach(b=>b.classList.toggle("active",b.dataset.view==="relationship"));
+  currentFilter=btn.dataset.filter;
+  if(currentFilter==="Bands & Collectives"&&orbitMode)setOrbitMode(false);
+  const explainer=document.getElementById("viewExplainer");
+  if(currentFilter==="Bands & Collectives")explainer.innerHTML="<strong>Bands / Collectives</strong><br>The group bubble appears only here, with members connected directly to the band or collective node.";
+  triggerFilterDrift();
+  if(orbitMode)primeOrbit();
+  render();
+  updateLayerEmpty();
+  focusSelectedAtCurrentZoom();
+}});document.getElementById("search").addEventListener("input",()=>{if(orbitMode)primeOrbit();render();focusSelectedAtCurrentZoom();});
+
+// v21 — in-app profile editing, local change relay queue, and orbit mode.
+const CHANGE_QUEUE_KEY="creativeNetworkChangeQueue";
+function getChangeQueue(){
+  try{return JSON.parse(localStorage.getItem(CHANGE_QUEUE_KEY)||"[]")}catch(e){return[]}
+}
+function updateSyncCount(){
+  const count=getChangeQueue().length,btn=document.getElementById("syncBtn"),badge=document.getElementById("syncCount");
+  if(badge)badge.textContent=count?` · ${count}`:"";
+  if(btn)btn.classList.toggle("has-changes",count>0);
+}
+function profileSnapshot(n){
+  const keys=["name","artistName","role","hub","tags","bio","links","pro","ipi","legalName","publisher","instruments","genres","collectiveType","members","founders","status","location","capacity","bookingContact","organization","market","resources","rates","access","availability","frequentPeople","history","talentBuyer","warmConnection","lastQuotedGuarantee","dealStructure","doorSplit","productionFee","audienceFit","backline","potentialShowNotes"];
+  const out={id:n.id};keys.forEach(k=>{if(n[k]!==undefined)out[k]=JSON.parse(JSON.stringify(n[k]))});return out;
+}
+function queueNetworkChange(entry){
+  const q=getChangeQueue();q.push(Object.assign({timestamp:new Date().toISOString()},entry));
+  localStorage.setItem(CHANGE_QUEUE_KEY,JSON.stringify(q.slice(-100)));updateSyncCount();
+}
+function persistCustomProfileIfNeeded(n){
+  const saved=JSON.parse(localStorage.getItem("creativeNetworkCustomProfiles")||"[]");
+  const i=saved.findIndex(p=>p.id===n.id);
+  if(i>=0){saved[i]=JSON.parse(JSON.stringify(n));localStorage.setItem("creativeNetworkCustomProfiles",JSON.stringify(saved));}
+}
+
+const editProfileModal=document.getElementById("editProfileModal");
+let pendingEditPhotoData=null;
+
+function escapeAttr(v){return String(v??"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function editField(id,label,value="",placeholder=""){return `<div class="form-field"><label>${label}</label><input id="${id}" value="${escapeAttr(value)}" placeholder="${escapeAttr(placeholder)}"></div>`}
+function renderEditEntityFields(n){
+  const sec=document.getElementById("editEntitySection"),title=document.getElementById("editEntityTitle"),wrap=document.getElementById("editEntityFields");
+  if(n.profileType==="venue"){
+    sec.classList.remove("hidden");title.textContent="Venue / booking details";
+    wrap.innerHTML=
+      editField("editLocation","Area / neighborhood",n.location)+editField("editCapacity","Capacity",n.capacity)+
+      editField("editBookingContact","Booking contact",n.bookingContact)+editField("editTalentBuyer","Talent buyer / promoter",n.talentBuyer)+
+      editField("editWarmConnection","Warm connection",n.warmConnection)+editField("editQuotedGuarantee","Last quoted guarantee",n.lastQuotedGuarantee,"e.g. $500 guarantee")+
+      editField("editDealStructure","Deal structure",n.dealStructure,"Guarantee, door split, rental, hybrid...")+editField("editDoorSplit","Door split",n.doorSplit)+
+      editField("editProductionFee","Production / rental fee",n.productionFee)+editField("editAudienceFit","Audience / programming fit",n.audienceFit||n.genres)+
+      editField("editBackline","Backline / PA",n.backline)+editField("editPotentialShowNotes","Potential show notes",n.potentialShowNotes);
+  }else if(n.profileType==="studio"){
+    sec.classList.remove("hidden");title.textContent="Studio / space details";
+    wrap.innerHTML=
+      editField("editLocation","Area / neighborhood",n.location)+editField("editCapacity","Capacity",n.capacity)+
+      editField("editAccess","Access / control",n.access)+editField("editAvailability","Availability",n.availability)+
+      editField("editFrequentPeople","Frequent people",n.frequentPeople)+editField("editRates","Rates / cost",n.rates)+
+      editField("editResources","Equipment / resources",n.resources)+editField("editHistory","History / usage",n.history);
+  }else{sec.classList.add("hidden");wrap.innerHTML=""}
+}
+function renderEditPhotoPreview(photo){
+  const box=document.getElementById("editPhotoPreview");
+  box.innerHTML=photo?`<img src="${photo}" alt="Profile picture preview">`:'<span>No profile photo</span>';
+}
+async function resizeProfilePhoto(file){
+  const maxDim=640,quality=.78;
+  const url=URL.createObjectURL(file);
+  try{
+    const img=await new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=reject;im.src=url});
+    let w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
+    const scale=Math.min(1,maxDim/Math.max(w,h));w=Math.max(1,Math.round(w*scale));h=Math.max(1,Math.round(h*scale));
+    const c=document.createElement("canvas");c.width=w;c.height=h;const ctx=c.getContext("2d");ctx.drawImage(img,0,0,w,h);
+    return c.toDataURL("image/jpeg",quality);
+  }finally{URL.revokeObjectURL(url)}
+}
+
+function openEditProfile(n){
+  pendingEditPhotoData=null;
+  document.getElementById("editPhotoFile").value="";
+  document.getElementById("editPhotoStatus").textContent="In this prototype, uploaded images are resized and stored only in this browser. They are not uploaded to the public GitHub repo.";
+  renderEditPhotoPreview(n.photo||"");
+  document.getElementById("editProfileId").value=n.id;
+  document.getElementById("editName").value=n.name||"";
+  document.getElementById("editArtistName").value=n.artistName||"";
+  document.getElementById("editRole").value=n.role||"";
+  document.getElementById("editHub").value=n.hub||"";
+  document.getElementById("editTags").value=(n.tags||[]).filter(t=>t!=="All").join(", ");
+  document.getElementById("editBio").value=n.bio||"";
+  document.getElementById("editInstagram").value=n.links?.Instagram||"";
+  document.getElementById("editSpotify").value=n.links?.Spotify||"";
+  document.getElementById("editPRO").value=n.pro||"";
+  document.getElementById("editIPI").value=n.ipi||"";
+  document.getElementById("editLegalName").value=n.legalName||"";
+  document.getElementById("editPublisher").value=n.publisher||"";
+  renderEditEntityFields(n);
+  editProfileModal.classList.remove("hidden");
+  setTimeout(()=>document.getElementById("editName").focus(),40);
+}
+function closeEditProfile(){editProfileModal.classList.add("hidden")}
+document.getElementById("closeEditProfileModal").onclick=closeEditProfile;
+document.getElementById("cancelEditProfile").onclick=closeEditProfile;
+editProfileModal.addEventListener("click",e=>{if(e.target===editProfileModal)closeEditProfile()});
+
+document.getElementById("editPhotoFile").addEventListener("change",async e=>{
+  const file=e.target.files?.[0];if(!file)return;
+  const status=document.getElementById("editPhotoStatus");status.textContent="Preparing image…";
+  try{pendingEditPhotoData=await resizeProfilePhoto(file);renderEditPhotoPreview(pendingEditPhotoData);status.textContent="New photo ready. Save changes to keep it on this browser."}
+  catch(err){status.textContent="Could not read that image. Try a JPG, PNG, or HEIC supported by your browser."}
+});
+document.getElementById("removeProfilePhoto").onclick=()=>{pendingEditPhotoData="";renderEditPhotoPreview("");document.getElementById("editPhotoStatus").textContent="Photo will be removed when you save changes."};
+
+document.getElementById("saveProfileEdits").onclick=()=>{
+  const id=document.getElementById("editProfileId").value,n=nodes.find(x=>x.id===id);if(!n)return;
+  const before=profileSnapshot(n),hadPhoto=!!n.photo;
+  n.name=document.getElementById("editName").value.trim()||n.name;
+  n.artistName=document.getElementById("editArtistName").value.trim();
+  n.role=document.getElementById("editRole").value.trim()||n.role;
+  n.hub=document.getElementById("editHub").value.trim()||n.hub;
+  const typedTags=document.getElementById("editTags").value.split(",").map(x=>x.trim()).filter(Boolean);
+  n.tags=["All",...new Set(typedTags.filter(t=>t!=="All"))];
+  n.bio=document.getElementById("editBio").value.trim();
+  n.links=Object.assign({},n.links||{});
+  const ig=document.getElementById("editInstagram").value.trim(),sp=document.getElementById("editSpotify").value.trim();
+  if(ig)n.links.Instagram=ig;else delete n.links.Instagram;
+  if(sp)n.links.Spotify=sp;else delete n.links.Spotify;
+  n.pro=document.getElementById("editPRO").value.trim();
+  n.ipi=document.getElementById("editIPI").value.trim();
+  n.legalName=document.getElementById("editLegalName").value.trim();
+  n.publisher=document.getElementById("editPublisher").value.trim();
+
+  const v=id=>document.getElementById(id)?.value?.trim()??"";
+  if(n.profileType==="venue")Object.assign(n,{location:v("editLocation"),capacity:v("editCapacity"),bookingContact:v("editBookingContact"),talentBuyer:v("editTalentBuyer"),warmConnection:v("editWarmConnection"),lastQuotedGuarantee:v("editQuotedGuarantee"),dealStructure:v("editDealStructure"),doorSplit:v("editDoorSplit"),productionFee:v("editProductionFee"),audienceFit:v("editAudienceFit"),backline:v("editBackline"),potentialShowNotes:v("editPotentialShowNotes")});
+  if(n.profileType==="studio")Object.assign(n,{location:v("editLocation"),capacity:v("editCapacity"),access:v("editAccess"),availability:v("editAvailability"),frequentPeople:v("editFrequentPeople"),rates:v("editRates"),resources:v("editResources"),history:v("editHistory")});
+
+  if(pendingEditPhotoData!==null){if(pendingEditPhotoData)n.photo=pendingEditPhotoData;else delete n.photo}
+  persistEditedProfiles();persistCustomProfileIfNeeded(n);
+  const after=profileSnapshot(n),changed={};
+  Object.keys(after).forEach(k=>{if(JSON.stringify(before[k])!==JSON.stringify(after[k]))changed[k]={from:before[k]??null,to:after[k]??null}});
+  if(Object.keys(changed).length)queueNetworkChange({type:"profile_update",profileId:n.id,profileName:n.name,changes:changed});
+  if(pendingEditPhotoData!==null)queueNetworkChange({type:"profile_photo_update",profileId:n.id,profileName:n.name,change:pendingEditPhotoData?hadPhoto?"replaced":"added":"removed",note:"Image bytes remain local to the browser in this prototype."});
+  motionState[n.id]=undefined;pendingEditPhotoData=null;closeEditProfile();render();showProfile(n);
+};
+
+const syncModal=document.getElementById("syncModal");
+function renderSyncPacket(){
+  const q=getChangeQueue();
+  document.getElementById("syncSummary").textContent=q.length?`${q.length} local change${q.length===1?"":"s"} waiting to be relayed.`:"No unsynced changes.";
+  document.getElementById("syncPayload").value=JSON.stringify({source:"Creative Network v28",generatedAt:new Date().toISOString(),changes:q},null,2);
+}
+document.getElementById("syncBtn").onclick=()=>{renderSyncPacket();syncModal.classList.remove("hidden")};
+document.getElementById("closeSyncModal").onclick=()=>syncModal.classList.add("hidden");
+syncModal.addEventListener("click",e=>{if(e.target===syncModal)syncModal.classList.add("hidden")});
+document.getElementById("copySyncPayload").onclick=async()=>{
+  const t=document.getElementById("syncPayload");let ok=false;
+  try{await navigator.clipboard.writeText(t.value);ok=true}catch(e){t.focus();t.select();try{ok=document.execCommand("copy")}catch(_){}}
+  const b=document.getElementById("copySyncPayload");b.textContent=ok?"Copied — paste into ChatGPT":"Select + copy the packet";setTimeout(()=>b.textContent="Copy update packet",1700);
+};
+document.getElementById("markSynced").onclick=()=>{localStorage.removeItem(CHANGE_QUEUE_KEY);updateSyncCount();renderSyncPacket()};
+updateSyncCount();
+
+function primeOrbit(){
+  orbitStartedAt=performance.now();
+  Object.keys(orbitConfig).forEach(k=>delete orbitConfig[k]);
+  nodes.filter(visibleNode).forEach(n=>{
+    if(n.id==="uh_sar"||n.profileType==="studio"||n.profileType==="venue")return;
+    const st=ensureMotionState(n),dx=st.x-500,dy=st.y-360;
+    orbitConfig[n.id]={
+      angle:Math.atan2(dy,dx),
+      radius:Math.max(105,Math.min(350,Math.hypot(dx,dy))),
+      speed:(.030+seededNumber(n.id,211)*.025) // positive angle = clockwise in screen coordinates
+    };
+  });
+}
+function setOrbitMode(on){
+  orbitMode=!!on;
+  const btn=document.getElementById("orbitBtn");
+  if(orbitMode){
+    if(currentView!=="relationship"){
+      currentView="relationship";
+      document.querySelectorAll(".viewbtn").forEach(b=>b.classList.toggle("active",b.dataset.view==="relationship"));
+      const ex=document.getElementById("viewExplainer");if(ex)ex.innerHTML="<strong>Relationship View</strong><br>Orbit mode keeps uh_sar at the center while visible profiles travel around the relationship system.";
+    }
+    primeOrbit();
+    if(btn){btn.classList.add("active");btn.textContent="◉ Orbiting"}
+  }else{
+    if(btn){btn.classList.remove("active");btn.textContent="◎ Orbit"}
+  }
+  Object.values(motionState).forEach(st=>{if(st){st.vx*=.25;st.vy*=.25}});
+  render();
+}
+document.getElementById("orbitBtn").onclick=()=>setOrbitMode(!orbitMode);
+function setGravityMode(on){
+  gravityMode=!!on;
+  const btn=document.getElementById("gravityBtn");
+  if(gravityMode && !orbitMode)setOrbitMode(true);
+  if(btn){btn.classList.toggle("active",gravityMode);btn.textContent=gravityMode?"● Gravity":"◌ Gravity"}
+}
+document.getElementById("gravityBtn").onclick=()=>setGravityMode(!gravityMode);
+
+// v9: smooth SVG camera.
+// Uses the SVG viewBox instead of scaling the graph group. This is much more stable.
+const BASE_W=1000, BASE_H=720;
+const MIN_ZOOM=.72, MAX_ZOOM=4.2;
+
+let camera={cx:500,cy:360,z:1};
+let cameraTarget={cx:500,cy:360,z:1};
+let cameraRAF=null;
+
+function applyCamera(){
+  const w=BASE_W/camera.z;
+  const h=BASE_H/camera.z;
+  svg.setAttribute("viewBox",`${camera.cx-w/2} ${camera.cy-h/2} ${w} ${h}`);
+  const mode=currentView==="relationship"?"Relationship view":currentView==="hubs"?"Creative hubs":currentView==="studios"?"Studio view":"Venue view";
+  const lock=selectedFocusId ? ` · Locked: ${getNode(selectedFocusId)?.name || ""}` : "";
+  document.getElementById("status").textContent=`${mode} · ${Math.round(camera.z*100)}%${lock}`;
+}
+
+function animateCamera(){
+  if(cameraRAF) return;
+
+  const step=()=>{
+    // Zoom itself eases normally.
+    camera.z += (cameraTarget.z-camera.z)*.075;
+
+    // The selected node acts like a gentle gravitational center only while zoomed in.
+    // It is intentionally weak at first, then grows stronger as magnification increases.
+    const focus=focusedNodePoint();
+    if(focus && cameraTarget.z>1.02){
+      const zNorm=Math.max(0,Math.min(1,(cameraTarget.z-1)/(MAX_ZOOM-1)));
+      const centerPull=.008 + zNorm*.018;
+      cameraTarget.cx += (focus.x-cameraTarget.cx)*centerPull;
+      cameraTarget.cy += (focus.y-cameraTarget.cy)*centerPull;
+    }
+
+    // Camera position follows that moving target even more softly.
+    camera.cx += (cameraTarget.cx-camera.cx)*.055;
+    camera.cy += (cameraTarget.cy-camera.cy)*.055;
+
+    applyCamera();
+
+    const focusActive=!!focus && cameraTarget.z>1.02;
+    const zoomSettled=Math.abs(cameraTarget.z-camera.z)<.0004;
+    const panSettled=Math.abs(cameraTarget.cx-camera.cx)<.03 && Math.abs(cameraTarget.cy-camera.cy)<.03;
+
+    // Keep tracking while a selected floating node is being focused.
+    if(!focusActive && zoomSettled && panSettled){
+      camera={...cameraTarget};
+      applyCamera();
+      cameraRAF=null;
+      return;
+    }
+    cameraRAF=requestAnimationFrame(step);
+  };
+
+  cameraRAF=requestAnimationFrame(step);
+}
+
+function focusedNodePoint(){
+  if(!selectedFocusId) return null;
+  const n=getNode(selectedFocusId);
+  if(!n || !visibleNode(n)) return null;
+  const live=motionState[selectedFocusId];
+  if(live) return {x:live.x,y:live.y};
+  const [x,y]=pos(n);
+  return {x,y};
+}
+
+function focusSelectedAtCurrentZoom(){
+  if(cameraTarget.z<=1.02) return;
+  // No positional jump here; simply keep the tracking camera alive.
+  animateCamera();
+}
+
+function clientToMap(clientX,clientY){
+  const rect=svg.getBoundingClientRect();
+  const w=BASE_W/camera.z;
+  const h=BASE_H/camera.z;
+  const left=camera.cx-w/2;
+  const top=camera.cy-h/2;
+  const u=(clientX-rect.left)/rect.width;
+  const v=(clientY-rect.top)/rect.height;
+  return {x:left+u*w,y:top+v*h,u,v};
+}
+
+function setZoom(nextZoom,clientX=null,clientY=null){
+  nextZoom=Math.max(MIN_ZOOM,Math.min(MAX_ZOOM,nextZoom));
+  const focus=focusedNodePoint();
+
+  if(focus){
+    // Do not reposition here. animateCamera() slowly pulls the chosen profile
+    // toward center over multiple frames as the user continues to zoom.
+    cameraTarget.z=nextZoom;
+    animateCamera();
+    return;
+  }
+
+  if(clientX!==null&&clientY!==null){
+    const anchor=clientToMap(clientX,clientY),newW=BASE_W/nextZoom,newH=BASE_H/nextZoom;
+    cameraTarget.cx=anchor.x+(.5-anchor.u)*newW;
+    cameraTarget.cy=anchor.y+(.5-anchor.v)*newH;
+  }
+  cameraTarget.z=nextZoom;
+  animateCamera();
+}
+
+svg.addEventListener("wheel",(e)=>{
+  e.preventDefault();
+  // Continuous exponential scaling handles trackpads and mouse wheels smoothly.
+  let factor=Math.exp(-e.deltaY*0.00125);
+  factor=Math.max(.90,Math.min(1.11,factor));
+  setZoom(cameraTarget.z*factor,e.clientX,e.clientY);
+},{passive:false});
+
+let isPanning=false;
+let panLast=null;
+
+svg.addEventListener("pointerdown",(e)=>{
+  if(e.target.closest && e.target.closest(".node")) return;
+  isPanning=true;
+  panLast={x:e.clientX,y:e.clientY};
+  svg.setPointerCapture(e.pointerId);
+  svg.style.cursor="grabbing";
+});
+
+svg.addEventListener("pointermove",(e)=>{
+  if(!isPanning || !panLast) return;
+  const rect=svg.getBoundingClientRect();
+  const viewW=BASE_W/camera.z;
+  const viewH=BASE_H/camera.z;
+  const dx=(e.clientX-panLast.x)/rect.width*viewW;
+  const dy=(e.clientY-panLast.y)/rect.height*viewH;
+  camera.cx-=dx;
+  camera.cy-=dy;
+  cameraTarget.cx=camera.cx;
+  cameraTarget.cy=camera.cy;
+  panLast={x:e.clientX,y:e.clientY};
+  applyCamera();
+});
+
+function stopPan(e){
+  if(!isPanning) return;
+  isPanning=false;
+  panLast=null;
+  svg.style.cursor="grab";
+  try{svg.releasePointerCapture(e.pointerId)}catch(_){}
+}
+svg.addEventListener("pointerup",stopPan);
+svg.addEventListener("pointercancel",stopPan);
+
+document.getElementById("zoomIn").onclick=()=>setZoom(cameraTarget.z*1.24);
+document.getElementById("zoomOut").onclick=()=>setZoom(cameraTarget.z/1.24);
+document.getElementById("zoomReset").onclick=()=>{
+  cameraTarget={cx:500,cy:360,z:1};
+  animateCamera();
+};
+
+function getNode(id){ return nodes.find(n=>n.id===id); }
+
+function highlightNodes(ids){
+  document.querySelectorAll(".node").forEach(g=>g.classList.remove("ai-highlight"));
+  ids.forEach(id=>{
+    const g=viewport.querySelector(`.node[data-id="${id}"]`);
+    if(g)g.classList.add("ai-highlight");
+  });
+  if(ids.length){
+    const names=ids.map(id=>getNode(id)?.name).filter(Boolean).join(", ");
+    const ans=document.getElementById("aiAnswer");
+    if(ans&&!ans.innerHTML.includes("Highlighted on map"))ans.innerHTML+=`<div class="evidence">Highlighted on map: ${names}</div>`;
+  }
+}
+
+function cardPerson(id){
+  const n=getNode(id);
+  return n ? `<strong>${n.name}</strong> <span style="color:#8e98a7">— ${n.role}</span>` : id;
+}
+
+function answerNetworkQuestion(q){
+  const query=q.toLowerCase().trim();
+  let html="", ids=[];
+
+  if(query.includes("writing camp") && query.includes("free")){
+    ids=["free","cam","mempho","balam","uh_sar"];
+    html=`<h3>Suggested room: Free + Cam + Mempho + Balam + uh_sar</h3>
+      <div class="reason">${cardPerson("free")} is the artist/writer focus and brings strong natural rhythm.</div>
+      <div class="reason">${cardPerson("cam")} adds elite drums, percussion, groove, and multi-instrumental flexibility.</div>
+      <div class="reason">${cardPerson("mempho")} adds versatile production, swung drums, keys/chords, and artist instincts.</div>
+      <div class="reason">${cardPerson("balam")} adds guitar, bass, harmony, composition, and arrangement.</div>
+      <div class="reason">${cardPerson("uh_sar")} anchors production, composition, arrangement, and direction.</div>
+      <p><strong>Inference:</strong> Cam and Mempho have not been logged as proven collaborators together, so their chemistry is a hypothesis based on complementary skills.</p>
+      <div class="evidence">Sources: your firsthand notes + current People/Connections data.</div>`;
+  } else if((query.includes("tde") || query.includes("punch")) && (query.includes("connect") || query.includes("orbit") || query.includes("path"))){
+    ids=["uh_sar","addae","baws","sockjus","mempho"];
+    html=`<h3>Strongest documented path into the TDE/Punch orbit</h3>
+      <p><strong>uh_sar → Addae → Baw$ → The Company / A Room Full of Mirrors → Punch/TDE orbit</strong></p>
+      <div class="reason">${cardPerson("addae")} is your direct bridge because he grew up with Baw$.</div>
+      <div class="reason">${cardPerson("baws")} is the key hub. You reported real industry access, including SZA/Kendrick field tickets and roaming credentials, plus prior Punch/SZA-tour connections.</div>
+      <p>The app should treat the formal job-title details as <strong>user-reported until publicly verified</strong>, while your firsthand access experience is direct evidence that the relationship is real.</p>
+      <div class="evidence">Known relationship path + user-reported industry context.</div>`;
+  } else if(query.includes("keys") && (query.includes("produce") || query.includes("producer"))){
+    ids=["mempho","chris"];
+    html=`<h3>Best current matches</h3>
+      <div class="reason">${cardPerson("mempho")} — explicitly logged as a producer who can also find strong chords on keys.</div>
+      <div class="reason">${cardPerson("chris")} — elite keyboardist, but his producer profile is not yet established in the database.</div>
+      <p><strong>Most complete match right now: Mempho.</strong> Chris should remain a partial match until we confirm production/songwriting capability.</p>
+      <div class="evidence">Grounded in current role and firsthand-note fields.</div>`;
+  } else if(query.includes("bridge") || query.includes("connector")){
+    ids=["free","baws","addae","mempho","sockjus"];
+    html=`<h3>Current high-value bridge nodes</h3>
+      <div class="reason">${cardPerson("free")} — connects God's Contraband to the Delaware/Philly artist ecosystem and Zeke.</div>
+      <div class="reason">${cardPerson("baws")} — connects your direct circle to Sockjus/John/Mempho/Nick and adjacent Punch/TDE-related communities.</div>
+      <div class="reason">${cardPerson("addae")} — management/visual bridge who has introduced multiple collaborators, including Sockjus and Baw$.</div>
+      <div class="reason">${cardPerson("mempho")} — spans artist, producer, musician, and writing-camp functions inside the Baw$ orbit.</div>
+      <p>This is a qualitative network reading, not a permanent score.</p>
+      <div class="evidence">Connection graph + roles + your firsthand relationship notes.</div>`;
+  } else if(query.includes("sockjus")){
+    ids=["sockjus","john","baws","mempho","nick","addae"];
+    html=`<h3>Sockjus orbit</h3>
+      <p>The most relevant cluster is <strong>Sockjus + John + Baw$ + Mempho + Nick Bison</strong>, with Addae acting as an important connection point into the group.</p>
+      <div class="reason">Sockjus, John, and Baw$ are moving into the same house, making that house an emerging creative hub.</div>
+      <div class="reason">Mempho works frequently with the orbit and adds producer/musician depth.</div>
+      <div class="reason">Nick Bison is a close Baw$ collaborator and versatile artist.</div>
+      <div class="evidence">Current hub and connection records.</div>`;
+  } else {
+    // lightweight role search
+    const terms=query.split(/\s+/).filter(x=>x.length>3);
+    const matches=nodes.filter(n=>{
+      const hay=[n.name,n.role,n.hub,n.bio,...(n.tags||[])].join(" ").toLowerCase();
+      return terms.filter(t=>!["show","with","that","have","what","who","does","from","your","mine","people"].includes(t))
+                  .some(t=>hay.includes(t));
+    }).slice(0,6);
+    ids=matches.map(n=>n.id);
+    if(matches.length){
+      html=`<h3>Closest matches in the current network data</h3>`+
+        matches.map(n=>`<div class="reason">${cardPerson(n.id)}<br><span style="color:#9ca6b4">${n.hub}</span></div>`).join("")+
+        `<div class="evidence">This fallback is keyword-based in the prototype. The production version would use an LLM to interpret intent and query the database.</div>`;
+    }else{
+      html=`<h3>I don't have enough structured evidence yet.</h3>
+        <p>Try asking about a person, role, hub, writing camp, bridge, or connection path that is already in the map.</p>
+        <div class="evidence">The production AI would be able to interpret broader natural-language questions.</div>`;
+    }
+  }
+
+  document.getElementById("aiAnswer").innerHTML=html;
+  highlightNodes(ids);
+}
+
+document.getElementById("aiToggle").onclick=()=>{
+  document.getElementById("aiPanel").classList.toggle("hidden");
+  setTimeout(()=>document.getElementById("aiInput").focus(),50);
+};
+document.getElementById("aiSend").onclick=()=>{
+  const q=document.getElementById("aiInput").value;
+  if(q.trim()) answerNetworkQuestion(q);
+};
+document.getElementById("aiInput").addEventListener("keydown",e=>{
+  if(e.key==="Enter"){ e.preventDefault(); document.getElementById("aiSend").click(); }
+});
+document.querySelectorAll(".ai-suggestion").forEach(b=>b.onclick=()=>{
+  document.getElementById("aiInput").value=b.textContent;
+  answerNetworkQuestion(b.textContent);
+});
+
+
+// Sidebar controls.
+const appShell=document.querySelector(".app");
+document.getElementById("toggleLeft").onclick=()=>appShell.classList.toggle("left-hidden");
+document.getElementById("toggleRight").onclick=()=>appShell.classList.toggle("right-hidden");
+document.getElementById("focusMode").onclick=()=>{
+  const full=appShell.classList.contains("left-hidden")&&appShell.classList.contains("right-hidden");
+  appShell.classList.toggle("left-hidden",!full);
+  appShell.classList.toggle("right-hidden",!full);
+};
+
+// Role-aware profile onboarding.
+const modal=document.getElementById("profileModal");
+const typeSelect=document.getElementById("newProfileType");
+const dynamicFields=document.getElementById("dynamicFields");
+const dynamicTitle=document.getElementById("dynamicTitle");
+
+const schemas={
+  musician:{
+    title:"Music profile",
+    fields:[
+      ["newArtistName","Artist / Stage name","Artist name if different"],
+      ["newInstruments","Instruments / Skills","Drums, bass, keys..."],
+      ["newGenres","Genres / Style","R&B, hip-hop, electronic..."],
+      ["newPRO","PRO affiliation","BMI / ASCAP / SESAC / other"],
+      ["newIPI","IPI / CAE number","IPI / CAE"],
+      ["newLegalName","Legal songwriter name","Legal name for registrations"],
+      ["newPublisher","Publisher / Admin","Publisher or administrator"]
+    ]
+  },
+  collective:{
+    title:"Band / Collective profile",
+    fields:[
+      ["newCollectiveType","Collective type","Band, trio, collective, crew..."],
+      ["newMembers","Members / roster","Names or roster note"],
+      ["newStatus","Status","Active, dormant, project-based..."],
+      ["newFounders","Founders","Optional"],
+      ["newGenres","Genres / style","Optional"],
+      ["newBusinessEmail","Contact","Optional"]
+    ]
+  },
+  filmmaker:{
+    title:"Film / Visual profile",
+    fields:[
+      ["newVisualRoles","Film roles","Director, DP, editor..."],
+      ["newVisualStyle","Visual style / specialties","Documentary, fashion, narrative..."],
+      ["newReel","Reel / Portfolio","Portfolio URL"],
+      ["newGear","Gear / Resources","Camera, lighting, editing..."]
+    ]
+  },
+  manager:{
+    title:"Management profile",
+    fields:[
+      ["newOrganization","Company / Organization","Company or independent"],
+      ["newMarket","Market / Territory","LA, touring, digital..."],
+      ["newRoster","Roster / Focus","Artists or focus area"],
+      ["newBusinessEmail","Business contact","Email"]
+    ]
+  },
+  promoter:{
+    title:"Promoter / Booker profile",
+    fields:[
+      ["newOrganization","Company / Brand","Promotion company"],
+      ["newMarket","Market / Territory","City / region"],
+      ["newGenres","Programming focus","Genres / scenes"],
+      ["newBusinessEmail","Booking contact","Email"]
+    ]
+  },
+  venue:{
+    title:"Venue / Place profile",
+    fields:[
+      ["newLocation","Area / neighborhood","City / neighborhood"],
+      ["newCapacity","Capacity","Approx. room capacity"],
+      ["newGenres","Audience / programming fit","Genres, scenes, event types"],
+      ["newBookingContact","Booking contact","Name / email / contact"],
+      ["newTalentBuyer","Talent buyer / promoter","Who actually books the room?"],
+      ["newWarmConnection","Warm connection","Who can introduce you?"],
+      ["newQuotedGuarantee","Last quoted guarantee","e.g. $500 guarantee"],
+      ["newDealStructure","Deal structure","Guarantee, door split, rental, hybrid..."],
+      ["newPotentialShowNotes","Potential show notes","What could you book here?"]
+    ]
+  },
+  studio:{
+    title:"Studio / Resource profile",
+    fields:[
+      ["newLocation","Area / neighborhood","Keep private addresses out of public demo"],
+      ["newCapacity","Capacity","Approx. people / room size"],
+      ["newResources","Equipment / resources","Instruments, amps, interface, monitors..."],
+      ["newAccess","Access / control","Who controls access?"],
+      ["newAvailability","Availability","Hours / booking rules"],
+      ["newFrequentPeople","Frequent people","Regular collaborators / tenants"],
+      ["newRates","Rates / cost","Hourly, day rate, rent share, if known"]
+    ]
+  },
+  other:{
+    title:"Custom profile",
+    fields:[
+      ["newSpecialty","Specialty","What do they do?"],
+      ["newOrganization","Organization","Company / group"],
+      ["newLocation","Location","City / region"],
+      ["newBusinessEmail","Contact","Email"]
+    ]
+  }
+};
+
+function renderDynamicFields(){
+  const schema=schemas[typeSelect.value];
+  dynamicTitle.textContent=schema.title;
+  dynamicFields.innerHTML=schema.fields.map(([id,label,placeholder])=>`
+    <div class="form-field">
+      <label>${label}</label>
+      <input id="${id}" placeholder="${placeholder}">
+    </div>`).join("");
+}
+renderDynamicFields();
+typeSelect.onchange=renderDynamicFields;
+
+function openProfileModal(){
+  modal.classList.remove("hidden");
+  setTimeout(()=>document.getElementById("newName").focus(),40);
+}
+function closeProfileModal(){
+  modal.classList.add("hidden");
+}
+document.getElementById("addProfile").onclick=openProfileModal;
+document.getElementById("sidebarAddProfile").onclick=openProfileModal;
+document.getElementById("closeProfileModal").onclick=closeProfileModal;
+document.getElementById("cancelProfile").onclick=closeProfileModal;
+modal.addEventListener("click",e=>{if(e.target===modal)closeProfileModal()});
+
+document.getElementById("saveProfile").onclick=()=>{
+  const name=document.getElementById("newName").value.trim();
+  if(!name){document.getElementById("newName").focus();return}
+
+  const kind=typeSelect.value;
+  const role=document.getElementById("newRole").value.trim()||schemas[kind].title;
+  const hub=document.getElementById("newHub").value.trim()||"Unclassified / Extended Network";
+  const relationship=document.getElementById("newRelationship").value.trim();
+  const publicLink=document.getElementById("newLink").value.trim();
+  const slug=(name.toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"")||"profile")+"_"+Date.now().toString().slice(-6);
+
+  const tags=["All"];
+  if(kind==="musician") tags.push("Musicians");
+  if(kind==="collective") tags.push("Bands & Collectives");
+  if(kind==="filmmaker") tags.push("Visual");
+  if(["manager","promoter"].includes(kind)) tags.push("Industry");
+  if(kind==="venue") tags.push("Venues");
+  if(kind==="studio") tags.push("Studios");
+
+  const p={
+    id:slug,name,role,profileType:kind,type:["venue","studio","collective"].includes(kind)?"hubnode":"person",
+    r:21,tags,hub,
+    bio:relationship||"New profile added directly in the Creative Network prototype.",
+    links:publicLink?{Public:publicLink}:{}
+  };
+
+  const val=id=>document.getElementById(id)?.value?.trim()||"";
+  if(kind==="musician"){
+    Object.assign(p,{artistName:val("newArtistName"),instruments:val("newInstruments"),genres:val("newGenres"),pro:val("newPRO"),ipi:val("newIPI"),legalName:val("newLegalName"),publisher:val("newPublisher")});
+  }else if(kind==="collective"){
+    Object.assign(p,{collectiveType:val("newCollectiveType"),members:val("newMembers"),status:val("newStatus"),founders:val("newFounders"),genres:val("newGenres"),businessEmail:val("newBusinessEmail")});
+  }else if(kind==="filmmaker"){
+    Object.assign(p,{visualRoles:val("newVisualRoles"),visualStyle:val("newVisualStyle"),reel:val("newReel"),resources:val("newGear")});
+  }else if(["manager","promoter"].includes(kind)){
+    Object.assign(p,{organization:val("newOrganization"),market:val("newMarket"),genres:val("newGenres"),businessEmail:val("newBusinessEmail")});
+  }else if(kind==="venue"){
+    Object.assign(p,{location:val("newLocation"),capacity:val("newCapacity"),genres:val("newGenres"),audienceFit:val("newGenres"),bookingContact:val("newBookingContact"),talentBuyer:val("newTalentBuyer"),warmConnection:val("newWarmConnection"),lastQuotedGuarantee:val("newQuotedGuarantee"),dealStructure:val("newDealStructure"),potentialShowNotes:val("newPotentialShowNotes")});
+  }else if(kind==="studio"){
+    Object.assign(p,{location:val("newLocation"),capacity:val("newCapacity"),resources:val("newResources"),access:val("newAccess"),availability:val("newAvailability"),frequentPeople:val("newFrequentPeople"),rates:val("newRates")});
+  }
+
+  nodes.push(p);
+  const saved=JSON.parse(localStorage.getItem("creativeNetworkCustomProfiles")||"[]");
+  saved.push(p);
+  localStorage.setItem("creativeNetworkCustomProfiles",JSON.stringify(saved));
+
+  const i=saved.length-1,a=(i*1.7)+.8,rad=150+(i%3)*35;
+  relationshipPos[p.id]=[500+Math.cos(a)*rad,360+Math.sin(a)*rad];
+  offsets[p.id]=[0,0];
+
+  ["newName","newRole","newHub","newRelationship","newLink"].forEach(id=>{const el=document.getElementById(id);if(el)el.value=""});
+  renderDynamicFields();
+  closeProfileModal();
+  if(kind==="venue")currentView="venues";else if(kind==="studio")currentView="studios";
+  if(kind==="venue"||kind==="studio")document.querySelectorAll(".viewbtn").forEach(b=>b.classList.toggle("active",b.dataset.view===currentView));
+  render();
+  showProfile(p);
+};
+
+
+
+// v20 — lightweight ambient shooting stars. Only animate while a meteor is visible.
+(() => {
+  const canvas=document.getElementById("spaceFx");
+  if(!canvas || !canvas.getContext) return;
+  const reduceMotion=window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(reduceMotion) return;
+  const ctx=canvas.getContext("2d");
+  let cssW=0,cssH=0,dpr=1,timer=null,raf=null,meteor=null;
+
+  function resizeSpaceFx(){
+    const rect=canvas.getBoundingClientRect();
+    cssW=Math.max(1,rect.width); cssH=Math.max(1,rect.height);
+    dpr=Math.min(window.devicePixelRatio||1,2);
+    canvas.width=Math.round(cssW*dpr); canvas.height=Math.round(cssH*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,cssW,cssH);
+  }
+
+  function scheduleMeteor(){
+    clearTimeout(timer);
+    timer=setTimeout(spawnMeteor,8000+Math.random()*12000);
+  }
+
+  function spawnMeteor(){
+    if(document.hidden){scheduleMeteor();return;}
+    const fromLeft=Math.random()>.18;
+    const speed=9+Math.random()*5;
+    meteor={
+      x:fromLeft?-90-Math.random()*120:cssW+90+Math.random()*120,
+      y:24+Math.random()*Math.max(80,cssH*.42),
+      vx:fromLeft?speed:-speed,
+      vy:3.2+Math.random()*2.6,
+      age:0,
+      life:42+Math.floor(Math.random()*26),
+      len:70+Math.random()*75,
+      alpha:.28+Math.random()*.18
+    };
+    if(raf)cancelAnimationFrame(raf);
+    raf=requestAnimationFrame(drawMeteor);
+  }
+
+  function drawMeteor(){
+    ctx.clearRect(0,0,cssW,cssH);
+    if(!meteor){scheduleMeteor();return;}
+    const m=meteor;
+    m.x+=m.vx; m.y+=m.vy; m.age++;
+    const mag=Math.hypot(m.vx,m.vy)||1;
+    const ux=m.vx/mag,uy=m.vy/mag;
+    const tailX=m.x-ux*m.len,tailY=m.y-uy*m.len;
+    const fade=Math.min(1,m.age/8)*Math.min(1,(m.life-m.age)/10);
+    const grad=ctx.createLinearGradient(tailX,tailY,m.x,m.y);
+    grad.addColorStop(0,"rgba(255,255,255,0)");
+    grad.addColorStop(.72,`rgba(210,220,236,${m.alpha*.28*fade})`);
+    grad.addColorStop(1,`rgba(248,241,220,${m.alpha*fade})`);
+    ctx.strokeStyle=grad;
+    ctx.lineWidth=1.15;
+    ctx.beginPath(); ctx.moveTo(tailX,tailY); ctx.lineTo(m.x,m.y); ctx.stroke();
+    ctx.fillStyle=`rgba(248,241,220,${m.alpha*.9*fade})`;
+    ctx.beginPath(); ctx.arc(m.x,m.y,1.15,0,Math.PI*2); ctx.fill();
+    if(m.age<m.life && m.x>-220 && m.x<cssW+220 && m.y<cssH+140){
+      raf=requestAnimationFrame(drawMeteor);
+    }else{
+      meteor=null; raf=null; ctx.clearRect(0,0,cssW,cssH); scheduleMeteor();
+    }
+  }
+
+  resizeSpaceFx();
+  if(window.ResizeObserver){new ResizeObserver(resizeSpaceFx).observe(canvas.parentElement);}else{window.addEventListener("resize",resizeSpaceFx,{passive:true});}
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden && !meteor)scheduleMeteor();});
+  scheduleMeteor();
+})();
+
+const APP_RELEASES=[
+  {
+    version:"v28",file:null,date:"2026-09-17",title:"Studio hubs + band filter nodes (fixed baseline)",
+    notes:[
+      "Rebuilt the live app from the full source instead of stacking runtime loader patches",
+      "Studio View now uses each studio as a hub and clusters frequent users around it",
+      "Relationship View hides band bubbles and keeps only subtle constellation names",
+      "Bands / Collectives filter reveals the group bubble and direct member links",
+      "Fixed the blank floating empty-state bar",
+      "Kept profile-photo upload in Edit Profile"
+    ]
+  },
+  {
+    version:"v25",file:null,date:"2026-09-17",title:"Studio View + Venue View + profile photo uploads",
+    notes:[
+      "Added explicit Studio View and Venue View buttons directly under Views",
+      "Seeded five studio / creative-space profiles and hid infrastructure from normal relationship views",
+      "Venue profiles track booking relationships and dated rate / deal information",
+      "Profile editing now supports local image uploads with resizing and preview",
+      "Uploaded images stay on this browser in the static prototype and are not committed to the public repo"
+    ]
+  },
+  {
+    version:"v22",file:null,date:"2026-09-17",
+    title:"Constellation collectives + clockwise orbit + connection gravity",
+    notes:[
+      "Bands and collectives no longer render as planet bubbles; they appear as clickable constellation names over their member clusters",
+      "Bands / Collectives filter now reveals the people inside each group rather than a separate group node",
+      "Orbit mode now moves every visible profile clockwise around uh_sar",
+      "Added an experimental Gravity toggle: connected profiles exert a subtle pull based on connection strength",
+      "Connection lines now encode relationship stage: solid strong, dotted budding, dashed potential"
+    ]
+  },
+  {
+    version:"v21",file:null,date:"2026-09-17",
+    title:"Profile editing + change relay queue + orbit mode",
+    notes:[
+      "Profiles can now be edited directly from the profile panel and persist in this browser",
+      "Profile edits are logged into a local sync queue with a copyable update packet for ChatGPT",
+      "Added an Orbit button: uh_sar becomes the sun while visible profiles orbit at their relationship distance",
+      "Orbit mode stays lightweight and only runs on the visible network"
+    ]
+  },
+  {
+    version:"v20",
+    file:null,
+    date:"2026-09-17",
+    title:"Subtle orbital guides + ambient shooting stars",
+    notes:[
+      "Softened relationship rings so they read as faint orbital guides instead of dominant diagram lines",
+      "Rings become slightly more visible when a filter is active",
+      "Added occasional lightweight shooting stars behind the network",
+      "Shooting-star animation sleeps between passes and respects reduced-motion preferences"
+    ]
+  },
+  {
+    version:"v19",
+    file:null,
+    date:"2026-09-17",
+    title:"Bands + collectives become first-class profiles",
+    notes:[
+      "Added a Bands / Collectives filter",
+      "God's Contraband now has its own clickable collective profile",
+      "Professor What Trio now has its own clickable group profile",
+      "Hub labels open the collective profile when a matching collective exists",
+      "Add Profile now supports Band / Collective as an entity type"
+    ]
+  },
+  {
+    version:"v18",
+    file:null,
+    date:"2026-09-17",
+    title:"God's Contraband filter + network gravity",
+    notes:[
+      "uh_sar now remains visible inside the God's Contraband filter",
+      "Solomon is correctly modeled as a contributor, not a member, and sits on the hub periphery",
+      "Picking any filter gives visible profiles a subtle temporary pull toward their nearest visible node",
+      "Preserved the original v17 look, layout, profiles, and organic motion"
+    ]
+  },
+  {
+    version:"v17",
+    file:null,
+    date:"2026-09-17",
+    title:"Solomon added",
+    notes:[
+      "Added Solomon to the canonical network map",
+      "Initially placed him near the God's Contraband hub; corrected in v18 to contributor/periphery status",
+      "Tagged him for future Writing Camps",
+      "Kept role details intentionally broad until the profile is filled out"
+    ]
+  },
+  {
+    version:"v14",
+    file:null,
+    date:"2026-09-17",
+    title:"Canonical demo + history",
+    notes:[
+      "Established one canonical demo file for future edits",
+      "Added in-app version history",
+      "Added Diontae artist name Son and Instagram link",
+      "Preserved role-aware onboarding, IPI/PRO fields, collapsible sidebars, AI demo, and living network motion"
+    ]
+  },
+  {
+    version:"v13",
+    file:"creative_network_versions/creative_network_v13_profiles_entities.html",
+    date:"2026-09-17",
+    title:"Profiles + entities",
+    notes:[
+      "Added role-specific onboarding",
+      "Added IPI / CAE and PRO fields",
+      "Added filmmaker, manager, promoter, venue, and studio profile types",
+      "Added collapsible sidebars and full-map mode"
+    ]
+  },
+  {
+    version:"v12",
+    file:"creative_network_versions/creative_network_v12_orbital_drift.html",
+    date:"2026-09-17",
+    title:"Orbital drift",
+    notes:[
+      "More organic floating motion",
+      "Selected profile gradually drifts toward center while zooming"
+    ]  }
+];
+
+function captureNetworkSnapshot(){
+  return {
+    version:"v25",
+    capturedAt:new Date().toISOString(),
+    customProfiles:JSON.parse(localStorage.getItem("creativeNetworkCustomProfiles")||"[]"),
+    notes:JSON.parse(localStorage.getItem("creativeNetworkNotes")||"{}")
+  };
+}
+
+function ensureReleaseSnapshot(){
+  const key="creativeNetworkReleaseSnapshots";
+  const all=JSON.parse(localStorage.getItem(key)||"{}");
+  if(!all.v28){
+    all.v28=captureNetworkSnapshot();
+    localStorage.setItem(key,JSON.stringify(all));
+  }
+}
+ensureReleaseSnapshot();
+
+function renderHistory(){
+  const releases=APP_RELEASES;
+  document.getElementById("historyList").innerHTML=releases.map(r=>`
+    <div class="history-item">
+      <div class="history-top">
+        <div>
+          <div class="history-version">${r.version} · ${r.title}</div>
+          <div class="history-date">${r.date}</div>
+        </div>
+        ${r.version==="v28"?'<span class="chip">Current</span>':""}
+      </div>
+      <div class="history-notes">${r.notes.map(n=>`• ${n}`).join("<br>")}</div>
+      <div class="history-actions">
+        ${r.file?`<button onclick="window.open('${r.file}','_blank')">Open full release</button>`:""}
+        <button onclick="saveCurrentSnapshot('${r.version}')">Save current data snapshot</button>
+        <button onclick="restoreReleaseSnapshot('${r.version}')">Restore data snapshot</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function saveCurrentSnapshot(version){
+  const key="creativeNetworkReleaseSnapshots";
+  const all=JSON.parse(localStorage.getItem(key)||"{}");
+  all[version]=captureNetworkSnapshot();
+  all[version].version=version;
+  localStorage.setItem(key,JSON.stringify(all));
+  renderHistory();
+}
+
+function restoreReleaseSnapshot(version){
+  const all=JSON.parse(localStorage.getItem("creativeNetworkReleaseSnapshots")||"{}");
+  const snap=all[version];
+  if(!snap){
+    alert("No local data snapshot has been saved for "+version+" yet.");
+    return;
+  }
+  localStorage.setItem("creativeNetworkCustomProfiles",JSON.stringify(snap.customProfiles||[]));
+  localStorage.setItem("creativeNetworkNotes",JSON.stringify(snap.notes||{}));
+  alert("Data snapshot restored. Reload the demo to apply it.");
+}
+
+const versionModal=document.getElementById("versionModal");
+document.getElementById("versionLogBtn").onclick=()=>{
+  renderHistory();
+  versionModal.classList.remove("hidden");
+};
+document.getElementById("closeVersionModal").onclick=()=>versionModal.classList.add("hidden");
+versionModal.addEventListener("click",e=>{if(e.target===versionModal)versionModal.classList.add("hidden")});
+
+
+// v15 conversational modification prototype.
+const convoPanel=document.getElementById("convoPanel");
+const convoLog=document.getElementById("convoLog");
+const convoInput=document.getElementById("convoInput");
+let convoMode="edit";
+const editUndoStack=[];
+
+function pushConvo(text,type="system"){
+  const d=document.createElement("div");
+  d.className=`msg ${type}`;
+  d.textContent=text;
+  convoLog.appendChild(d);
+  convoLog.scrollTop=convoLog.scrollHeight;
+}
+function findNodeByName(name){
+  const q=name.trim().toLowerCase().replace(/[“”"']/g,"");
+  return nodes.find(n=>{
+    const vals=[n.name,n.artistName,n.id].filter(Boolean).map(x=>String(x).toLowerCase());
+    return vals.some(v=>v===q || v.includes(q) || q.includes(v));
+  });
+}
+function snapshotForUndo(label){
+  editUndoStack.push({
+    label,
+    nodes:JSON.parse(JSON.stringify(nodes)),
+    relationshipPos:JSON.parse(JSON.stringify(relationshipPos)),
+    currentFilter,
+    leftHidden:appShell.classList.contains("left-hidden"),
+    rightHidden:appShell.classList.contains("right-hidden")
+  });
+  if(editUndoStack.length>20) editUndoStack.shift();
+}
+function restoreUndo(){
+  const snap=editUndoStack.pop();
+  if(!snap){pushConvo("There is nothing to undo yet.","system");return}
+  nodes.splice(0,nodes.length,...snap.nodes);
+  Object.keys(relationshipPos).forEach(k=>delete relationshipPos[k]);
+  Object.assign(relationshipPos,snap.relationshipPos);
+  currentFilter=snap.currentFilter;
+  appShell.classList.toggle("left-hidden",snap.leftHidden);
+  appShell.classList.toggle("right-hidden",snap.rightHidden);
+  render();
+  if(selectedFocusId){
+    const n=nodes.find(x=>x.id===selectedFocusId);
+    if(n)showProfile(n);
+  }
+  pushConvo(`Undid: ${snap.label}`,"change");
+}
+
+function persistEditedProfiles(){
+  // Save mutable profile overrides separately from created profiles.
+  const overrides={};
+  nodes.forEach(n=>{
+    if(!String(n.id).includes("_"+String(n.id).slice(-6))){ // harmless compact heuristic; all nodes included below anyway
+      overrides[n.id]={
+        name:n.name,role:n.role,artistName:n.artistName,pro:n.pro,ipi:n.ipi,legalName:n.legalName,
+        publisher:n.publisher,instruments:n.instruments,genres:n.genres,hub:n.hub,bio:n.bio,
+        tags:n.tags,links:n.links,collectiveType:n.collectiveType,members:n.members,founders:n.founders,status:n.status,
+        location:n.location,capacity:n.capacity,bookingContact:n.bookingContact,organization:n.organization,market:n.market,
+        resources:n.resources,rates:n.rates,photo:n.photo,access:n.access,availability:n.availability,frequentPeople:n.frequentPeople,history:n.history,
+        talentBuyer:n.talentBuyer,warmConnection:n.warmConnection,lastQuotedGuarantee:n.lastQuotedGuarantee,dealStructure:n.dealStructure,doorSplit:n.doorSplit,productionFee:n.productionFee,audienceFit:n.audienceFit,backline:n.backline,potentialShowNotes:n.potentialShowNotes
+      };
+    }
+  });
+  localStorage.setItem("creativeNetworkProfileOverrides",JSON.stringify(overrides));
+  localStorage.setItem("creativeNetworkRelationshipPos",JSON.stringify(relationshipPos));
+}
+
+function applySavedOverrides(){
+  const overrides=JSON.parse(localStorage.getItem("creativeNetworkProfileOverrides")||"{}");
+  Object.entries(overrides).forEach(([id,o])=>{
+    const n=nodes.find(x=>x.id===id);
+    if(n)Object.assign(n,o);
+  });
+  const savedPos=JSON.parse(localStorage.getItem("creativeNetworkRelationshipPos")||"{}");
+  Object.assign(relationshipPos,savedPos);
+}
+applySavedOverrides();
+
+function executeNetworkEdit(raw){
+  const q=raw.trim();
+  const low=q.toLowerCase();
+  if(!q)return;
+
+  pushConvo(q,"user");
+
+  // Move X closer to Y
+  let m=q.match(/move\s+(.+?)\s+closer\s+to\s+(.+)/i);
+  if(m){
+    const a=findNodeByName(m[1]), b=findNodeByName(m[2]);
+    if(!a||!b){pushConvo("I couldn't confidently match both profiles.","system");return}
+    snapshotForUndo(`move ${a.name} closer to ${b.name}`);
+    const pa=relationshipPos[a.id]||pos(a),pb=relationshipPos[b.id]||pos(b);
+    relationshipPos[a.id]=[
+      pa[0]+(pb[0]-pa[0])*.42,
+      pa[1]+(pb[1]-pa[1])*.42
+    ];
+    motionState[a.id]=undefined;
+    persistEditedProfiles();render();showProfile(a);
+    pushConvo(`Moved ${a.name} noticeably closer to ${b.name} while preserving the rest of the layout.`,"change");
+    return;
+  }
+
+  // Change NAME's role to ...
+  m=q.match(/change\s+(.+?)(?:'s|’s)\s+role\s+to\s+(.+)/i);
+  if(m){
+    const n=findNodeByName(m[1]);
+    if(!n){pushConvo("I couldn't confidently match that profile.","system");return}
+    snapshotForUndo(`change ${n.name} role`);
+    n.role=m[2].trim();
+    persistEditedProfiles();render();showProfile(n);
+    pushConvo(`Updated ${n.name}'s role to ${n.role}.`,"change");
+    return;
+  }
+
+  // Add IPI NUMBER to NAME
+  m=q.match(/add\s+ipi(?:\s*\/\s*cae)?\s+([0-9.\-\s]+)\s+to\s+(.+)/i);
+  if(m){
+    const n=findNodeByName(m[2]);
+    if(!n){pushConvo("I couldn't confidently match that profile.","system");return}
+    snapshotForUndo(`add IPI to ${n.name}`);
+    n.ipi=m[1].trim();
+    persistEditedProfiles();render();showProfile(n);
+    pushConvo(`Added IPI / CAE ${n.ipi} to ${n.name}.`,"change");
+    return;
+  }
+
+  // Add PRO affiliation.
+  m=q.match(/(?:set|add)\s+(.+?)(?:'s|’s)?\s*pro\s+(?:to\s+)?(bmi|ascap|sesac|gmr)/i);
+  if(m){
+    const n=findNodeByName(m[1]);
+    if(!n){pushConvo("I couldn't confidently match that profile.","system");return}
+    snapshotForUndo(`set ${n.name} PRO`);
+    n.pro=m[2].toUpperCase();
+    persistEditedProfiles();render();showProfile(n);
+    pushConvo(`Set ${n.name}'s PRO affiliation to ${n.pro}.`,"change");
+    return;
+  }
+
+  // Show only musicians.
+  if(low.includes("show only musicians")||low.includes("only show musicians")){
+    snapshotForUndo("filter to musicians");
+    currentFilter="Musicians";
+    document.querySelectorAll(".filter").forEach(btn=>btn.classList.toggle("active",btn.dataset.filter==="Musicians"));
+    render();
+    pushConvo("Filtered the map to musicians.","change");
+    return;
+  }
+
+  // Show all.
+  if(low==="show all"||low.includes("show everyone")){
+    snapshotForUndo("show all");
+    currentFilter="All";
+    document.querySelectorAll(".filter").forEach(btn=>btn.classList.toggle("active",btn.dataset.filter==="All"));
+    render();
+    pushConvo("Showing the full network again.","change");
+    return;
+  }
+
+  // Sidebars.
+  if(low.includes("hide the right sidebar")||low.includes("hide right sidebar")){
+    snapshotForUndo("hide right sidebar");
+    appShell.classList.add("right-hidden");
+    pushConvo("Right profile sidebar hidden.","change");
+    return;
+  }
+  if(low.includes("show the right sidebar")||low.includes("show right sidebar")){
+    snapshotForUndo("show right sidebar");
+    appShell.classList.remove("right-hidden");
+    pushConvo("Right profile sidebar restored.","change");
+    return;
+  }
+  if(low.includes("hide the left sidebar")||low.includes("hide left sidebar")){
+    snapshotForUndo("hide left sidebar");
+    appShell.classList.add("left-hidden");
+    pushConvo("Left navigation sidebar hidden.","change");
+    return;
+  }
+  if(low.includes("full map")||low.includes("hide both sidebars")){
+    snapshotForUndo("full map");
+    appShell.classList.add("left-hidden","right-hidden");
+    pushConvo("Entered full-map mode.","change");
+    return;
+  }
+
+  // Select / focus a profile.
+  m=q.match(/(?:focus on|select|open)\s+(.+)/i);
+  if(m){
+    const n=findNodeByName(m[1]);
+    if(!n){pushConvo("I couldn't confidently match that profile.","system");return}
+    showProfile(n);
+    pushConvo(`Selected ${n.name}.`,"change");
+    return;
+  }
+
+  // Switch view modes conversationally.
+  if(low.includes("hub view")||low.includes("creative hubs")){
+    snapshotForUndo("switch to hub view");
+    currentView="hubs";
+    document.querySelectorAll(".viewbtn").forEach(btn=>btn.classList.toggle("active",btn.dataset.view==="hubs"));
+    document.getElementById("viewExplainer").innerHTML="<strong>Creative Hubs</strong><br>Where does everyone belong? People cluster by scene, project, studio, or community. Cross-hub lines reveal bridge relationships.";
+    render();
+    pushConvo("Switched to Creative Hubs view.","change");
+    return;
+  }
+  if(low.includes("relationship view")){
+    snapshotForUndo("switch to relationship view");
+    currentView="relationship";
+    document.querySelectorAll(".viewbtn").forEach(btn=>btn.classList.toggle("active",btn.dataset.view==="relationship"));
+    document.getElementById("viewExplainer").innerHTML="<strong>Relationship View</strong><br>Who is close to you? Distance represents direct relationship strength; rings separate core, working network, and outer orbit.";
+    render();
+    pushConvo("Switched to Relationship View.","change");
+    return;
+  }
+
+  // Add Instagram URL to a profile.
+  m=q.match(/add\s+(https?:\/\/\S*instagram\.com\/\S+)\s+to\s+(.+)/i);
+  if(m){
+    const n=findNodeByName(m[2]);
+    if(!n){pushConvo("I couldn't confidently match that profile.","system");return}
+    snapshotForUndo(`add Instagram to ${n.name}`);
+    n.links=n.links||{};
+    n.links.Instagram=m[1];
+    showProfile(n);
+    pushConvo(`Added Instagram to ${n.name}.`,"change");
+    return;
+  }
+
+  pushConvo(
+    "I understood that as a platform edit, but this demo interpreter does not have that action yet. In the full AI version, the request would be translated into structured app/database changes, previewed, and then applied.",
+    "system"
+  );
+}
+
+function setConvoOpen(open){
+  convoPanel.classList.toggle("hidden",!open);
+  document.getElementById("talkEditBtn").classList.toggle("active",open);
+  if(open)setTimeout(()=>convoInput.focus(),60);
+}
+document.getElementById("talkEditBtn").addEventListener("click",()=>setConvoOpen(convoPanel.classList.contains("hidden")));
+document.getElementById("closeConvoPanel").addEventListener("click",()=>setConvoOpen(false));
+document.getElementById("convoSend").onclick=()=>{
+  const v=convoInput.value;
+  convoInput.value="";
+  executeNetworkEdit(v);
+};
+convoInput.addEventListener("keydown",e=>{
+  if(e.key==="Enter"){e.preventDefault();document.getElementById("convoSend").click()}
+});
+document.querySelectorAll(".command-chip").forEach(btn=>btn.onclick=()=>{
+  convoInput.value=btn.textContent;
+  executeNetworkEdit(btn.textContent);
+  convoInput.value="";
+});
+document.getElementById("undoLastChange").onclick=restoreUndo;
+document.querySelectorAll(".convo-tab").forEach(btn=>btn.onclick=()=>{
+  document.querySelectorAll(".convo-tab").forEach(x=>x.classList.remove("active"));
+  btn.classList.add("active");
+  convoMode=btn.dataset.convoMode;
+  if(convoMode==="help"){
+    pushConvo("Try natural commands like: move one person closer to another, change a role, add an IPI, set a PRO, filter the map, select a profile, or hide/show panels.","system");
+  }
+});
+
+// Make this release appear in history.
+if(typeof APP_RELEASES!=="undefined" && !APP_RELEASES.some(r=>r.version==="v16")){
+  APP_RELEASES.unshift({
+    version:"v16",
+    file:null,
+    date:"2026-09-17",
+    title:"View modes + Talk/Edit repair",
+    notes:[
+      "Rebuilt Talk + Edit as a fixed conversational drawer with explicit open/close controls",
+      "Added relationship rings for relationship view",
+      "Added hub fields, hub counts, clickable hub labels, and bridge emphasis in Creative Hubs view",
+      "Added conversational commands for switching between views"
+    ]
+  });
+}
+
+if(typeof APP_RELEASES!=="undefined" && !APP_RELEASES.some(r=>r.version==="v15")){
+  APP_RELEASES.unshift({
+    version:"v15",
+    file:null,
+    date:"2026-09-17",
+    title:"Conversational modification",
+    notes:[
+      "Added Talk + Edit conversational control panel",
+      "Supports local demo commands for profile edits, IPI/PRO updates, filters, layout movement, and sidebar controls",
+      "Added undo stack for conversational changes"
+    ]
+  });
+}
+
+render();applyCamera();showProfile(nodes.find(n=>n.id==="diontae")||nodes.find(n=>n.id==="baws"));
+
+
+
+
+
+</script>
+</body></html>
