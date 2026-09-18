@@ -18,7 +18,7 @@ html,body{margin:0;height:100%;background:#0b0c0f;color:#f4f5f7;font-family:Inte
   const parts=[];
   for(const file of files){
     const url=new URL(file,location.href);
-    url.searchParams.set('v','32-1-canonical');
+    url.searchParams.set('v','32-2-group-registry');
     const response=await fetch(url,{cache:'no-store'});
     if(!response.ok)throw new Error(file+' returned '+response.status);
     parts.push((await response.text()).trim());
@@ -28,7 +28,7 @@ html,body{margin:0;height:100%;background:#0b0c0f;color:#f4f5f7;font-family:Inte
   if(typeof DecompressionStream==='undefined')throw new Error('This browser does not support gzip decompression');
   const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
   let html=await new Response(stream).text();
-  html=html.replace('</body>','<script src="canonical.js?v=32-1-canonical"><\\/script></body>');
+  html=html.replace('</body>','<script src="canonical.js?v=32-2-group-registry"><\\/script></body>');
   document.open();
   document.write(html);
   document.close();
