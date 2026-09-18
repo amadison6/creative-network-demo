@@ -299,7 +299,13 @@
 
 .layer-empty{position:absolute;left:50%;top:54%;transform:translate(-50%,-50%);z-index:7;width:min(430px,72%);padding:20px 22px;border:1px solid #2c323d;border-radius:16px;background:rgba(18,20,26,.92);backdrop-filter:blur(10px);text-align:center;color:#aeb6c2;box-shadow:0 14px 38px rgba(0,0,0,.22)}
 .layer-empty strong{display:block;color:#f3f4f6;font-size:16px;margin-bottom:7px}.layer-empty p{margin:0 0 13px;font-size:12px;line-height:1.55}.layer-empty button{border:0;border-radius:9px;padding:8px 11px;background:#f0d49a;color:#16130d;font-weight:800;cursor:pointer}
-.photo-edit-card{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:center;border:1px solid #2b303b;background:#171a21;border-radius:14px;padding:12px;margin-bottom:14px}.photo-edit-preview{width:120px;height:120px;border:1px dashed #3a4150;border-radius:14px;background:#111319;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#778193;font-size:11px;text-align:center}.photo-edit-preview img{width:100%;height:100%;object-fit:cover}.photo-edit-controls{display:flex;flex-direction:column;align-items:flex-start;gap:8px}.photo-upload-btn{display:inline-flex;align-items:center;justify-content:center;padding:9px 12px;border-radius:9px;background:#f0d49a;color:#17130d;font-size:12px;font-weight:800;cursor:pointer}.photo-remove-btn{margin:0}.studio-node circle{fill:#242b2a!important;stroke:#87b59a!important;stroke-width:1.6!important;stroke-dasharray:3 3}.venue-node circle{fill:#2b2630!important;stroke:#b18ac7!important;stroke-width:1.6!important;stroke-dasharray:5 3}.infra-label{fill:#aeb7c5;font-size:9px;text-transform:uppercase;letter-spacing:.08em}.entity-rate-note{font-size:10px;color:#7f8998;line-height:1.45;margin-top:8px}.viewbtn[data-view="studios"],.viewbtn[data-view="venues"]{margin-top:3px}
+.photo-edit-card{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:center;border:1px solid #2b303b;background:#171a21;border-radius:14px;padding:12px;margin-bottom:14px}.photo-edit-preview{width:120px;height:120px;border:1px dashed #3a4150;border-radius:14px;background:#111319;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#778193;font-size:11px;text-align:center}.photo-edit-preview img{width:100%;height:100%;object-fit:cover}.photo-edit-controls{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.category-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:6px}
+.category-check{display:flex;align-items:center;gap:8px;border:1px solid #303744;background:#11151b;border-radius:10px;padding:9px 10px;color:#cbd2dc;font-size:11px;cursor:pointer}
+.category-check input{accent-color:#d7b56d}
+.category-check:hover{border-color:#465263;background:#151a22}
+@media(max-width:640px){.category-grid{grid-template-columns:1fr}}
+.photo-upload-btn{display:inline-flex;align-items:center;justify-content:center;padding:9px 12px;border-radius:9px;background:#f0d49a;color:#17130d;font-size:12px;font-weight:800;cursor:pointer}.photo-remove-btn{margin:0}.studio-node circle{fill:#242b2a!important;stroke:#87b59a!important;stroke-width:1.6!important;stroke-dasharray:3 3}.venue-node circle{fill:#2b2630!important;stroke:#b18ac7!important;stroke-width:1.6!important;stroke-dasharray:5 3}.infra-label{fill:#aeb7c5;font-size:9px;text-transform:uppercase;letter-spacing:.08em}.entity-rate-note{font-size:10px;color:#7f8998;line-height:1.45;margin-top:8px}.viewbtn[data-view="studios"],.viewbtn[data-view="venues"]{margin-top:3px}
 .layer-empty.hidden,.layer-empty:empty{display:none!important}
 .relationship-collective-label{fill:#b7c0cd;font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.55;pointer-events:none;paint-order:stroke;stroke:#0b0c0f;stroke-width:5px;stroke-linejoin:round}
 .node.band-hub circle{fill:#352f24!important;stroke:#e0c58c!important;stroke-width:2.3!important;stroke-dasharray:none!important}
@@ -312,7 +318,7 @@
 <body>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v35 · split visual / management filters</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v36 · editable categories</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -478,7 +484,12 @@
         <div class="form-field"><label>Artist / public name</label><input id="editArtistName"></div>
         <div class="form-field"><label>Primary role</label><input id="editRole"></div>
         <div class="form-field"><label>Hub / scene</label><input id="editHub"></div>
-        <div class="form-field full"><label>Tags / filters</label><input id="editTags" placeholder="Musicians, Producers, Writing Camps"></div>
+        <div class="form-field full">
+          <label>Categories / filters</label>
+          <div class="category-grid" id="editCategoryGrid"></div>
+          <div class="type-help">A profile can belong to multiple categories. These directly control the sidebar filters.</div>
+        </div>
+        <div class="form-field full"><label>Other tags</label><input id="editTags" placeholder="Custom tags that are not sidebar filters"></div>
         <div class="form-field full"><label>Profile / relationship context</label><textarea id="editBio"></textarea></div>
         <div class="form-field"><label>Instagram</label><input id="editInstagram" placeholder="https://instagram.com/..."></div>
         <div class="form-field"><label>Spotify / primary music link</label><input id="editSpotify" placeholder="https://open.spotify.com/..."></div>
@@ -520,7 +531,7 @@
 <script>
 const nodes=[
 {id:"uh_sar",name:"uh_sar",role:"Producer / Artist / Director",type:"core",r:34,tags:["All","God's Contraband"],hub:"Center",bio:"Central creative node: producer, artist, arranger, multi-instrumentalist, and creative director. Co-founder and executive producer of God's Contraband."},
-{id:"addae",name:"Addae",role:"Manager / Visuals",profileType:"manager",organization:"Independent / artist support",type:"core",r:25,tags:["All","Artist Management"],hub:"Visual / Management",bio:"Brother, unofficial manager, visual collaborator, connector, and production support."},
+{id:"addae",name:"Addae",role:"Manager / Visuals",profileType:"manager",organization:"Independent / artist support",type:"core",r:25,tags:["All","Visual Artists","Artist Management"],hub:"Visual / Management",bio:"Brother, unofficial manager, visual collaborator, connector, and production support."},
 {id:"jordan",name:"Jordan Betine",profileType:"filmmaker",visualRoles:"Director / filmmaker",photo:"https://static.wixstatic.com/media/63aeba_5e50224cec7146ba8471d90fe49218d7~mv2.jpg/v1/fill/w_321%2Ch_343%2Cal_c%2Cq_80%2Cusm_0.66_1.00_0.01%2Cenc_avif%2Cquality_auto/63aeba_5e50224cec7146ba8471d90fe49218d7~mv2.jpg",role:"Director / Film",type:"person",r:19,tags:["All","Visual Artists"],hub:"Visual / Management",bio:"Friend and filmmaker. Current visual collaborator on Unstoppable."},
 {id:"cam",name:"Cam",role:"Singer / Multi-inst.",profileType:"musician",instruments:"Drums, percussion, bass, multi-instrumentalist",genres:"Singer-songwriter / contemporary R&B adjacent",type:"bridge",r:28,tags:["All","Musicians","Singer-Songwriters","Writing Camps","God's Contraband"],hub:"Professor What Trio",bio:"Elite drummer and multi-instrumentalist with strong musical instincts. Singer-songwriter with significant unreleased material."},
 {id:"balam",name:"Balam",role:"Guitar / Bass",profileType:"musician",instruments:"Guitar, bass",genres:"R&B / live-band / songwriting",type:"person",r:24,tags:["All","Musicians","Writing Camps","God's Contraband"],hub:"Professor What Trio",bio:"Guitarist, bassist, composer and arranger. Strong writing-session fit with Cam, Free and uh_sar."},
@@ -555,6 +566,30 @@ const nodes=[
 // Load locally-added prototype profiles.
 const localProfiles=JSON.parse(localStorage.getItem("creativeNetworkCustomProfiles")||"[]");
 localProfiles.forEach(p=>{ if(!nodes.some(n=>n.id===p.id)) nodes.push(p); });
+
+const FILTER_CATEGORIES=[
+  "God's Contraband","Writing Camps","Singer-Songwriters","Musicians","Producers",
+  "Visual Artists","Artist Management","Rising Artists","Industry"
+];
+function migrateProfileCategories(n){
+  if(!n)return false;
+  const original=[...(n.tags||[])];
+  const hadLegacyVisual=original.includes("Visual")||original.includes("Visual / Management");
+  let next=original.filter(t=>t&&t!=="All"&&t!=="Visual"&&t!=="Visual / Management");
+  const add=t=>{if(t&&!next.includes(t))next.push(t)};
+
+  if(hadLegacyVisual){
+    if(n.profileType==="manager")add("Artist Management");
+    else add("Visual Artists");
+  }
+  // Older saved Addae data may predate the split entirely.
+  if(n.id==="addae" && !next.includes("Visual Artists") && !next.includes("Artist Management")){
+    add("Visual Artists");add("Artist Management");
+  }
+  n.tags=["All",...new Set(next)];
+  return JSON.stringify(original)!==JSON.stringify(n.tags);
+}
+nodes.forEach(migrateProfileCategories);
 
 function isCollectiveEntity(n){
   if(!n)return false;
@@ -1319,6 +1354,15 @@ async function resizeProfilePhoto(file){
   }finally{URL.revokeObjectURL(url)}
 }
 
+function renderEditCategories(n){
+  const grid=document.getElementById("editCategoryGrid");if(!grid)return;
+  const tags=new Set(n.tags||[]);
+  grid.innerHTML=FILTER_CATEGORIES.map(cat=>`
+    <label class="category-check">
+      <input type="checkbox" class="edit-category-checkbox" value="${escapeAttr(cat)}" ${tags.has(cat)?"checked":""}>
+      <span>${cat}</span>
+    </label>`).join("");
+}
 function openEditProfile(n){
   pendingEditPhotoData=null;
   document.getElementById("editPhotoFile").value="";
@@ -1329,7 +1373,8 @@ function openEditProfile(n){
   document.getElementById("editArtistName").value=n.artistName||"";
   document.getElementById("editRole").value=n.role||"";
   document.getElementById("editHub").value=n.hub||"";
-  document.getElementById("editTags").value=(n.tags||[]).filter(t=>t!=="All").join(", ");
+  renderEditCategories(n);
+  document.getElementById("editTags").value=(n.tags||[]).filter(t=>t!=="All"&&!FILTER_CATEGORIES.includes(t)).join(", ");
   document.getElementById("editBio").value=n.bio||"";
   document.getElementById("editInstagram").value=n.links?.Instagram||"";
   document.getElementById("editSpotify").value=n.links?.Spotify||"";
@@ -1362,7 +1407,8 @@ document.getElementById("saveProfileEdits").onclick=()=>{
   n.role=document.getElementById("editRole").value.trim()||n.role;
   n.hub=document.getElementById("editHub").value.trim()||n.hub;
   const typedTags=document.getElementById("editTags").value.split(",").map(x=>x.trim()).filter(Boolean);
-  n.tags=["All",...new Set(typedTags.filter(t=>t!=="All"))];
+  const selectedCategories=[...document.querySelectorAll(".edit-category-checkbox:checked")].map(el=>el.value);
+  n.tags=["All",...new Set([...selectedCategories,...typedTags.filter(t=>t!=="All"&&!FILTER_CATEGORIES.includes(t))])];
   n.bio=document.getElementById("editBio").value.trim();
   n.links=Object.assign({},n.links||{});
   const ig=document.getElementById("editInstagram").value.trim(),sp=document.getElementById("editSpotify").value.trim();
@@ -1971,6 +2017,16 @@ document.getElementById("saveProfile").onclick=()=>{
 
 const APP_RELEASES=[
   {
+    version:"v36",file:null,date:"2026-09-18",title:"Editable profile categories",
+    notes:[
+      "Profiles can belong to multiple sidebar filters using checkboxes in Edit Profile",
+      "Addae is in both Visual Artists and Artist Management",
+      "Old browser-saved Visual tags automatically migrate into the new split filters",
+      "Talk + Edit understands commands such as add Addae to Visual Artists and remove Addae from Artist Management",
+      "Other custom tags remain editable separately"
+    ]
+  },
+  {
     version:"v35",file:null,date:"2026-09-18",title:"Separate visual artist and management filters",
     notes:[
       "Split the former Visual / Management filter into Visual Artists and Artist Management",
@@ -2255,10 +2311,19 @@ function persistEditedProfiles(){
 
 function applySavedOverrides(){
   const overrides=JSON.parse(localStorage.getItem("creativeNetworkProfileOverrides")||"{}");
+  let migrated=false;
   Object.entries(overrides).forEach(([id,o])=>{
     const n=nodes.find(x=>x.id===id);
-    if(n)Object.assign(n,o);
+    if(n){
+      Object.assign(n,o);
+      if(migrateProfileCategories(n)){
+        o.tags=[...(n.tags||[])];
+        migrated=true;
+      }
+    }
   });
+  nodes.forEach(migrateProfileCategories);
+  if(migrated)localStorage.setItem("creativeNetworkProfileOverrides",JSON.stringify(overrides));
   const savedPos=JSON.parse(localStorage.getItem("creativeNetworkRelationshipPos")||"{}");
   Object.assign(relationshipPos,savedPos);
 }
@@ -2298,6 +2363,34 @@ function executeNetworkEdit(raw){
     persistEditedProfiles();render();showProfile(n);
     pushConvo(`Updated ${n.name}'s role to ${n.role}.`,"change");
     return;
+  }
+
+  // Add/remove a profile from a sidebar category.
+  m=q.match(/^add\s+(.+?)\s+to\s+(.+)$/i);
+  if(m){
+    const cat=FILTER_CATEGORIES.find(x=>x.toLowerCase()===m[2].trim().toLowerCase());
+    if(cat){
+      const n=findNodeByName(m[1]);
+      if(!n){pushConvo("I couldn't confidently match that profile.","system");return}
+      snapshotForUndo(`add ${n.name} to ${cat}`);
+      n.tags=["All",...new Set([...(n.tags||[]).filter(t=>t!=="All"),cat])];
+      persistEditedProfiles();render();showProfile(n);
+      pushConvo(`Added ${n.name} to ${cat}.`,"change");
+      return;
+    }
+  }
+  m=q.match(/^remove\s+(.+?)\s+from\s+(.+)$/i);
+  if(m){
+    const cat=FILTER_CATEGORIES.find(x=>x.toLowerCase()===m[2].trim().toLowerCase());
+    if(cat){
+      const n=findNodeByName(m[1]);
+      if(!n){pushConvo("I couldn't confidently match that profile.","system");return}
+      snapshotForUndo(`remove ${n.name} from ${cat}`);
+      n.tags=["All",...(n.tags||[]).filter(t=>t!=="All"&&t!==cat)];
+      persistEditedProfiles();render();showProfile(n);
+      pushConvo(`Removed ${n.name} from ${cat}.`,"change");
+      return;
+    }
   }
 
   // Add IPI NUMBER to NAME
