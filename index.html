@@ -316,9 +316,59 @@
 </style>
 </head>
 <body>
+<datalist id="locationOptions">
+  <option value="Los Angeles, CA"></option>
+  <option value="Downtown Los Angeles, CA"></option>
+  <option value="Arts District, Los Angeles, CA"></option>
+  <option value="Boyle Heights, Los Angeles, CA"></option>
+  <option value="Koreatown, Los Angeles, CA" label="K-Town"></option>
+  <option value="Leimert Park, Los Angeles, CA"></option>
+  <option value="Crenshaw, Los Angeles, CA"></option>
+  <option value="Baldwin Hills, Los Angeles, CA"></option>
+  <option value="View Park-Windsor Hills, CA"></option>
+  <option value="South Los Angeles, CA" label="South Central"></option>
+  <option value="West Adams, Los Angeles, CA"></option>
+  <option value="Mid-City, Los Angeles, CA"></option>
+  <option value="Jefferson Park, Los Angeles, CA"></option>
+  <option value="Venice, Los Angeles, CA"></option>
+  <option value="Westwood, Los Angeles, CA"></option>
+  <option value="Sawtelle, Los Angeles, CA"></option>
+  <option value="Culver City, CA"></option>
+  <option value="Mar Vista, Los Angeles, CA"></option>
+  <option value="Palms, Los Angeles, CA"></option>
+  <option value="Santa Monica, CA"></option>
+  <option value="East Hollywood, Los Angeles, CA"></option>
+  <option value="Hollywood, Los Angeles, CA"></option>
+  <option value="Silver Lake, Los Angeles, CA"></option>
+  <option value="Echo Park, Los Angeles, CA"></option>
+  <option value="Los Feliz, Los Angeles, CA"></option>
+  <option value="Highland Park, Los Angeles, CA"></option>
+  <option value="Eagle Rock, Los Angeles, CA"></option>
+  <option value="Chinatown, Los Angeles, CA"></option>
+  <option value="Lincoln Heights, Los Angeles, CA"></option>
+  <option value="Inglewood, CA"></option>
+  <option value="Compton, CA"></option>
+  <option value="Long Beach, CA"></option>
+  <option value="Pasadena, CA"></option>
+  <option value="Glendale, CA"></option>
+  <option value="Burbank, CA"></option>
+  <option value="North Hollywood, Los Angeles, CA"></option>
+  <option value="Studio City, Los Angeles, CA"></option>
+  <option value="Sherman Oaks, Los Angeles, CA"></option>
+  <option value="Van Nuys, Los Angeles, CA"></option>
+  <option value="Reseda, Los Angeles, CA"></option>
+  <option value="Encino, Los Angeles, CA"></option>
+  <option value="Chino Hills, CA"></option>
+  <option value="Moreno Valley, CA"></option>
+  <option value="Orange County, CA"></option>
+  <option value="San Diego, CA"></option>
+  <option value="New York, NY"></option>
+  <option value="Philadelphia, PA"></option>
+  <option value="Delaware"></option>
+</datalist>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v38 · social links + portraits</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v39 · neighborhood location search</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -439,6 +489,11 @@
           <label>Hub / Scene</label>
           <input id="newHub" placeholder="e.g. LA R&B orbit">
         </div>
+        <div class="form-field">
+          <label>Location / neighborhood</label>
+          <input id="newLocation" list="locationOptions" placeholder="e.g. Leimert Park, Los Angeles, CA">
+          <div class="type-help">Prefer the most useful neighborhood-level location you know. Typing “Los” will suggest Los Angeles-area options.</div>
+        </div>
         <div class="form-field full">
           <label>How are you connected?</label>
           <textarea id="newRelationship" placeholder="Introduced by..., worked together on..., met at..."></textarea>
@@ -484,6 +539,7 @@
         <div class="form-field"><label>Artist / public name</label><input id="editArtistName"></div>
         <div class="form-field"><label>Primary role</label><input id="editRole"></div>
         <div class="form-field"><label>Hub / scene</label><input id="editHub"></div>
+        <div class="form-field"><label>Location / neighborhood</label><input id="editLocation" list="locationOptions" placeholder="e.g. Boyle Heights, Los Angeles, CA"></div>
         <div class="form-field full">
           <label>Categories / filters</label>
           <div class="category-grid" id="editCategoryGrid"></div>
@@ -1174,8 +1230,7 @@ function showProfile(n){
       <div class="section-title">Booking / Show Intelligence</div>
       <div class="profile-grid">
         <div class="card"><div class="k">Capacity</div><div class="v">${n.capacity||'<span class="missing-value">Not added yet</span>'}</div></div>
-        <div class="card"><div class="k">Location</div><div class="v">${n.location||'<span class="missing-value">Not added yet</span>'}</div></div>
-        <div class="card"><div class="k">Last quoted guarantee</div><div class="v">${n.lastQuotedGuarantee||'<span class="missing-value">Not added yet</span>'}</div></div>
+                <div class="card"><div class="k">Last quoted guarantee</div><div class="v">${n.lastQuotedGuarantee||'<span class="missing-value">Not added yet</span>'}</div></div>
         <div class="card"><div class="k">Deal structure</div><div class="v">${n.dealStructure||'<span class="missing-value">Not added yet</span>'}</div></div>
         <div class="card"><div class="k">Door split</div><div class="v">${n.doorSplit||'<span class="missing-value">Not added yet</span>'}</div></div>
         <div class="card"><div class="k">Production / rental fee</div><div class="v">${n.productionFee||'<span class="missing-value">Not added yet</span>'}</div></div>
@@ -1190,8 +1245,7 @@ function showProfile(n){
     specialized=`
       <div class="section-title">Studio / Resource Profile</div>
       <div class="profile-grid">
-        <div class="card"><div class="k">Location</div><div class="v">${n.location||'<span class="missing-value">Not added yet</span>'}</div></div>
-        <div class="card"><div class="k">Capacity</div><div class="v">${n.capacity||'<span class="missing-value">Not added yet</span>'}</div></div>
+                <div class="card"><div class="k">Capacity</div><div class="v">${n.capacity||'<span class="missing-value">Not added yet</span>'}</div></div>
         <div class="card"><div class="k">Access / control</div><div class="v">${n.access||'<span class="missing-value">Not added yet</span>'}</div></div>
         <div class="card"><div class="k">Availability</div><div class="v">${n.availability||'<span class="missing-value">Not added yet</span>'}</div></div>
       </div>
@@ -1211,8 +1265,7 @@ function showProfile(n){
     <div class="card"><div class="k">Profile</div><div class="v">${n.bio}</div></div>
     <div class="profile-grid">
       <div class="card"><div class="k">Hub</div><div class="v">${n.hub}</div></div>
-      <div class="card"><div class="k">Node type</div><div class="v">${n.type}</div></div>
-    </div>
+          </div>
     ${specialized}
     <div class="section-title">Public Links</div>
     <div class="links">${linksHtml}</div>
@@ -1323,7 +1376,7 @@ function renderEditEntityFields(n){
   if(n.profileType==="venue"){
     sec.classList.remove("hidden");title.textContent="Venue / booking details";
     wrap.innerHTML=
-      editField("editLocation","Area / neighborhood",n.location)+editField("editCapacity","Capacity",n.capacity)+
+      editField("editCapacity","Capacity",n.capacity)+
       editField("editBookingContact","Booking contact",n.bookingContact)+editField("editTalentBuyer","Talent buyer / promoter",n.talentBuyer)+
       editField("editWarmConnection","Warm connection",n.warmConnection)+editField("editQuotedGuarantee","Last quoted guarantee",n.lastQuotedGuarantee,"e.g. $500 guarantee")+
       editField("editDealStructure","Deal structure",n.dealStructure,"Guarantee, door split, rental, hybrid...")+editField("editDoorSplit","Door split",n.doorSplit)+
@@ -1332,7 +1385,7 @@ function renderEditEntityFields(n){
   }else if(n.profileType==="studio"){
     sec.classList.remove("hidden");title.textContent="Studio / space details";
     wrap.innerHTML=
-      editField("editLocation","Area / neighborhood",n.location)+editField("editCapacity","Capacity",n.capacity)+
+      editField("editCapacity","Capacity",n.capacity)+
       editField("editAccess","Access / control",n.access)+editField("editAvailability","Availability",n.availability)+
       editField("editFrequentPeople","Frequent people",n.frequentPeople)+editField("editRates","Rates / cost",n.rates)+
       editField("editResources","Equipment / resources",n.resources)+editField("editHistory","History / usage",n.history);
@@ -1391,6 +1444,7 @@ function openEditProfile(n){
   document.getElementById("editArtistName").value=n.artistName||"";
   document.getElementById("editRole").value=n.role||"";
   document.getElementById("editHub").value=n.hub||"";
+  document.getElementById("editLocation").value=n.location||"";
   renderEditCategories(n);
   document.getElementById("editTags").value=(n.tags||[]).filter(t=>t!=="All"&&!FILTER_CATEGORIES.includes(t)).join(", ");
   document.getElementById("editBio").value=n.bio||"";
@@ -1424,6 +1478,7 @@ document.getElementById("saveProfileEdits").onclick=()=>{
   n.artistName=document.getElementById("editArtistName").value.trim();
   n.role=document.getElementById("editRole").value.trim()||n.role;
   n.hub=document.getElementById("editHub").value.trim()||n.hub;
+  n.location=document.getElementById("editLocation").value.trim();
   const typedTags=document.getElementById("editTags").value.split(",").map(x=>x.trim()).filter(Boolean);
   const selectedCategories=[...document.querySelectorAll(".edit-category-checkbox:checked")].map(el=>el.value);
   n.tags=["All",...new Set([...selectedCategories,...typedTags.filter(t=>t!=="All"&&!FILTER_CATEGORIES.includes(t))])];
@@ -1438,8 +1493,8 @@ document.getElementById("saveProfileEdits").onclick=()=>{
   n.publisher=document.getElementById("editPublisher").value.trim();
 
   const v=id=>document.getElementById(id)?.value?.trim()??"";
-  if(n.profileType==="venue")Object.assign(n,{location:v("editLocation"),capacity:v("editCapacity"),bookingContact:v("editBookingContact"),talentBuyer:v("editTalentBuyer"),warmConnection:v("editWarmConnection"),lastQuotedGuarantee:v("editQuotedGuarantee"),dealStructure:v("editDealStructure"),doorSplit:v("editDoorSplit"),productionFee:v("editProductionFee"),audienceFit:v("editAudienceFit"),backline:v("editBackline"),potentialShowNotes:v("editPotentialShowNotes")});
-  if(n.profileType==="studio")Object.assign(n,{location:v("editLocation"),capacity:v("editCapacity"),access:v("editAccess"),availability:v("editAvailability"),frequentPeople:v("editFrequentPeople"),rates:v("editRates"),resources:v("editResources"),history:v("editHistory")});
+  if(n.profileType==="venue")Object.assign(n,{capacity:v("editCapacity"),bookingContact:v("editBookingContact"),talentBuyer:v("editTalentBuyer"),warmConnection:v("editWarmConnection"),lastQuotedGuarantee:v("editQuotedGuarantee"),dealStructure:v("editDealStructure"),doorSplit:v("editDoorSplit"),productionFee:v("editProductionFee"),audienceFit:v("editAudienceFit"),backline:v("editBackline"),potentialShowNotes:v("editPotentialShowNotes")});
+  if(n.profileType==="studio")Object.assign(n,{capacity:v("editCapacity"),access:v("editAccess"),availability:v("editAvailability"),frequentPeople:v("editFrequentPeople"),rates:v("editRates"),resources:v("editResources"),history:v("editHistory")});
 
   if(pendingEditPhotoData!==null){if(pendingEditPhotoData)n.photo=pendingEditPhotoData;else delete n.photo}
   persistEditedProfiles();persistCustomProfileIfNeeded(n);
@@ -1840,7 +1895,6 @@ const schemas={
   venue:{
     title:"Venue / Place profile",
     fields:[
-      ["newLocation","Area / neighborhood","City / neighborhood"],
       ["newCapacity","Capacity","Approx. room capacity"],
       ["newGenres","Audience / programming fit","Genres, scenes, event types"],
       ["newBookingContact","Booking contact","Name / email / contact"],
@@ -1854,7 +1908,6 @@ const schemas={
   studio:{
     title:"Studio / Resource profile",
     fields:[
-      ["newLocation","Area / neighborhood","Keep private addresses out of public demo"],
       ["newCapacity","Capacity","Approx. people / room size"],
       ["newResources","Equipment / resources","Instruments, amps, interface, monitors..."],
       ["newAccess","Access / control","Who controls access?"],
@@ -1868,7 +1921,6 @@ const schemas={
     fields:[
       ["newSpecialty","Specialty","What do they do?"],
       ["newOrganization","Organization","Company / group"],
-      ["newLocation","Location","City / region"],
       ["newBusinessEmail","Contact","Email"]
     ]
   }
@@ -1880,7 +1932,7 @@ function renderDynamicFields(){
   dynamicFields.innerHTML=schema.fields.map(([id,label,placeholder])=>`
     <div class="form-field">
       <label>${label}</label>
-      <input id="${id}" placeholder="${placeholder}">
+      <input id="${id}" ${/Location$/.test(id) ? 'list="locationOptions"' : ""} placeholder="${placeholder}">
     </div>`).join("");
 }
 renderDynamicFields();
@@ -1922,6 +1974,7 @@ document.getElementById("saveProfile").onclick=()=>{
   const p={
     id:slug,name,role,profileType:kind,type:["venue","studio","collective"].includes(kind)?"hubnode":"person",
     r:21,tags,hub,
+    location:document.getElementById("newLocation").value.trim(),
     bio:relationship||"New profile added directly in the Creative Network prototype.",
     links:publicLink?{Public:publicLink}:{}
   };
@@ -1936,9 +1989,9 @@ document.getElementById("saveProfile").onclick=()=>{
   }else if(["manager","promoter"].includes(kind)){
     Object.assign(p,{organization:val("newOrganization"),market:val("newMarket"),genres:val("newGenres"),businessEmail:val("newBusinessEmail")});
   }else if(kind==="venue"){
-    Object.assign(p,{location:val("newLocation"),capacity:val("newCapacity"),genres:val("newGenres"),audienceFit:val("newGenres"),bookingContact:val("newBookingContact"),talentBuyer:val("newTalentBuyer"),warmConnection:val("newWarmConnection"),lastQuotedGuarantee:val("newQuotedGuarantee"),dealStructure:val("newDealStructure"),potentialShowNotes:val("newPotentialShowNotes")});
+    Object.assign(p,{capacity:val("newCapacity"),genres:val("newGenres"),audienceFit:val("newGenres"),bookingContact:val("newBookingContact"),talentBuyer:val("newTalentBuyer"),warmConnection:val("newWarmConnection"),lastQuotedGuarantee:val("newQuotedGuarantee"),dealStructure:val("newDealStructure"),potentialShowNotes:val("newPotentialShowNotes")});
   }else if(kind==="studio"){
-    Object.assign(p,{location:val("newLocation"),capacity:val("newCapacity"),resources:val("newResources"),access:val("newAccess"),availability:val("newAvailability"),frequentPeople:val("newFrequentPeople"),rates:val("newRates")});
+    Object.assign(p,{capacity:val("newCapacity"),resources:val("newResources"),access:val("newAccess"),availability:val("newAvailability"),frequentPeople:val("newFrequentPeople"),rates:val("newRates")});
   }
 
   nodes.push(p);
@@ -1950,7 +2003,7 @@ document.getElementById("saveProfile").onclick=()=>{
   relationshipPos[p.id]=[500+Math.cos(a)*rad,360+Math.sin(a)*rad];
   offsets[p.id]=[0,0];
 
-  ["newName","newRole","newHub","newRelationship","newLink"].forEach(id=>{const el=document.getElementById(id);if(el)el.value=""});
+  ["newName","newRole","newHub","newLocation","newRelationship","newLink"].forEach(id=>{const el=document.getElementById(id);if(el)el.value=""});
   renderDynamicFields();
   closeProfileModal();
   if(kind==="venue")currentView="venues";else if(kind==="studio")currentView="studios";
@@ -2034,6 +2087,17 @@ document.getElementById("saveProfile").onclick=()=>{
 })();
 
 const APP_RELEASES=[
+  {
+    version:"v39",file:null,date:"2026-09-18",title:"Neighborhood-level location profiles",
+    notes:[
+      "Location is now a first-class field on every profile, not only venues and studios",
+      "Edit Profile and Add Profile use a searchable location menu",
+      "Typing partial text such as Los surfaces Los Angeles-area options",
+      "The suggestion list includes neighborhood-level LA locations such as Boyle Heights, Koreatown, Leimert Park, Crenshaw, West Adams, Venice and East Hollywood",
+      "Location is visible on profile cards and remains searchable from the main map search",
+      "The data model keeps neighborhood plus city together so future regional views can cluster people geographically"
+    ]
+  },
   {
     version:"v38",file:null,date:"2026-09-18",title:"Instagram audit + public portraits",
     notes:[
