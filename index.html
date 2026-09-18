@@ -1,42 +1,299 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Creative Network</title>
 <style>
-html,body{margin:0;height:100%;background:#0b0c0f;color:#f4f5f7;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-.loading{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px}
-.loading strong{font-size:18px}.loading span{font-size:12px;color:#8f99a8}
+:root{
+  --bg:#080b11;--panel:#0f131b;--panel2:#151a23;--line:#333b49;--gold:#b89a5f;--text:#f4f5f7;--muted:#8e98a8;
+  --blue:#7eb9f2;--green:#85d7a8;--purple:#b49af0;--ring:#18202c;
+}
+*{box-sizing:border-box} html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden}
+button,input{font:inherit}
+.app{height:100%;display:grid;grid-template-columns:310px 1fr;transition:grid-template-columns .2s ease}
+.app.sidebar-collapsed{grid-template-columns:0 1fr}.app.sidebar-collapsed .sidebar{transform:translateX(-100%)}
+.sidebar{position:relative;z-index:5;background:linear-gradient(180deg,#0d1118 0%,#0a0d13 100%);border-right:1px solid #1f2632;padding:18px 16px;overflow:auto;transition:transform .2s ease}
+.brand{font-size:17px;font-weight:800;letter-spacing:.01em}.sub{font-size:11px;color:#7d8796;margin-top:4px}.section{margin-top:18px}.section-title{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#697586;margin-bottom:8px;font-weight:800}
+.row-scroll{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;padding-bottom:5px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}.row-scroll::-webkit-scrollbar{height:5px}.row-scroll::-webkit-scrollbar-thumb{background:#313a48;border-radius:99px}
+.btn{flex:0 0 auto;border:1px solid #2c3440;background:#151a22;color:#b7c0cc;border-radius:10px;padding:8px 10px;font-size:11px;font-weight:700;cursor:pointer}.btn:hover{border-color:#455166}.btn.active{background:#272f3a;color:#fff;border-color:#556476}.btn.gold.active{border-color:#bea364;color:#f0d9a7}.btn.green.active{border-color:#6fb68e;color:#b9efcf}.btn.purple.active{border-color:#9f88d7;color:#dacdf5}
+.search{width:100%;background:#10151d;border:1px solid #29313e;color:#e7ebf0;border-radius:10px;padding:10px 11px;outline:none}.search:focus{border-color:#4b596d}
+.profile-empty{font-size:12px;color:#788393;line-height:1.5;padding:8px 2px}.profile-card{border:1px solid #252d38;border-radius:14px;background:#11161e;padding:14px}.profile-card h2{font-size:18px;margin:0 0 3px}.profile-card .role{font-size:12px;color:#9aa4b2}.profile-card .meta{font-size:11px;color:#778292;margin-top:8px;line-height:1.5}.profile-photo{width:88px;height:88px;border-radius:50%;object-fit:cover;border:2px solid #3a4656;display:block;margin:0 auto 12px;background:#151a22}.photo-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.mini{font-size:10px;padding:7px 9px}
+.canvas-wrap{position:relative;min-width:0;overflow:hidden;background:radial-gradient(circle at 50% 42%,rgba(24,31,44,.45),rgba(8,11,17,0) 44%),#080b11}
+.topbar{position:absolute;left:16px;right:16px;top:14px;z-index:4;display:flex;gap:8px;align-items:center;pointer-events:none}.topbar>*{pointer-events:auto}.topbar-scroll{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;min-width:0;flex:1;padding-bottom:4px;scrollbar-width:thin}.topbar-scroll::-webkit-scrollbar{height:5px}.topbar-scroll::-webkit-scrollbar-thumb{background:#2c3542;border-radius:99px}.topbar .btn{background:rgba(14,18,25,.88);backdrop-filter:blur(8px)}
+#map{width:100%;height:100%;display:block}.edge{stroke:#2b3442;stroke-width:1.25;opacity:.72;vector-effect:non-scaling-stroke}.edge.strong{stroke:#a68a53;stroke-width:1.8;opacity:.85}.edge.budding{stroke:#5f6d81;stroke-dasharray:3 6;opacity:.45}.edge.potential{stroke:#4b586c;stroke-dasharray:9 8;opacity:.32}.edge.membership{stroke:#9c8758;stroke-width:1.7;opacity:.68}
+.ring{fill:none;stroke:#131a25;stroke-width:1.2;stroke-dasharray:3 12}.ring-label{fill:#253044;font-size:10px;letter-spacing:.14em}.node{cursor:pointer}.node circle{fill:#1e2530;stroke:#374252;stroke-width:1.8}.node text.initial{fill:#eef2f6;font-size:13px;font-weight:800;text-anchor:middle;dominant-baseline:middle}.node text.name{fill:#f0f2f5;font-size:12px;font-weight:800;text-anchor:middle}.node text.role{fill:#98a2b0;font-size:10px;text-anchor:middle}.node.core circle{fill:#44351f;stroke:#eed6a0;stroke-width:2.4}.node.bridge circle{fill:#22364d;stroke:#82baf0;stroke-width:2.4}.node.hub circle{fill:#163526;stroke:#84d1a2;stroke-width:2.4}.node.group circle{fill:#193326;stroke:#82d0a0;stroke-width:2.4}.node.studio circle{fill:#18332c;stroke:#83cda6;stroke-width:2.4}.node.venue circle{fill:#2a253b;stroke:#b19be4;stroke-width:2.4}.node.selected circle{filter:drop-shadow(0 0 6px rgba(242,218,164,.42))}
+.constellation{fill:#d7dde5;font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;text-anchor:middle;paint-order:stroke;stroke:#080b11;stroke-width:5;stroke-linejoin:round;opacity:.74}.constellation-sub{fill:#6e7a8b;font-size:8px;letter-spacing:.12em;text-anchor:middle;text-transform:uppercase;opacity:.72}
+.badge{fill:#1a2230;stroke:#3f4a5a;stroke-width:1}.badge-text{fill:#c7cfda;font-size:8px;font-weight:800;text-anchor:middle}
+.legend{position:absolute;right:18px;bottom:16px;z-index:3;background:rgba(12,16,23,.82);border:1px solid #252d38;border-radius:12px;padding:9px 10px;font-size:9px;color:#7f8998;backdrop-filter:blur(8px)}
+.legend div{margin:4px 0}.key{display:inline-block;width:23px;border-top:1.5px solid #5d6879;margin-right:6px;vertical-align:middle}.key.strong{border-color:#a68a53;border-top-width:2px}.key.budding{border-top-style:dotted}.key.potential{border-top-style:dashed;opacity:.6}
+.toast{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);z-index:8;background:#111721;border:1px solid #313b4a;border-radius:10px;padding:9px 12px;font-size:11px;color:#cbd2dc;opacity:0;pointer-events:none;transition:opacity .2s}.toast.show{opacity:1}
+@media(max-width:900px){.app{grid-template-columns:260px 1fr}.topbar{left:10px;right:10px}.sidebar{padding:14px 12px}}
 </style>
 </head>
 <body>
-<div class="loading" id="loading"><strong>Loading Creative Network…</strong><span>Creative Network</span></div>
+<div class="app" id="app">
+  <aside class="sidebar">
+    <div class="brand">Creative Network</div>
+    <div class="sub">Private relationship OS · clean rebuild</div>
+
+    <div class="section">
+      <div class="section-title">Views</div>
+      <div class="row-scroll" id="viewsRow">
+        <button class="btn gold active" data-view="relationship">Relationship</button>
+        <button class="btn" data-view="hubs">Creative Hubs</button>
+        <button class="btn green" data-view="studios">Studio View</button>
+        <button class="btn purple" data-view="venues">Venue View</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Filters</div>
+      <div class="row-scroll" id="filtersRow">
+        <button class="btn active" data-filter="All">All</button>
+        <button class="btn" data-filter="Bands & Collectives">Bands / Collectives</button>
+        <button class="btn" data-filter="Musicians">Musicians</button>
+        <button class="btn" data-filter="Rising Artists">Rising Artists</button>
+        <button class="btn" data-filter="Writing Camps">Writing Camps</button>
+        <button class="btn" data-filter="Visual">Visual</button>
+      </div>
+    </div>
+
+    <div class="section"><input id="search" class="search" placeholder="Search network" /></div>
+
+    <div class="section">
+      <div class="section-title">Profile</div>
+      <div id="profile"><div class="profile-empty">Select a person, studio, venue, or band node.</div></div>
+    </div>
+  </aside>
+
+  <main class="canvas-wrap">
+    <div class="topbar">
+      <button class="btn" id="toggleSidebar">Minimize panel</button>
+      <div class="topbar-scroll">
+        <button class="btn" id="fitBtn">Fit map</button>
+        <button class="btn" id="orbitBtn">Orbit</button>
+        <button class="btn" id="gravityBtn">Gravity</button>
+        <button class="btn" id="historyBtn">Version history</button>
+        <button class="btn" id="exportBtn">Export view</button>
+      </div>
+    </div>
+    <svg id="map" viewBox="0 0 1000 720" aria-label="Creative network map"></svg>
+    <div class="legend"><div><span class="key strong"></span>Established</div><div><span class="key budding"></span>Budding</div><div><span class="key potential"></span>Potential</div></div>
+    <div class="toast" id="toast"></div>
+  </main>
+</div>
+<input type="file" id="photoInput" accept="image/*" hidden />
 <script>
-(async()=>{
-  const files=['legacy/v21parts/p1a.b64','legacy/v21parts/p1b.b64','legacy/v21parts/p2.b64','legacy/v21parts/p3.b64','legacy/v21parts/p4.b64'];
-  const parts=[];
-  for(const file of files){
-    const url=new URL(file,location.href);
-    url.searchParams.set('v','32-1-canonical');
-    const response=await fetch(url,{cache:'no-store'});
-    if(!response.ok)throw new Error(file+' returned '+response.status);
-    parts.push((await response.text()).trim());
+const PEOPLE = [
+{id:'uh_sar',name:'uh_sar',display:'Ausar / uh_sar',role:'Producer / Artist / Director',type:'core',tags:['All'],hub:'Center',x:500,y:360,r:36},
+{id:'addae',name:'Addae',role:'Manager / Visuals',type:'core',tags:['All','Visual'],hub:'Visual / Management',x:305,y:218,r:28},
+{id:'jordan',name:'Jordan Betine',role:'Director / Film',type:'person',tags:['All','Visual'],hub:'Visual / Management',x:150,y:118,r:23},
+{id:'cam',name:'Cam',role:'Singer / Multi-inst.',type:'bridge',tags:['All','Musicians','Writing Camps'],hub:'Professor What Trio',x:625,y:170,r:31},
+{id:'balam',name:'Balam',role:'Guitar / Bass',type:'person',tags:['All','Musicians','Writing Camps'],hub:'Professor What Trio',x:715,y:230,r:27},
+{id:'drew',name:'Drew',role:'Bass / Producer',type:'person',tags:['All','Musicians'],hub:'Professor What Trio',x:835,y:135,r:26},
+{id:'chris',name:'Chris',role:'Keys / Musician',type:'person',tags:['All','Musicians'],hub:"God's Contraband",x:470,y:140,r:24},
+{id:'dante',name:'Dante',role:'Rapper / Writer',type:'core',tags:['All'],hub:"God's Contraband",x:375,y:145,r:29},
+{id:'diontae',name:'Diontae',role:'Rapper',type:'person',tags:['All'],hub:"God's Contraband",x:245,y:335,r:24},
+{id:'solomon',name:'Solomon',role:'Artist / Collaborator',type:'person',tags:['All','Writing Camps'],hub:'Writing Camps',x:615,y:315,r:23},
+{id:'free',name:'Free',role:'Singer / Writer',type:'bridge',tags:['All','Rising Artists','Writing Camps'],hub:'Delaware–Philly',x:705,y:360,r:31},
+{id:'zeke',name:'ZekeUltra',role:'Artist / Writer',type:'person',tags:['All','Rising Artists'],hub:'Delaware–Philly',x:900,y:310,r:24},
+{id:'camille',name:'Camille',role:'Songwriter',type:'core',tags:['All','Writing Camps'],hub:'R&B Writing Orbit',x:345,y:515,r:28},
+{id:'brit',name:'Brit',role:'R&B Artist',type:'person',tags:['All','Rising Artists'],hub:'R&B Writing Orbit',x:160,y:585,r:23},
+{id:'okay',name:'okay coleman!',role:'Artist / Producer',type:'person',tags:['All','Rising Artists'],hub:'R&B Writing Orbit',x:42,y:665,r:23},
+{id:'joel',name:'Joel',role:'Trumpet / Horns',type:'hub',tags:['All','Musicians'],hub:"Joel's DTLA Studio",x:420,y:665,r:24},
+{id:'jonah',name:'Jonah',role:'Multi-inst. / Engineer',type:'hub',tags:['All','Musicians','Writing Camps'],hub:'Jonah Studio',x:535,y:600,r:26},
+{id:'mempho',name:'Mempho',role:'Producer / Rapper / Drums',type:'bridge',tags:['All','Rising Artists','Writing Camps'],hub:'Baw$ / Sockjus Orbit',x:835,y:460,r:29},
+{id:'sockjus',name:'Sockjus',role:'Artist',type:'bridge',tags:['All','Rising Artists'],hub:'Baw$ / Sockjus Orbit',x:755,y:565,r:28},
+{id:'john',name:'John',role:'Multi-inst. / Producer',type:'person',tags:['All','Musicians','Writing Camps'],hub:'Baw$ / Sockjus Orbit',x:885,y:575,r:24},
+{id:'baws',name:'Baw$',role:'Producer / Artist / Hub',type:'hub',tags:['All','Writing Camps'],hub:'Baw$ / Sockjus Orbit',x:945,y:465,r:28},
+{id:'nick',name:'Nick Bison',role:'Versatile Artist',type:'person',tags:['All','Rising Artists'],hub:'Baw$ / Sockjus Orbit',x:955,y:625,r:22},
+{id:'isis',name:'Isis / ICE9',role:'Rapper / Visual Artist',type:'bridge',tags:['All','Rising Artists','Visual'],hub:'LA Visual Art Scene',x:860,y:390,r:26},
+{id:'corinne',name:'Corinne Guirgis',role:'marketing',type:'person',tags:['All'],hub:'Marketing',x:650,y:480,r:22}
+];
+
+const GROUPS = [
+{id:'gc',name:"God's Contraband",short:'GC',role:'Band / Collective',members:['uh_sar','dante','chris','diontae','cam','balam','free'],x:420,y:72,r:33},
+{id:'pw',name:'Professor What Trio',short:'PW',role:'Band / Trio',members:['cam','balam','drew'],x:800,y:82,r:33}
+];
+
+const STUDIOS=[
+{id:'studio_downtown_rehearsals',name:'Downtown Rehearsals',role:'Rehearsal / Recording',area:'Downtown LA',members:['balam','uh_sar','dante','drew'],x:235,y:205,r:34},
+{id:'studio_drew_hollywood',name:"Drew's Hollywood Studio",role:'Recording Studio',area:'Hollywood',members:['drew','cam','balam'],x:500,y:165,r:34},
+{id:'studio_jonah',name:"Jonah's Studio",role:'Recording Studio',area:'TBD',members:['jonah'],x:765,y:205,r:34},
+{id:'studio_the_school',name:'The School',role:'Private Creative Room',area:'Los Angeles',members:['uh_sar','free','solomon'],x:330,y:515,r:36},
+{id:'studio_diontae_inglewood',name:"Diontae's Inglewood Space",role:'Private Recording Space',area:'Inglewood',members:['diontae','uh_sar'],x:695,y:520,r:34}
+];
+
+const VENUES=[
+{id:'venue_gold_diggers',name:'Gold-Diggers',role:'Live Music Venue',area:'East Hollywood',address:'5632 Santa Monica Blvd, Los Angeles, CA 90038',capacity:'175',members:['brit','okay'],x:500,y:330,r:38}
+];
+
+const CONNECTIONS = [
+['uh_sar','addae','strong'],['addae','jordan','strong'],['uh_sar','cam','strong'],['uh_sar','balam','strong'],['uh_sar','free','strong'],['uh_sar','camille','strong'],['uh_sar','sockjus','strong'],['uh_sar','jonah','strong'],['uh_sar','joel','strong'],['uh_sar','dante','strong'],['cam','balam','strong'],['cam','drew','strong'],['balam','drew','strong'],['free','zeke','strong'],['camille','brit','strong'],['brit','okay','budding'],['sockjus','john','strong'],['sockjus','baws','strong'],['baws','john','strong'],['baws','mempho','strong'],['baws','nick','strong'],['mempho','nick','strong'],['sockjus','mempho','strong'],['uh_sar','baws','budding'],['uh_sar','mempho','budding'],['uh_sar','john','budding'],['free','cam','potential'],['free','balam','potential'],['mempho','camille','potential'],['mempho','free','potential'],['uh_sar','isis','budding'],['free','isis','strong'],['zeke','isis','budding'],['uh_sar','diontae','budding']
+];
+
+const svg=document.getElementById('map');
+const app=document.getElementById('app');
+let view='relationship',filter='All',query='',selected=null,orbit=false,gravity=false,orbitT=0;
+let photos={}; try{photos=JSON.parse(localStorage.getItem('creativeNetworkPhotos')||'{}')}catch(e){photos={}}
+
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function initials(name){return name.split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase()}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1600)}
+function person(id){return PEOPLE.find(p=>p.id===id)}
+function searchMatch(n){if(!query)return true;return [n.name,n.role,n.hub,n.area,n.address].filter(Boolean).join(' ').toLowerCase().includes(query)}
+
+function currentNodes(){
+  if(view==='studios'){
+    const ids=new Set(STUDIOS.flatMap(s=>s.members));
+    return [...STUDIOS.map(s=>({...s,kind:'studio'})),...PEOPLE.filter(p=>ids.has(p.id)).map(p=>({...p,kind:'person'}))].filter(searchMatch)
   }
-  const binary=atob(parts.join(''));
-  const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));
-  if(typeof DecompressionStream==='undefined')throw new Error('This browser does not support gzip decompression');
-  const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
-  let html=await new Response(stream).text();
-  html=html.replace('</body>','<script src="canonical.js?v=32-1-canonical"><\\/script></body>');
-  document.open();
-  document.write(html);
-  document.close();
-})().catch(err=>{
-  const el=document.getElementById('loading');
-  el.innerHTML='<strong>Could not load Creative Network.</strong><span>'+String(err.message||err)+'</span>';
-  console.error(err);
-});
+  if(view==='venues'){
+    const ids=new Set(VENUES.flatMap(v=>v.members));
+    return [...VENUES.map(v=>({...v,kind:'venue'})),...PEOPLE.filter(p=>ids.has(p.id)).map(p=>({...p,kind:'person'}))].filter(searchMatch)
+  }
+  if(filter==='Bands & Collectives'){
+    const ids=new Set(GROUPS.flatMap(g=>g.members));
+    return [...GROUPS.map(g=>({...g,kind:'group'})),...PEOPLE.filter(p=>ids.has(p.id)).map(p=>({...p,kind:'person'}))].filter(searchMatch)
+  }
+  let arr=PEOPLE.slice();
+  if(filter!=='All')arr=arr.filter(p=>p.tags.includes(filter));
+  return arr.map(p=>({...p,kind:'person'})).filter(searchMatch)
+}
+
+let resolvedPositions=new Map();
+function basePosFor(n){
+  if(view==='studios' && n.kind==='person'){
+    const linked=STUDIOS.filter(s=>s.members.includes(n.id));
+    if(linked.length){const cx=linked.reduce((a,s)=>a+s.x,0)/linked.length,cy=linked.reduce((a,s)=>a+s.y,0)/linked.length;const a=(hash(n.id)%360)*Math.PI/180,r=linked.length>1?48:86;return [cx+Math.cos(a)*r,cy+Math.sin(a)*r]}
+  }
+  if(view==='venues' && n.kind==='person'){
+    if(n.id==='brit')return [420,465]; if(n.id==='okay')return [580,465];
+  }
+  if(filter==='Bands & Collectives' && n.kind==='person'){
+    const gs=GROUPS.filter(g=>g.members.includes(n.id));
+    if(gs.length){const cx=gs.reduce((a,g)=>a+g.x,0)/gs.length,cy=gs.reduce((a,g)=>a+g.y,0)/gs.length;const a=(hash(n.id)%360)*Math.PI/180,r=gs.length>1?52:112;return [cx+Math.cos(a)*r,cy+Math.sin(a)*r]}
+  }
+  if(n.id==='uh_sar')return [500,360];
+  if(view==='relationship' && orbit && n.kind==='person'){
+    const baseR=Math.hypot(n.x-500,n.y-360);const a=Math.atan2(n.y-360,n.x-500)+orbitT;return[500+Math.cos(a)*baseR,360+Math.sin(a)*baseR]
+  }
+  return [n.x,n.y]
+}
+function posFor(n){return resolvedPositions.get(n.id)||basePosFor(n)}
+function hash(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h}
+
+function resolveBubbleSpacing(nodes){
+  const pts=new Map();
+  for(const n of nodes){
+    const [x,y]=basePosFor(n);
+    const fixed=n.id==='uh_sar'||n.kind==='group'||n.kind==='studio'||n.kind==='venue';
+    pts.set(n.id,{x,y,ox:x,oy:y,r:n.r||24,fixed});
+  }
+  // A little breathing room between circles without destroying the authored layout.
+  const gap=view==='relationship'&&filter==='All'?16:18;
+  for(let iter=0;iter<18;iter++){
+    const arr=[...pts.values()];
+    for(let i=0;i<arr.length;i++){
+      for(let j=i+1;j<arr.length;j++){
+        const a=arr[i],b=arr[j];
+        let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);
+        const min=a.r+b.r+gap;
+        if(d>=min)continue;
+        if(d<.001){
+          const ang=((i*37+j*71)%360)*Math.PI/180;
+          dx=Math.cos(ang);dy=Math.sin(ang);d=1;
+        }
+        const ux=dx/d,uy=dy/d,overlap=min-d;
+        if(a.fixed&&b.fixed)continue;
+        if(a.fixed){b.x+=ux*overlap*.82;b.y+=uy*overlap*.82}
+        else if(b.fixed){a.x-=ux*overlap*.82;a.y-=uy*overlap*.82}
+        else{
+          const push=overlap*.46;
+          a.x-=ux*push;a.y-=uy*push;b.x+=ux*push;b.y+=uy*push;
+        }
+      }
+    }
+    // Gentle spring back toward the intended constellation so spacing feels organic, not scattered.
+    for(const p of arr){
+      if(!p.fixed){p.x+=(p.ox-p.x)*.025;p.y+=(p.oy-p.y)*.025}
+      p.x=Math.max(45,Math.min(955,p.x));
+      p.y=Math.max(50,Math.min(650,p.y));
+    }
+  }
+  return new Map([...pts].map(([id,p])=>[id,[p.x,p.y]]));
+}
+
+function lineFor(a,b,stage,kind='normal'){
+  const na=nodeMap.get(a),nb=nodeMap.get(b);if(!na||!nb)return'';const [x1,y1]=posFor(na),[x2,y2]=posFor(nb);return `<line class="edge ${kind==='membership'?'membership':stage}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" />`}
+
+let nodeMap=new Map();
+function render(){
+  const nodes=currentNodes();nodeMap=new Map(nodes.map(n=>[n.id,n]));
+  resolvedPositions=resolveBubbleSpacing(nodes);
+  let out='';
+  if(view==='relationship'){
+    out+=`<circle class="ring" cx="500" cy="360" r="115"/><circle class="ring" cx="500" cy="360" r="230"/><circle class="ring" cx="500" cy="360" r="345"/>`;
+    out+=`<text class="ring-label" x="500" y="249">CORE</text><text class="ring-label" x="500" y="135">WORKING NETWORK</text>`;
+  }
+  if(view==='studios'){
+    for(const s of STUDIOS){for(const id of s.members){if(nodeMap.has(s.id)&&nodeMap.has(id))out+=lineFor(s.id,id,'strong','membership')}}
+  } else if(view==='venues'){
+    for(const v of VENUES){for(const id of v.members){if(nodeMap.has(v.id)&&nodeMap.has(id))out+=lineFor(v.id,id,'strong','membership')}}
+  } else if(filter==='Bands & Collectives'){
+    for(const g of GROUPS){for(const id of g.members){if(nodeMap.has(g.id)&&nodeMap.has(id))out+=lineFor(g.id,id,'strong','membership')}}
+  } else {
+    for(const [a,b,stage] of CONNECTIONS)out+=lineFor(a,b,stage)
+  }
+
+  if(view==='relationship'&&filter==='All'){
+    for(const g of GROUPS){
+      const pts=g.members.map(id=>nodeMap.get(id)).filter(Boolean).map(n=>posFor(n));
+      if(pts.length<2)continue;const cx=pts.reduce((a,p)=>a+p[0],0)/pts.length;const minY=Math.min(...pts.map(p=>p[1]));
+      out+=`<text class="constellation" x="${cx}" y="${minY-42}">${esc(g.name)}</text><text class="constellation-sub" x="${cx}" y="${minY-27}">${pts.length} MEMBER CONSTELLATION</text>`;
+    }
+  }
+
+  for(const n of nodes){
+    const [x,y]=posFor(n);const klass=['node',n.type||'',n.kind==='group'?'group':'',n.kind==='studio'?'studio':'',n.kind==='venue'?'venue':'',selected===n.id?'selected':''].join(' ');
+    const r=n.r||24;const img=photos[n.id];
+    out+=`<g class="${klass}" data-id="${esc(n.id)}" transform="translate(${x} ${y})">`;
+    out+=`<circle r="${r}"/>`;
+    if(img){out+=`<defs><clipPath id="cp_${n.id}"><circle r="${r-2}"/></clipPath></defs><image href="${img}" x="${-r}" y="${-r}" width="${r*2}" height="${r*2}" preserveAspectRatio="xMidYMid slice" clip-path="url(#cp_${n.id})"/>`}
+    else out+=`<text class="initial" y="1">${esc(n.short||initials(n.name))}</text>`;
+    out+=`<text class="name" y="${r+18}">${esc(n.name)}</text><text class="role" y="${r+34}">${esc(n.role||n.area||'')}</text></g>`;
+  }
+  svg.innerHTML=out;
+  svg.querySelectorAll('.node').forEach(g=>g.addEventListener('click',()=>selectNode(g.dataset.id)));
+}
+
+function selectNode(id){selected=id;const n=[...PEOPLE,...GROUPS,...STUDIOS,...VENUES].find(x=>x.id===id);if(!n)return;const photo=photos[id];let meta='';
+  if(n.kind==='venue'||VENUES.some(v=>v.id===id))meta=`<div class="meta"><b>Area:</b> ${esc(n.area)}<br><b>Address:</b> ${esc(n.address)}<br><b>Capacity:</b> ${esc(n.capacity)}</div>`;
+  else if(STUDIOS.some(v=>v.id===id))meta=`<div class="meta"><b>Area:</b> ${esc(n.area)}<br>Studio/resource hub.</div>`;
+  else if(GROUPS.some(v=>v.id===id))meta=`<div class="meta">Band / collective hub. Member node appears only in the Bands / Collectives filter.</div>`;
+  else meta=`<div class="meta"><b>Hub:</b> ${esc(n.hub||'')}<br>${n.id==='isis'?'Visual-art bridge with Free and Zeke; potential future gallery/show collaborator.':''}</div>`;
+  document.getElementById('profile').innerHTML=`<div class="profile-card">${photo?`<img class="profile-photo" src="${photo}"/>`:''}<h2>${esc(n.name)}</h2><div class="role">${esc(n.role||'')}</div>${meta}<div class="photo-actions"><button class="btn mini" id="uploadPhotoBtn">${photo?'Replace':'Upload'} profile picture</button>${photo?'<button class="btn mini" id="removePhotoBtn">Remove</button>':''}</div></div>`;
+  document.getElementById('uploadPhotoBtn')?.addEventListener('click',()=>{document.getElementById('photoInput').dataset.target=id;document.getElementById('photoInput').click()});
+  document.getElementById('removePhotoBtn')?.addEventListener('click',()=>{delete photos[id];try{localStorage.setItem('creativeNetworkPhotos',JSON.stringify(photos))}catch(e){}selectNode(id);render()});
+  render();
+}
+
+function setView(v){view=v;filter='All';document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===v));document.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter==='All'));render()}
+function setFilter(f){view='relationship';filter=f;document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view==='relationship'));document.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));render()}
+document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
+document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>setFilter(b.dataset.filter)));
+document.getElementById('search').addEventListener('input',e=>{query=e.target.value.trim().toLowerCase();render()});
+document.getElementById('toggleSidebar').addEventListener('click',()=>{app.classList.toggle('sidebar-collapsed');document.getElementById('toggleSidebar').textContent=app.classList.contains('sidebar-collapsed')?'Open panel':'Minimize panel'});
+document.getElementById('fitBtn').addEventListener('click',()=>toast('Map fit reset'));
+document.getElementById('orbitBtn').addEventListener('click',e=>{orbit=!orbit;e.currentTarget.classList.toggle('active',orbit);if(orbit)animate();render()});
+document.getElementById('gravityBtn').addEventListener('click',e=>{gravity=!gravity;e.currentTarget.classList.toggle('active',gravity);toast(gravity?'Gravity on':'Gravity off')});
+document.getElementById('historyBtn').addEventListener('click',()=>toast('Version history: clean rebuild baseline'));
+document.getElementById('exportBtn').addEventListener('click',()=>toast('Export can be wired after baseline approval'));
+document.getElementById('photoInput').addEventListener('change',async e=>{const id=e.target.dataset.target,file=e.target.files?.[0];if(!id||!file)return;const src=await resizeImage(file);photos[id]=src;try{localStorage.setItem('creativeNetworkPhotos',JSON.stringify(photos))}catch(e){}selectNode(id);render();e.target.value=''});
+function resizeImage(file){return new Promise((resolve,reject)=>{const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const max=700,scale=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*scale);c.height=Math.round(im.height*scale);c.getContext('2d').drawImage(im,0,0,c.width,c.height);resolve(c.toDataURL('image/jpeg',.82))};im.onerror=reject;im.src=fr.result};fr.onerror=reject;fr.readAsDataURL(file)})}
+function animate(){if(!orbit)return;orbitT+=0.0027;render();requestAnimationFrame(animate)}
+render();
 </script>
 </body>
 </html>
