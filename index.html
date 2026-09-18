@@ -259,6 +259,16 @@
   fill:rgba(127,179,255,.025);stroke:#334052;stroke-width:1.1;stroke-dasharray:6 8;opacity:.82;pointer-events:none
 }
 .hub-field.core-hub{fill:rgba(215,181,109,.025);stroke:#4b4332}
+.studio-field{
+  fill:rgba(143,214,168,.026);stroke:#3f6654;stroke-width:1.15;stroke-dasharray:6 8;opacity:.88;
+  cursor:pointer;transition:fill .2s ease,stroke .2s ease,opacity .2s ease
+}
+.studio-field:hover{fill:rgba(143,214,168,.055);stroke:#6ea88b;opacity:1}
+.studio-field-label{
+  fill:#9bc8ad;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  cursor:pointer;paint-order:stroke;stroke:#0b0c0f;stroke-width:4px;stroke-linejoin:round
+}
+.studio-field-count{fill:#718d7d;font-size:8.5px;letter-spacing:.06em;pointer-events:none}
 .hub-label{
   cursor:pointer;pointer-events:auto;font-weight:800
 }
@@ -302,7 +312,7 @@
 <body>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v33 · full interactive source</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v34 · studio hub fields</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -622,6 +632,24 @@ function studioConnectionsFor(n){
     return[];
   }).filter(Boolean);
 }
+function studioMembersFor(studio){
+  if(!studio||studio.profileType!=="studio")return[];
+  return edges.flatMap(([a,b])=>{
+    if(a===studio.id){
+      const n=nodes.find(x=>x.id===b);
+      return n&&n.profileType!=="studio"&&n.profileType!=="venue"&&!isCollectiveEntity(n)?[n]:[];
+    }
+    if(b===studio.id){
+      const n=nodes.find(x=>x.id===a);
+      return n&&n.profileType!=="studio"&&n.profileType!=="venue"&&!isCollectiveEntity(n)?[n]:[];
+    }
+    return[];
+  }).filter((n,i,arr)=>arr.findIndex(x=>x.id===n.id)===i);
+}
+function studioFieldRadius(studio){
+  const count=studioMembersFor(studio).length;
+  return Math.max(92,78+Math.min(5,count)*8);
+}
 function bandHubCenter(c,index,total){
   if(total<=1)return[500,360];
   const angle=-Math.PI/2+(index/total)*Math.PI*2;
@@ -636,7 +664,8 @@ function pos(n){
       const cx=centers.reduce((a,p)=>a+p[0],0)/centers.length;
       const cy=centers.reduce((a,p)=>a+p[1],0)/centers.length;
       const angle=hashUnit(n.id)*Math.PI*2;
-      const radius=linked.length===1?82:34;
+      // Frequent users sit inside / near the studio field. Multi-studio people live between hubs.
+      const radius=linked.length===1?58:26;
       return[cx+Math.cos(angle)*radius,cy+Math.sin(angle)*radius];
     }
   }
@@ -807,6 +836,35 @@ function render(){
     });
   }
 
+  // Studio View uses the same spatial grammar as Creative Hubs:
+  // each room is a large hub field, with its frequent users pulled into that field.
+  if(currentView==="studios"){
+    nodes.filter(n=>n.profileType==="studio").forEach(studio=>{
+      const c=studioHubCenters[studio.id]||relationshipPos[studio.id]||[500,360];
+      const members=studioMembersFor(studio).filter(visibleNode);
+      const radius=studioFieldRadius(studio);
+
+      const field=make("circle",{
+        cx:c[0],cy:c[1],r:radius,class:"studio-field","data-studio":studio.id
+      });
+      field.addEventListener("click",()=>showProfile(studio));
+      viewport.appendChild(field);
+
+      const label=make("text",{
+        x:c[0],y:c[1]-radius-12,class:"studio-field-label","text-anchor":"middle","data-studio":studio.id
+      });
+      label.textContent=studio.name;
+      label.addEventListener("click",()=>showProfile(studio));
+      viewport.appendChild(label);
+
+      const count=make("text",{
+        x:c[0],y:c[1]-radius+3,class:"studio-field-count","text-anchor":"middle"
+      });
+      count.textContent=`${members.length} ${members.length===1?"frequent user":"frequent users"}`;
+      viewport.appendChild(count);
+    });
+  }
+
   edges.forEach(([a,b,kind])=>{
     const na=nodes.find(n=>n.id===a),nb=nodes.find(n=>n.id===b);
     if(!na||!nb||!visibleNode(na)||!visibleNode(nb))return;
@@ -873,6 +931,17 @@ function startOrganicMotion(){
       let cx=500,cy=360;
       if(currentView==="hubs"){
         const hc=hubCenters[n.hub]||[500,360];cx=hc[0];cy=hc[1];
+      }else if(currentView==="studios"){
+        if(n.profileType==="studio"){
+          const sc=studioHubCenters[n.id]||[bx,by];cx=sc[0];cy=sc[1];
+        }else{
+          const linked=studioConnectionsFor(n);
+          if(linked.length){
+            const centers=linked.map(s=>studioHubCenters[s.id]||relationshipPos[s.id]||[500,360]);
+            cx=centers.reduce((a,p)=>a+p[0],0)/centers.length;
+            cy=centers.reduce((a,p)=>a+p[1],0)/centers.length;
+          }
+        }
       }
 
       const dx0=bx-cx,dy0=by-cy;
@@ -918,8 +987,14 @@ function startOrganicMotion(){
         }
       }
 
+      if(currentView==="studios"&&n.profileType==="studio"){
+        tx=bx;ty=by;
+      }
+
       // Softer spring makes the circles coast and float instead of tracking a rigid target.
-      const spring=orbitMode&&currentView==="relationship"?.009:(n.id===selectedFocusId?.0068:.0052);
+      const spring=currentView==="studios"&&n.profileType==="studio"
+        ?.018
+        :(orbitMode&&currentView==="relationship"?.009:(n.id===selectedFocusId?.0068:.0052));
       s.vx+=(tx-s.x)*spring*dt;
       s.vy+=(ty-s.y)*spring*dt;
     });
@@ -1894,6 +1969,16 @@ document.getElementById("saveProfile").onclick=()=>{
 })();
 
 const APP_RELEASES=[
+  {
+    version:"v34",file:null,date:"2026-09-18",title:"Studio hub fields",
+    notes:[
+      "Studio View now uses large hub circles similar to Creative Hubs",
+      "Frequent artists are pulled closer to the studio or studios they use",
+      "People connected to multiple studios sit between those hub fields",
+      "Studio labels and hub fields open the studio profile",
+      "Studio anchor nodes stay centered while surrounding artists keep subtle living-network motion"
+    ]
+  },
   {
     version:"v28",file:null,date:"2026-09-17",title:"Studio hubs + band filter nodes (fixed baseline)",
     notes:[
