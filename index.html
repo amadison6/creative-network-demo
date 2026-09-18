@@ -312,7 +312,7 @@
 <body>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v34 · studio hub fields</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v35 · split visual / management filters</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -322,7 +322,7 @@
   <strong>Relationship View</strong><br>
   Who is close to you? Distance represents direct relationship strength; rings separate core, working network, and outer orbit.
 </div>
-<div class="section-title">Filters</div><button class="filter active" data-filter="All">All</button><button class="filter" data-filter="Bands & Collectives">Bands / Collectives</button><button class="filter" data-filter="God's Contraband">God's Contraband</button><button class="filter" data-filter="Writing Camps">Writing Camps</button><button class="filter" data-filter="Singer-Songwriters">Singer-Songwriters</button><button class="filter" data-filter="Musicians">Musicians</button><button class="filter" data-filter="Producers">Producers</button><button class="filter" data-filter="Visual">Visual / Management</button><button class="filter" data-filter="Rising Artists">Rising Artists</button><button class="filter" data-filter="Industry">Industry / Business</button><button class="filter" data-filter="Places">Venues / Places</button>
+<div class="section-title">Filters</div><button class="filter active" data-filter="All">All</button><button class="filter" data-filter="Bands & Collectives">Bands / Collectives</button><button class="filter" data-filter="God's Contraband">God's Contraband</button><button class="filter" data-filter="Writing Camps">Writing Camps</button><button class="filter" data-filter="Singer-Songwriters">Singer-Songwriters</button><button class="filter" data-filter="Musicians">Musicians</button><button class="filter" data-filter="Producers">Producers</button><button class="filter" data-filter="Visual Artists">Visual Artists</button><button class="filter" data-filter="Artist Management">Artist Management</button><button class="filter" data-filter="Rising Artists">Rising Artists</button><button class="filter" data-filter="Industry">Industry / Business</button><button class="filter" data-filter="Places">Venues / Places</button>
 <div class="section-title">Legend</div><div class="legend"><div><span class="dot gold"></span>Core/direct relationship</div><div><span class="dot blue"></span>Bridge / connector</div><div><span class="dot green"></span>Hub / infrastructure</div><div style="margin-top:7px"><span class="line-key strong"></span>Established / strong</div><div><span class="line-key budding"></span>Budding connection</div><div><span class="line-key potential"></span>Potential connection</div></div>
 <div class="section-title">Weekly Review</div><div class="small">Use your Tuesday check-in to refresh social links, photos, releases, sessions, and map relationships.</div>
 </aside>
@@ -520,8 +520,8 @@
 <script>
 const nodes=[
 {id:"uh_sar",name:"uh_sar",role:"Producer / Artist / Director",type:"core",r:34,tags:["All","God's Contraband"],hub:"Center",bio:"Central creative node: producer, artist, arranger, multi-instrumentalist, and creative director. Co-founder and executive producer of God's Contraband."},
-{id:"addae",name:"Addae",role:"Manager / Visuals",profileType:"manager",organization:"Independent / artist support",type:"core",r:25,tags:["All","Visual"],hub:"Visual / Management",bio:"Brother, unofficial manager, visual collaborator, connector, and production support."},
-{id:"jordan",name:"Jordan Betine",profileType:"filmmaker",visualRoles:"Director / filmmaker",photo:"https://static.wixstatic.com/media/63aeba_5e50224cec7146ba8471d90fe49218d7~mv2.jpg/v1/fill/w_321%2Ch_343%2Cal_c%2Cq_80%2Cusm_0.66_1.00_0.01%2Cenc_avif%2Cquality_auto/63aeba_5e50224cec7146ba8471d90fe49218d7~mv2.jpg",role:"Director / Film",type:"person",r:19,tags:["All","Visual"],hub:"Visual / Management",bio:"Friend and filmmaker. Current visual collaborator on Unstoppable."},
+{id:"addae",name:"Addae",role:"Manager / Visuals",profileType:"manager",organization:"Independent / artist support",type:"core",r:25,tags:["All","Artist Management"],hub:"Visual / Management",bio:"Brother, unofficial manager, visual collaborator, connector, and production support."},
+{id:"jordan",name:"Jordan Betine",profileType:"filmmaker",visualRoles:"Director / filmmaker",photo:"https://static.wixstatic.com/media/63aeba_5e50224cec7146ba8471d90fe49218d7~mv2.jpg/v1/fill/w_321%2Ch_343%2Cal_c%2Cq_80%2Cusm_0.66_1.00_0.01%2Cenc_avif%2Cquality_auto/63aeba_5e50224cec7146ba8471d90fe49218d7~mv2.jpg",role:"Director / Film",type:"person",r:19,tags:["All","Visual Artists"],hub:"Visual / Management",bio:"Friend and filmmaker. Current visual collaborator on Unstoppable."},
 {id:"cam",name:"Cam",role:"Singer / Multi-inst.",profileType:"musician",instruments:"Drums, percussion, bass, multi-instrumentalist",genres:"Singer-songwriter / contemporary R&B adjacent",type:"bridge",r:28,tags:["All","Musicians","Singer-Songwriters","Writing Camps","God's Contraband"],hub:"Professor What Trio",bio:"Elite drummer and multi-instrumentalist with strong musical instincts. Singer-songwriter with significant unreleased material."},
 {id:"balam",name:"Balam",role:"Guitar / Bass",profileType:"musician",instruments:"Guitar, bass",genres:"R&B / live-band / songwriting",type:"person",r:24,tags:["All","Musicians","Writing Camps","God's Contraband"],hub:"Professor What Trio",bio:"Guitarist, bassist, composer and arranger. Strong writing-session fit with Cam, Free and uh_sar."},
 {id:"drew",name:"Drew",role:"Bass / Producer",profileType:"musician",instruments:"Bass, multi-instrumentalist",genres:"Production / live musicianship",type:"person",r:23,tags:["All","Musicians","Producers"],hub:"Professor What Trio",bio:"Elite musician, bassist, producer, engineer and multi-instrumentalist."},
@@ -548,7 +548,7 @@ const nodes=[
 ,{id:"studio_the_school",name:"The School",role:"Private Creative / Rehearsal Room",profileType:"studio",type:"hubnode",r:24,tags:["All","Studios"],hub:"Studio Spaces",location:"Los Angeles",capacity:"Roughly 3× the size of Downtown Rehearsals",access:"uh_sar controls access",availability:"Weekdays after 5 PM to avoid disrupting students",frequentPeople:"uh_sar · Free · Solomon",resources:"Fender Jazz Bass · Fender Telecaster · 64-key Nord (organ / piano / synth sections) · 2 medium KRK monitors · Akai MPC Mini · Solomon's bass · Solomon's microphone",rates:"Private / not commercially priced",history:"uh_sar and Free work here often. Solomon has also used the room; sessions have been less frequent while Solomon is in rollout mode.",bio:"Large second-floor creative room at the family school. Public demo intentionally omits the street address."}
 ,{id:"studio_drew_hollywood",name:"Drew's Hollywood Studio",role:"Recording / Creative Studio",profileType:"studio",type:"hubnode",r:22,tags:["All","Studios"],hub:"Studio Spaces",location:"Hollywood, Los Angeles",capacity:"TBD",access:"Drew primary; Cam shares the space; Balam also uses it",availability:"TBD",frequentPeople:"Drew · Cam · Balam",resources:"Equipment inventory still needs to be mapped",rates:"TBD",history:"Drew moved into his own Hollywood studio after being a long-time Downtown Rehearsals tenant.",bio:"Hollywood studio used by Drew, Cam, and Balam. Equipment, capacity, and access details still need to be fleshed out."}
 ,{id:"studio_jonah",name:"Jonah's Studio",role:"Recording Studio",profileType:"studio",type:"hubnode",r:21,tags:["All","Studios"],hub:"Studio Spaces",location:"TBD",capacity:"TBD",access:"Jonah",availability:"TBD",frequentPeople:"Jonah",resources:"TBD — needs an exploratory visit / conversation",rates:"TBD",history:"Known studio resource in Jonah's orbit; details are not mapped yet.",bio:"Studio to explore further. Equipment, room details, access, and regular collaborators are still open questions."}
-,{id:"studio_diontae_inglewood",name:"Diontae's Inglewood Space",role:"Private Recording / Rehearsal Space",profileType:"studio",type:"hubnode",r:21,tags:["All","Studios"],hub:"Studio Spaces",location:"Inglewood, California",capacity:"TBD",access:"Diontae",availability:"By arrangement",frequentPeople:"Diontae · God's Contraband",resources:"Equipment inventory still needs to be mapped",rates:"Private / TBD",history:"God's Contraband uses the space from time to time.",bio:"Private Inglewood creative space associated with Diontae. Exact residential details are intentionally excluded from the public demo."},{id:"isis",name:"Isis / ICE9",artistName:"ICE9",role:"Rapper / Visual Artist",profileType:"musician",instruments:"Voice; multidisciplinary visual practice",genres:"Hip-hop / multidisciplinary art",type:"bridge",r:24,tags:["All","Rising Artists","Visual"],hub:"LA Visual Art Scene",bio:"Rapper, painter, graffiti artist and sculptor. Connected to Free and ZekeUltra; potential future art-gallery / live-show collaborator.",links:{Instagram:"https://www.instagram.com/handofisis?stkn=NjZqcWVhbnZ2dG14",Partiful:"https://partiful.com/e/cI43ocb5DeayrLzwQbko?c=Byft4AfX"}},{id:"venue_gold_diggers",name:"Gold-Diggers",role:"Live Music Venue",profileType:"venue",type:"hubnode",r:28,tags:["All","Places"],hub:"East Hollywood",location:"5632 Santa Monica Blvd, Los Angeles, CA 90038",capacity:"175",bookingContact:"bookinginfo@gold-diggers.com",warmConnection:"Brit + okay coleman! recently performed here",audienceFit:"Intimate live sets, showcases, emerging artists, industry-facing room",potentialShowNotes:"Potential future God's Contraband / Light Show room; warm path through Brit and okay coleman!",links:{Website:"https://gold-diggers.com/"},bio:"East Hollywood live-music venue, bar, hotel and recording complex."}
+,{id:"studio_diontae_inglewood",name:"Diontae's Inglewood Space",role:"Private Recording / Rehearsal Space",profileType:"studio",type:"hubnode",r:21,tags:["All","Studios"],hub:"Studio Spaces",location:"Inglewood, California",capacity:"TBD",access:"Diontae",availability:"By arrangement",frequentPeople:"Diontae · God's Contraband",resources:"Equipment inventory still needs to be mapped",rates:"Private / TBD",history:"God's Contraband uses the space from time to time.",bio:"Private Inglewood creative space associated with Diontae. Exact residential details are intentionally excluded from the public demo."},{id:"isis",name:"Isis / ICE9",artistName:"ICE9",role:"Rapper / Visual Artist",profileType:"musician",instruments:"Voice; multidisciplinary visual practice",genres:"Hip-hop / multidisciplinary art",type:"bridge",r:24,tags:["All","Rising Artists","Visual Artists"],hub:"LA Visual Art Scene",bio:"Rapper, painter, graffiti artist and sculptor. Connected to Free and ZekeUltra; potential future art-gallery / live-show collaborator.",links:{Instagram:"https://www.instagram.com/handofisis?stkn=NjZqcWVhbnZ2dG14",Partiful:"https://partiful.com/e/cI43ocb5DeayrLzwQbko?c=Byft4AfX"}},{id:"venue_gold_diggers",name:"Gold-Diggers",role:"Live Music Venue",profileType:"venue",type:"hubnode",r:28,tags:["All","Places"],hub:"East Hollywood",location:"5632 Santa Monica Blvd, Los Angeles, CA 90038",capacity:"175",bookingContact:"bookinginfo@gold-diggers.com",warmConnection:"Brit + okay coleman! recently performed here",audienceFit:"Intimate live sets, showcases, emerging artists, industry-facing room",potentialShowNotes:"Potential future God's Contraband / Light Show room; warm path through Brit and okay coleman!",links:{Website:"https://gold-diggers.com/"},bio:"East Hollywood live-music venue, bar, hotel and recording complex."}
 
 ];
 
@@ -1067,7 +1067,7 @@ function isMusicProfile(n){
 function profileCategory(n){
   return n.profileType || (n.tags||[]).includes("Places") ? (n.profileType||"venue") :
     (n.tags||[]).includes("Industry") ? (n.profileType||"industry") :
-    (n.tags||[]).includes("Visual") ? (n.profileType||"filmmaker") :
+    (n.tags||[]).includes("Visual Artists") ? (n.profileType||"filmmaker") :
     isMusicProfile(n) ? "music" : "person";
 }
 function showProfile(n){
@@ -1849,7 +1849,8 @@ document.getElementById("saveProfile").onclick=()=>{
   const tags=["All"];
   if(kind==="musician") tags.push("Musicians");
   if(kind==="collective") tags.push("Bands & Collectives");
-  if(kind==="filmmaker") tags.push("Visual");
+  if(kind==="filmmaker") tags.push("Visual Artists");
+  if(kind==="manager") tags.push("Artist Management");
   if(["manager","promoter"].includes(kind)) tags.push("Industry");
   if(kind==="venue") tags.push("Venues");
   if(kind==="studio") tags.push("Studios");
@@ -1969,6 +1970,15 @@ document.getElementById("saveProfile").onclick=()=>{
 })();
 
 const APP_RELEASES=[
+  {
+    version:"v35",file:null,date:"2026-09-18",title:"Separate visual artist and management filters",
+    notes:[
+      "Split the former Visual / Management filter into Visual Artists and Artist Management",
+      "Jordan and Isis appear under Visual Artists",
+      "Addae appears under Artist Management",
+      "New filmmaker profiles default into Visual Artists; new manager profiles default into Artist Management"
+    ]
+  },
   {
     version:"v34",file:null,date:"2026-09-18",title:"Studio hub fields",
     notes:[
