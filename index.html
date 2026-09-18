@@ -318,7 +318,7 @@
 <body>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v37 · broader image support</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v38 · social links + portraits</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -2035,6 +2035,16 @@ document.getElementById("saveProfile").onclick=()=>{
 
 const APP_RELEASES=[
   {
+    version:"v38",file:null,date:"2026-09-18",title:"Instagram audit + public portraits",
+    notes:[
+      "Restored user-provided Instagram links for Addae, Jordan, Cam, Balam, Drew, ZekeUltra, Brit and okay coleman!",
+      "Preserved existing Instagram links for Sockjus, John, Baw$, Nick Bison, Diontae and Isis",
+      "Known Instagram links now re-apply after browser-local profile overrides so older saved data cannot silently erase them",
+      "Added verified public portrait images for Balam Garcia, Cam / Never Met a Human, and Drew ofthe Drew",
+      "Unknown Instagram accounts remain blank rather than being guessed"
+    ]
+  },
+  {
     version:"v37",file:null,date:"2026-09-18",title:"Broader profile image support",
     notes:[
       "Profile uploads now explicitly accept JPG/JPEG, PNG, WebP, GIF, AVIF, HEIC and HEIF",
@@ -2356,6 +2366,37 @@ function applySavedOverrides(){
   Object.assign(relationshipPos,savedPos);
 }
 applySavedOverrides();
+
+const VERIFIED_INSTAGRAMS={
+  addae:"https://www.instagram.com/fuchsia.forever/",
+  jordan:"https://www.instagram.com/jordanbetine/",
+  cam:"https://www.instagram.com/nevermetahuman/",
+  balam:"https://www.instagram.com/balam_garcia/",
+  drew:"https://www.instagram.com/drewofthedrew/",
+  zeke:"https://www.instagram.com/zekeultra/",
+  brit:"https://www.instagram.com/quachmamma/",
+  okay:"https://www.instagram.com/okaycoleman/",
+  sockjus:"https://www.instagram.com/sockjus_/",
+  john:"https://www.instagram.com/theotherjohnmayer/",
+  baws:"https://www.instagram.com/baws._/",
+  nick:"https://www.instagram.com/nick.bison/",
+  diontae:"https://www.instagram.com/diontaes1mpson/",
+  isis:"https://www.instagram.com/handofisis/"
+};
+const VERIFIED_PUBLIC_PHOTOS={
+  balam:"https://www.radiovenice.tv/wp-content/uploads/2018/09/Balam-Garcia.jpg",
+  cam:"https://media.muckrack.com/portfolio/images/10628454/1651844_never-met-a-human-3.jpg.150x0_q85_autocrop.jpg",
+  drew:"https://images.squarespace-cdn.com/content/v1/6747bab2c3a3a46731974db2/53fd37b0-1f31-4ab6-b681-b806e1f69e3d/468049925_10160713223753494_4092018167355344725_n.jpg"
+};
+nodes.forEach(n=>{
+  const ig=VERIFIED_INSTAGRAMS[n.id];
+  if(ig){
+    n.links=Object.assign({},n.links||{});
+    if(!n.links.Instagram)n.links.Instagram=ig;
+  }
+  const photo=VERIFIED_PUBLIC_PHOTOS[n.id];
+  if(photo&&!n.photo)n.photo=photo;
+});
 
 function executeNetworkEdit(raw){
   const q=raw.trim();
