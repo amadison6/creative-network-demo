@@ -1818,10 +1818,11 @@ function showProfile(n){
     punchingbag:"Performed here (Ausar's account)",
     isis:"ICE9 performed here (Ausar's account)"
   };
-  const venueConnections=n.id==="venue_slide_thru"
-    ?Object.entries(slideThruRoles).map(([id,role])=>{
-      const person=nodes.find(p=>p.id===id);return person?{person,role}:null;
-    }).filter(Boolean):[];
+  const venueConnections=n.profileType==="venue"
+    ?venueMembersFor(n).map(person=>({person,role:n.id==="venue_slide_thru"
+      ?(slideThruRoles[person.id]||"Associated with the venue")
+      :"Connected performer / venue relationship"}))
+    :[];
   const slideThruLabel=slideThruRoles[n.id]||"";
   const category=profileCategory(n);
   const categoryLabel={
@@ -1868,29 +1869,70 @@ function showProfile(n){
         <div class="card"><div class="k">Market / Territory</div><div class="v">${n.market||'<span class="missing-value">Not added yet</span>'}</div></div>
       </div>`;
   }else if(category==="venue"){
+    const address=String(n.location||"").trim();
+    const directions="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(address||n.name);
+    const email=String(n.bookingContact||"").match(/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/)?.[0]||"";
+    const bookingLink=(function(){
+      try{
+        const u=new URL(n.links?.Booking||"");
+        return ["https:","http:"].includes(u.protocol)?u.href:"";
+      }catch(_){return ""}
+    })();
+    const rate=String(n.rates||"").trim();
+    const quoted=rate&&!/^(unknown|not quoted|tbd)\b/i.test(rate) ?rate:"Quote not recorded";
+    const events=window.NetworkEvents?.forProfile(n.id)||[];
+    const contactHint=n.id==="venue_slide_thru"?
+      "Asean Townsend (Sean) is a confirmed founder/venue contact; confirm booking authority and current terms.":
+      "Confirm the right booker, rental quote and deal terms before committing.";
     specialized=`
-      <div class="section-title">Booking / Show Intelligence</div>
-      <div class="profile-grid">
-        <div class="card"><div class="k">Capacity</div><div class="v">${n.capacity||'<span class="missing-value">Not added yet</span>'}</div></div>
-                <div class="card"><div class="k">Last quoted guarantee</div><div class="v">${n.lastQuotedGuarantee||'<span class="missing-value">Not added yet</span>'}</div></div>
-        <div class="card"><div class="k">Deal structure</div><div class="v">${n.dealStructure||'<span class="missing-value">Not added yet</span>'}</div></div>
-        <div class="card"><div class="k">Door split</div><div class="v">${n.doorSplit||'<span class="missing-value">Not added yet</span>'}</div></div>
-        <div class="card"><div class="k">Production / rental fee</div><div class="v">${n.productionFee||'<span class="missing-value">Not added yet</span>'}</div></div>
-        <div class="card"><div class="k">Talent buyer / promoter</div><div class="v">${n.talentBuyer||'<span class="missing-value">Not added yet</span>'}</div></div>
-        <div class="card"><div class="k">Warm connection</div><div class="v">${n.warmConnection||'<span class="missing-value">Not added yet</span>'}</div></div>
+      <div class="section-title">Venue HQ · actionable details</div>
+      <div class="venue-hq">
+        <div class="venue-hq-head">
+          <strong>${escapeAttr(n.name)}</strong>
+          <span>${escapeAttr(n.hub||"Venue")}</span>
+        </div>
+        <div class="venue-hq-facts">
+          <div><span>Estimated capacity</span><strong>${escapeAttr(n.capacity||"Not recorded")}</strong></div>
+          <div><span>Recorded rate</span><strong>${escapeAttr(quoted)}</strong></div>
+          <div><span>Connected people</span><strong>${venueConnections.length}</strong></div>
+          <div><span>Recorded events</span><strong>${events.length}</strong></div>
+        </div>
+        <div class="venue-hq-label">Location</div>
+        <div class="venue-hq-value">${escapeAttr(address||"Address not recorded")}</div>
+        <div class="venue-hq-actions">
+          ${address?`<a href="${escapeAttr(directions)}" target="_blank" rel="noopener noreferrer">Directions ↗</a>`:""}
+          ${email?`<a href="mailto:${escapeAttr(email)}?subject=${encodeURIComponent("Booking inquiry · "+n.name)}">Email booker ↗</a>`:""}
+          ${bookingLink?`<a href="${escapeAttr(bookingLink)}" target="_blank" rel="noopener noreferrer">Booking form ↗</a>`:""}
+          <button id="venueEditBooking" type="button">Edit venue details</button>
+        </div>
+        <div class="venue-hq-note">${escapeAttr(contactHint)}</div>
       </div>
-      <div class="card"><div class="k">Booking contact</div><div class="v">${n.bookingContact||'<span class="missing-value">Not added yet</span>'}</div></div>
-      <div class="card" style="margin-top:10px"><div class="k">Audience / programming fit</div><div class="v">${n.audienceFit||n.genres||'<span class="missing-value">Not added yet</span>'}</div></div>
-      <div class="card" style="margin-top:10px"><div class="k">Potential show notes</div><div class="v">${n.potentialShowNotes||'<span class="missing-value">No show idea saved yet</span>'}</div></div>
-      <div class="entity-rate-note">Keep rates as dated quotes / offers. Confirm terms again before locking a show.</div>
+      <div class="section-title">Rates & booking terms</div>
+      <div class="profile-grid">
+        <div class="card"><div class="k">Rates / cost notes</div><div class="v">${escapeAttr(n.rates||"No rental rate or quote recorded")}</div></div>
+        <div class="card"><div class="k">Last quoted guarantee</div><div class="v">${escapeAttr(n.lastQuotedGuarantee||"Not quoted")}</div></div>
+        <div class="card"><div class="k">Production / rental fee</div><div class="v">${escapeAttr(n.productionFee||"Not quoted")}</div></div>
+        <div class="card"><div class="k">Deal structure</div><div class="v">${escapeAttr(n.dealStructure||"Not quoted")}</div></div>
+        <div class="card"><div class="k">Door split</div><div class="v">${escapeAttr(n.doorSplit||"Not quoted")}</div></div>
+        <div class="card"><div class="k">Backline / sound</div><div class="v">${escapeAttr(n.backline||n.resources||"Not recorded")}</div></div>
+      </div>
+      <div class="entity-rate-note">Keep amounts as dated quotes. Capacity estimates and policies are not an agreed booking price.</div>
+      <div class="section-title">Booking path</div>
+      <div class="card"><div class="k">Booking contact</div><div class="v">${escapeAttr(n.bookingContact||"Not recorded")}</div></div>
+      <div class="card" style="margin-top:10px"><div class="k">Talent buyer / promoter</div><div class="v">${escapeAttr(n.talentBuyer||"Not confirmed")}</div></div>
+      <div class="card" style="margin-top:10px"><div class="k">Warm introduction</div><div class="v">${escapeAttr(n.warmConnection||"Not recorded")}</div></div>
+      <div class="card" style="margin-top:10px"><div class="k">Audience / programming fit</div><div class="v">${escapeAttr(n.audienceFit||n.genres||"Not recorded")}</div></div>
+      <div class="card" style="margin-top:10px"><div class="k">Show / production history</div><div class="v">${escapeAttr(n.history||"Not recorded")}</div></div>
+      <div class="card" style="margin-top:10px"><div class="k">Show opportunities & next steps</div><div class="v">${escapeAttr(n.potentialShowNotes||"No show idea recorded")}</div></div>
       ${venueConnections.length?`
         <div class="section-title">People connected to this venue</div>
         <div class="venue-network-list">${venueConnections.map(({person,role})=>`
           <button type="button" class="venue-network-link" data-connected-id="${escapeAttr(person.id)}">
             <strong>${escapeAttr(person.name)}</strong>
             <span>${escapeAttr(role)}</span>
-          </button>`).join("")}</div>
-        <div class="entity-rate-note">Ausar confirmed Sean is Asean Townsend. The venue website refers to owners as Quick & Veli; nickname correspondence remains unconfirmed.</div>`:""}`;
+          </button>`).join("")}</div>`:""}
+      ${window.NetworkEvents?window.NetworkEvents.section(n):""}
+    `;
   }else if(category==="studio"){
     const studioPeople=studioMembersFor(n);
     const peopleLinks=studioPeople.length
@@ -1980,7 +2022,7 @@ function showProfile(n){
         <div class="v">${escapeAttr(slideThruLabel)}</div>
         <button class="secondary-btn" id="openSlideThruVenue" type="button" style="margin-top:9px">Open Slide Thru venue ↗</button>
       </div>`:""}
-    ${window.NetworkEvents ? window.NetworkEvents.section(n) : ""}
+    ${category!=="venue"&&window.NetworkEvents ? window.NetworkEvents.section(n) : ""}
     <div class="section-title">Notifications</div>
     <div id="profileNotifications"></div>
     ${hasUntitledSection?`
@@ -2004,6 +2046,11 @@ function showProfile(n){
   `;
 
   document.getElementById("editProfileBtn").onclick=()=>openEditProfile(n);
+  const venueEdit=document.getElementById("venueEditBooking");
+  if(venueEdit)venueEdit.onclick=()=>{
+    openEditProfile(n);
+    document.getElementById("editRates")?.focus();
+  };
   document.querySelectorAll(".venue-network-link").forEach(btn=>{
     btn.onclick=()=>{
       const target=nodes.find(p=>p.id===btn.dataset.connectedId);
