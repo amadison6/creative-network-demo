@@ -688,7 +688,7 @@
 </datalist>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v61 · Untitled album playback</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v62 · Demo Library</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -926,6 +926,7 @@
 <script src="./event-radar.js?v=56"></script>
 <script src="./collaboration-files.js?v=59-3"></script>
 <script src="./untitled-projects.js?v=61"></script>
+<script src="./demo-library.js?v=62"></script>
 <script>
 const nodes=[
 {id:"uh_sar",name:"uh_sar",role:"Producer / Artist / Director",type:"core",r:34,tags:["All","God's Contraband"],hub:"Center",bio:"Central creative node: producer, artist, arranger, multi-instrumentalist, and creative director. Co-founder and executive producer of God's Contraband."},
@@ -1508,6 +1509,7 @@ function render(){
     viewport.appendChild(line);edgeEls.push(line);
   });
 
+  if(window.NetworkDemos?.drawLinks)window.NetworkDemos.drawLinks(viewport,make,nodes.filter(visibleNode),ensureMotionState,edgeEls);
   let nodeAvatarClipIndex=0;
   nodes.filter(visibleNode).forEach(n=>{
     const s=ensureMotionState(n);
@@ -1548,6 +1550,7 @@ function render(){
       g.appendChild(image);
     }
 
+    if(window.NetworkDemos)g.appendChild(make("circle",{r:rr+4,class:"demo-play-ring"}));
     const notifCount=notificationCount(n.id);
     if(notifCount>0){
       const badge=make("g",{class:"node-notification",transform:`translate(${(rr*.74).toFixed(1)},${(-rr*.74).toFixed(1)})`});
@@ -1580,6 +1583,7 @@ function render(){
 
   updateLayerEmpty();
   renderVenueDirectory();
+  if(window.NetworkDemos?.stateChanged)window.NetworkDemos.stateChanged();
   applyCamera();
   startOrganicMotion();
 }
@@ -1834,6 +1838,7 @@ function showHubProfile(hubName){
       </div>`:""}
 
     ${collective&&typeof window.NetworkUntitled?.section==="function"?window.NetworkUntitled.section(collective):""}
+    ${collective&&typeof window.NetworkDemos?.section==="function"?window.NetworkDemos.section(collective):""}
     <div class="section-title">People in this hub</div>
     <div style="display:flex;gap:7px;flex-wrap:wrap">${memberButtons}</div>
 
@@ -1858,6 +1863,7 @@ function showHubProfile(hubName){
     };
   });
   if(collective&&typeof window.NetworkUntitled?.bindProfile==="function")window.NetworkUntitled.bindProfile(collective);
+  if(collective&&typeof window.NetworkDemos?.bindProfile==="function")window.NetworkDemos.bindProfile(collective);
   const openCollective=document.getElementById("openCollectiveProfile");
   if(openCollective)openCollective.onclick=()=>showProfile(collective);
   const editCollective=document.getElementById("editCollectiveProfile");
@@ -2418,6 +2424,7 @@ function showProfile(n){
     <div class="section-title">Notifications</div>
     <div id="profileNotifications"></div>
     ${hasUntitledSection&&typeof window.NetworkUntitled?.section==="function"?window.NetworkUntitled.section(n):""}
+    ${isArtist&&typeof window.NetworkDemos?.section==="function"?window.NetworkDemos.section(n):""}
     <div class="section-title">Public Links</div>
     <div class="links">${linksHtml}</div>
     <div class="profile-actions"><button class="save" id="editProfileBtn">Edit profile</button></div>
@@ -2430,6 +2437,7 @@ function showProfile(n){
   document.getElementById("editProfileBtn").onclick=()=>openEditProfile(n);
   if(typeof window.NetworkCollab?.bindProfile==="function")window.NetworkCollab.bindProfile(n);
   if(typeof window.NetworkUntitled?.bindProfile==="function")window.NetworkUntitled.bindProfile(n);
+  if(isArtist&&typeof window.NetworkDemos?.bindProfile==="function")window.NetworkDemos.bindProfile(n);
   const venueEdit=document.getElementById("venueEditBooking");
   if(venueEdit)venueEdit.onclick=()=>{
     openEditProfile(n);
@@ -3628,6 +3636,16 @@ document.getElementById("saveProfile").onclick=()=>{
 
 const APP_RELEASES=[
   {
+    version:"v62",file:null,date:"2026-09-19",title:"Private MP3/WAV Demo Library",
+    notes:[
+      "Drag and drop real MP3/WAV files to musician/artist and collective profiles; store original audio locally in browser IndexedDB, not in public site",
+      "Connect one demo to multiple canonical collaborators without copying the file, and show it in each person's playlist",
+      "Play tracks in an app-wide audio bar; the profile pictures of credited collaborators spin while the demo plays",
+      "Shared demos add soft map connections that highlight during playback; edit credits, title, notes and download/delete originals",
+      "Browser storage is device-specific and vulnerable to clearing; preserve external audio backups and avoid shared browsers"
+    ]
+  },
+  {
     version:"v61",file:null,date:"2026-09-19",title:"God's Contraband Untitled album player",
     notes:[
       "Accepts supplied Untitled album embed in the private collective's project library and Creative Hub panel",
@@ -4559,6 +4577,11 @@ if(window.NetworkUntitled){
     if(person)showProfile(person);
   }
 }
+if(window.NetworkDemos)window.NetworkDemos.init({
+  getPeople:()=>nodes,
+  refreshMap:()=>render(),
+  openPerson:id=>{const person=nodes.find(n=>n.id===id);if(person)showProfile(person)}
+});
 if(window.NetworkSpotify)window.NetworkSpotify.boot().then(function(){
   if(window.NetworkPlaylists)window.NetworkPlaylists.onAuthReady();
 }).catch(function(error){
