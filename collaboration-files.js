@@ -46,8 +46,9 @@ function parsePayload(raw){
    // Private one-time install packet: compact values reconstruct the existing
    // canonical Resource IDs, person and project, never a second entity.
    const sections=SECTION_ORDER;
+   if(!input.prefix||typeof input.prefix!=="string")throw Error("Compact import is missing the canonical resource-ID prefix.");
    rows=input.r.map(([suffix,section,name,type,url,provider,notes])=>[
-     String(input.prefix||"jordan_unstoppable_")+String(suffix||""),
+     String(input.prefix)+String(suffix||""),
      String(input.p||""),String(input.i||""),String(input.n||""),
      sections[Number(section)]||"Other resources",
      name||"",type||"",url||"",provider||"",notes||"",
