@@ -2284,10 +2284,15 @@ function renderEditEntityFields(n){
     wrap.innerHTML=
       editField("editCapacity","Capacity",n.capacity)+
       editField("editBookingContact","Booking contact",n.bookingContact)+editField("editTalentBuyer","Talent buyer / promoter",n.talentBuyer)+
-      editField("editWarmConnection","Warm connection",n.warmConnection)+editField("editQuotedGuarantee","Last quoted guarantee",n.lastQuotedGuarantee,"e.g. $500 guarantee")+
+      editField("editWarmConnection","Warm connection",n.warmConnection)+
+      editField("editRates","Rates / cost notes",n.rates,"Quote amount, date, booking minimum, deposit…")+
+      editField("editQuotedGuarantee","Last quoted guarantee",n.lastQuotedGuarantee,"e.g. $500 guarantee")+
       editField("editDealStructure","Deal structure",n.dealStructure,"Guarantee, door split, rental, hybrid...")+editField("editDoorSplit","Door split",n.doorSplit)+
       editField("editProductionFee","Production / rental fee",n.productionFee)+editField("editAudienceFit","Audience / programming fit",n.audienceFit||n.genres)+
-      editField("editBackline","Backline / PA",n.backline)+editField("editPotentialShowNotes","Potential show notes",n.potentialShowNotes);
+      editField("editBackline","Backline / PA",n.backline)+
+      editField("editResources","Resources / production setup",n.resources)+
+      editField("editHistory","Past shows / production history",n.history)+
+      editField("editPotentialShowNotes","Potential show notes",n.potentialShowNotes);
   }else if(n.profileType==="studio"){
     sec.classList.remove("hidden");title.textContent="Studio / space details";
     wrap.innerHTML=
@@ -2449,7 +2454,7 @@ document.getElementById("saveProfileEdits").onclick=()=>{
   n.publisher=document.getElementById("editPublisher").value.trim();
 
   const v=id=>document.getElementById(id)?.value?.trim()??"";
-  if(n.profileType==="venue")Object.assign(n,{capacity:v("editCapacity"),bookingContact:v("editBookingContact"),talentBuyer:v("editTalentBuyer"),warmConnection:v("editWarmConnection"),lastQuotedGuarantee:v("editQuotedGuarantee"),dealStructure:v("editDealStructure"),doorSplit:v("editDoorSplit"),productionFee:v("editProductionFee"),audienceFit:v("editAudienceFit"),backline:v("editBackline"),potentialShowNotes:v("editPotentialShowNotes")});
+  if(n.profileType==="venue")Object.assign(n,{capacity:v("editCapacity"),bookingContact:v("editBookingContact"),talentBuyer:v("editTalentBuyer"),warmConnection:v("editWarmConnection"),rates:v("editRates"),lastQuotedGuarantee:v("editQuotedGuarantee"),dealStructure:v("editDealStructure"),doorSplit:v("editDoorSplit"),productionFee:v("editProductionFee"),audienceFit:v("editAudienceFit"),backline:v("editBackline"),resources:v("editResources"),history:v("editHistory"),potentialShowNotes:v("editPotentialShowNotes")});
   if(n.profileType==="studio")Object.assign(n,{capacity:v("editCapacity"),access:v("editAccess"),availability:v("editAvailability"),frequentPeople:v("editFrequentPeople"),rates:v("editRates"),resources:v("editResources"),history:v("editHistory")});
 
   if(pendingEditPhotoData!==null){if(pendingEditPhotoData)n.photo=pendingEditPhotoData;else delete n.photo}
