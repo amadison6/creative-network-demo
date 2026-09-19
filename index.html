@@ -582,7 +582,7 @@
 </datalist>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v54 · Asean identity confirmed</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v55 · venue hubs & booking inspector</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -595,6 +595,7 @@
   <strong>Relationship View</strong><br>
   Who is close to you? Distance represents direct relationship strength; rings separate core, working network, and outer orbit.
 </div>
+<div id="venueDirectory" class="venue-directory" hidden></div>
 <div class="fullmap-hint" title="Left and right arrow keys move to the closest profile in that direction.">← → Nearest profile · opens details</div>
 <div class="section-title">Filters</div><button class="filter active" data-filter="All">All</button><button class="filter" data-filter="Bands & Collectives">Bands / Collectives</button><button class="filter" data-filter="God's Contraband">God's Contraband</button><button class="filter" data-filter="Writing Camps">Writing Camps</button><button class="filter" data-filter="Singer-Songwriters">Singer-Songwriters</button><button class="filter" data-filter="Musicians">Musicians</button><button class="filter" data-filter="Producers">Producers</button><button class="filter" data-filter="Visual Artists">Visual Artists</button><button class="filter" data-filter="Artist Management">Artist Management</button><button class="filter" data-filter="Rising Artists">Rising Artists</button><button class="filter" data-filter="Industry">Industry / Business</button><button class="filter" data-filter="Places">Venues / Places</button>
 <div class="section-title">Legend</div><div class="legend"><div><span class="dot gold"></span>Core/direct relationship</div><div><span class="dot blue"></span>Bridge / connector</div><div><span class="dot green"></span>Hub / infrastructure</div><div style="margin-top:7px"><span class="line-key strong"></span>Established / strong</div><div><span class="line-key budding"></span>Budding connection</div><div><span class="line-key potential"></span>Potential connection</div></div>
@@ -931,6 +932,33 @@ const studioHubCenters={
   studio_the_school:[330,525],
   studio_diontae_inglewood:[700,520]
 };
+// Venue centers are computed from current venue profiles, including newly added rooms.
+function venueHubCenter(venue){
+  const venues=nodes.filter(n=>n.profileType==="venue");
+  const i=Math.max(0,venues.findIndex(n=>n.id===venue.id)),total=venues.length;
+  if(total<=1)return [500,360];
+  if(total===2)return i===0?[280,360]:[720,360];
+  if(total<=6){
+    const angle=-Math.PI/2+(i/total)*Math.PI*2;
+    return [500+Math.cos(angle)*285,360+Math.sin(angle)*185];
+  }
+  const cols=Math.min(4,total),rows=Math.ceil(total/cols),col=i%cols,row=Math.floor(i/cols);
+  return [110+780*col/(cols-1||1),rows===1?360:140+440*row/(rows-1)];
+}
+function venueMembersFor(venue){
+  if(!venue||venue.profileType!=="venue")return [];
+  return edges.flatMap(([a,b])=>{
+    const id=a===venue.id?b:b===venue.id?a:null;
+    if(!id)return[];
+    const n=nodes.find(p=>p.id===id);
+    return n&&n.profileType!=="venue"&&n.profileType!=="studio"&&!isCollectiveEntity(n)?[n]:[];
+  }).filter((n,i,arr)=>arr.findIndex(other=>other.id===n.id)===i);
+}
+function venueConnectionsFor(n){
+  if(!n||n.profileType==="venue")return [];
+  return nodes.filter(x=>x.profileType==="venue"&&venueMembersFor(x).some(m=>m.id===n.id));
+}
+function venueFieldRadius(venue){return Math.min(146,Math.max(94,78+venueMembersFor(venue).length*7));}
 function hashUnit(str){
   let h=2166136261;
   for(const ch of String(str)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}
@@ -983,6 +1011,18 @@ function bandHubCenter(c,index,total){
   return[500+Math.cos(angle)*205,360+Math.sin(angle)*145];
 }
 function pos(n){
+  if(currentView==="venues"){
+    if(n.profileType==="venue")return venueHubCenter(n);
+    const linked=venueConnectionsFor(n);
+    if(linked.length){
+      const centers=linked.map(venueHubCenter);
+      const cx=centers.reduce((a,p)=>a+p[0],0)/centers.length;
+      const cy=centers.reduce((a,p)=>a+p[1],0)/centers.length;
+      const angle=hashUnit(n.id)*Math.PI*2;
+      const radius=linked.length===1?75:30;
+      return [cx+Math.cos(angle)*radius,cy+Math.sin(angle)*radius];
+    }
+  }
   if(currentView==="studios"){
     if(n.profileType==="studio")return studioHubCenters[n.id]||relationshipPos[n.id]||[500,360];
     const linked=studioConnectionsFor(n);
@@ -1032,11 +1072,7 @@ function visibleNode(n){
   if(n.profileType==="venue")return currentView==="venues"&&searchOk;
 
   if(currentView==="studios")return studioConnectionsFor(n).length>0&&searchOk;
-  if(currentView==="venues"){
-    const venueIds=new Set(nodes.filter(x=>x.profileType==="venue").map(x=>x.id));
-    const linked=edges.some(([a,b])=>(venueIds.has(a)&&b===n.id)||(venueIds.has(b)&&a===n.id));
-    return linked&&searchOk;
-  }
+  if(currentView==="venues")return venueConnectionsFor(n).length>0&&searchOk;
 
   const filterOk=currentFilter==="Bands & Collectives"
     ? collectiveMembershipsFor(n).length>0
