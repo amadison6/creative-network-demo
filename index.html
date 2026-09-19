@@ -384,7 +384,7 @@
 </datalist>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v41 · arrow-key profile navigation</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v42 · directional profile browsing</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -399,7 +399,7 @@
 <div class="section-title">Legend</div><div class="legend"><div><span class="dot gold"></span>Core/direct relationship</div><div><span class="dot blue"></span>Bridge / connector</div><div><span class="dot green"></span>Hub / infrastructure</div><div style="margin-top:7px"><span class="line-key strong"></span>Established / strong</div><div><span class="line-key budding"></span>Budding connection</div><div><span class="line-key potential"></span>Potential connection</div></div>
 <div class="section-title">Weekly Review</div><div class="small">Use your Tuesday check-in to refresh social links, photos, releases, sessions, and map relationships.</div>
 </aside>
-<main class="main"><canvas id="spaceFx" class="space-fx" aria-hidden="true"></canvas><div class="toolbar"><button class="icon-btn" id="toggleLeft" title="Hide/show navigation">☰</button><input id="search" class="search" placeholder="Search people, roles, hubs..." /><div class="pill" id="status">Relationship view</div><button class="add-btn" id="addProfile">＋ Profile</button><button class="ai-toggle" id="aiToggle">Ask Network</button><button class="version-btn" id="orbitBtn" title="Orbit visible profiles clockwise around uh_sar">◎ Orbit</button><button class="version-btn" id="gravityBtn" title="Experimental: connected profiles exert a subtle pull in Orbit mode">◌ Gravity</button><button class="version-btn" id="syncBtn" title="Review profile changes waiting to sync">↗ Sync<span id="syncCount"></span></button><button class="version-btn" id="versionLogBtn">History</button><button class="version-btn" id="talkEditBtn">Talk + Edit</button><button class="icon-btn" id="toggleRight" title="Hide/show profile panel">◧</button><button class="icon-btn" id="focusMode" title="Toggle full map">⛶</button><div class="zoom-controls"><button class="zoom-btn" id="zoomOut" title="Zoom out">−</button><button class="zoom-btn" id="zoomReset" title="Reset map">↺</button><button class="zoom-btn" id="zoomIn" title="Zoom in">+</button></div></div><svg id="map" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet"><g id="viewport"></g></svg>
+<main class="main"><canvas id="spaceFx" class="space-fx" aria-hidden="true"></canvas><div class="toolbar"><button class="icon-btn" id="toggleLeft" title="Hide/show navigation">☰</button><input id="search" class="search" placeholder="Search people, roles, hubs..." /><div class="pill" id="status">Relationship view</div><button class="zoom-btn" id="previousProfile" title="Nearest profile to the left (←)" aria-label="Previous profile">←</button><button class="zoom-btn" id="nextProfile" title="Nearest profile to the right (→)" aria-label="Next profile">→</button><button class="add-btn" id="addProfile">＋ Profile</button><button class="ai-toggle" id="aiToggle">Ask Network</button><button class="version-btn" id="orbitBtn" title="Orbit visible profiles clockwise around uh_sar">◎ Orbit</button><button class="version-btn" id="gravityBtn" title="Experimental: connected profiles exert a subtle pull in Orbit mode">◌ Gravity</button><button class="version-btn" id="syncBtn" title="Review profile changes waiting to sync">↗ Sync<span id="syncCount"></span></button><button class="version-btn" id="versionLogBtn">History</button><button class="version-btn" id="talkEditBtn">Talk + Edit</button><button class="icon-btn" id="toggleRight" title="Hide/show profile panel">◧</button><button class="icon-btn" id="focusMode" title="Toggle full map">⛶</button><div class="zoom-controls"><button class="zoom-btn" id="zoomOut" title="Zoom out">−</button><button class="zoom-btn" id="zoomReset" title="Reset map">↺</button><button class="zoom-btn" id="zoomIn" title="Zoom in">+</button></div></div><svg id="map" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet"><g id="viewport"></g></svg>
 <div class="ai-panel hidden" id="aiPanel">
   <div class="ai-head">
     <strong>Network Intelligence</strong>
@@ -1900,49 +1900,60 @@ document.getElementById("zoomReset").onclick=()=>{
   animateCamera();
 };
 
-// Keyboard navigation follows the map's current visible geometry, not profile
-// creation order, so the arrows feel spatial in each view and with every filter.
+// Navigate by the positions actually rendered on the map. If there is no
+// profile farther in that direction, wrap around so the key still works.
 function navigateNearestProfile(direction){
   const visible=nodes.filter(visibleNode);
-  if(!visible.length)return;
+  if(visible.length<2)return false;
 
   const current=visible.find(n=>n.id===selectedFocusId);
-  const anchor=current
-    ? ensureMotionState(current)
+  const anchor=current ? ensureMotionState(current)
     : selectedHubName && currentView==="hubs" && hubCenters[selectedHubName]
       ? {x:hubCenters[selectedHubName][0],y:hubCenters[selectedHubName][1]}
       : {x:camera.cx,y:camera.cy};
 
-  const candidates=visible.filter(n=>!current || n.id!==current.id).map(n=>{
+  const all=visible.filter(n=>!current || n.id!==current.id).map(n=>{
     const p=ensureMotionState(n);
-    const dx=(p.x-anchor.x)*direction;
-    const dy=Math.abs(p.y-anchor.y);
-    // Prefer a nearby neighbor that is largely in the requested direction.
-    return {n,p,dx,score:Math.hypot(dx,dy*1.35)};
-  }).filter(item=>item.dx>1);
-
-  if(!candidates.length)return;
-  candidates.sort((a,b)=>a.score-b.score || a.dx-b.dx || a.n.name.localeCompare(b.n.name));
+    return {n,p,dx:(p.x-anchor.x)*direction,dy:p.y-anchor.y};
+  });
+  let candidates=all.filter(x=>x.dx>1);
+  if(!candidates.length){
+    // At the outer edge of the map, resume from its other side.
+    const furthest=Math.max(...all.map(x=>x.dx));
+    candidates=all.filter(x=>x.dx>=furthest-.01);
+  }
+  if(!candidates.length)return false;
+  candidates.sort((a,b)=>{
+    const sa=Math.hypot(a.dx,a.dy*1.35),sb=Math.hypot(b.dx,b.dy*1.35);
+    return sa-sb || a.n.name.localeCompare(b.n.name);
+  });
   const next=candidates[0];
   showProfile(next.n);
-  // Navigate at 100% too: showProfile alone only locks the node at higher zoom.
+  document.getElementById("profile").scrollTop=0;
   cameraTarget.cx=next.p.x;
   cameraTarget.cy=next.p.y;
   animateCamera();
+  return true;
 }
 
-document.addEventListener("keydown",e=>{
-  if(e.key!=="ArrowLeft" && e.key!=="ArrowRight")return;
-  if(e.altKey||e.ctrlKey||e.metaKey||e.shiftKey||e.defaultPrevented)return;
-  const target=e.target;
-  if(target?.closest?.('input, textarea, select, [contenteditable="true"], [role="textbox"]'))return;
+// Capture at window level to handle focus on map controls and sidebar buttons.
+// Never hijack text editing, modifier combinations, or open modal dialogs.
+window.addEventListener("keydown",e=>{
+  const right=e.key==="ArrowRight"||e.code==="ArrowRight";
+  const left=e.key==="ArrowLeft"||e.code==="ArrowLeft";
+  if(!right&&!left)return;
+  if(e.altKey||e.ctrlKey||e.metaKey||e.shiftKey)return;
+  if(e.target?.closest?.('input, textarea, select, [contenteditable="true"], [role="textbox"]'))return;
   if(["profileModal","editProfileModal","versionModal"].some(id=>{
     const el=document.getElementById(id);
     return el && !el.classList.contains("hidden");
   }))return;
   e.preventDefault();
-  navigateNearestProfile(e.key==="ArrowRight"?1:-1);
-});
+  e.stopPropagation();
+  navigateNearestProfile(right?1:-1);
+},true);
+document.getElementById("previousProfile").onclick=()=>navigateNearestProfile(-1);
+document.getElementById("nextProfile").onclick=()=>navigateNearestProfile(1);
 
 function getNode(id){ return nodes.find(n=>n.id===id); }
 
