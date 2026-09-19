@@ -618,6 +618,21 @@
 .collab-form>button{background:#754d9b;border:1px solid #a580c5;color:#fff;padding:10px;font-size:12px;font-weight:700;border-radius:8px;cursor:pointer}
 #collabStatus{font-size:11px;margin:8px 0;color:#b9eacb}#collabStatus.collab-error{color:#ffc0c0}
 
+/* Untitled library project cards v60 */
+.untitled-library{border:1px solid #4d5265;background:#171c29;border-radius:12px;padding:12px;display:grid;gap:10px}
+.untitled-privacy,.untitled-muted{color:#a6b2c7;font-size:11px;line-height:1.45}
+.untitled-library>button,.untitled-actions button{background:#333d52;border:1px solid #697f9a;border-radius:8px;padding:8px;color:#edf4ff;font-size:11px;cursor:pointer}
+.untitled-project{border:1px solid #343c54;background:#22283a;border-radius:9px;padding:11px;display:grid;gap:6px}
+.untitled-project strong{font-size:13px;color:#f0f5ff}.untitled-project small{font-size:10px;color:#abbad3}
+.untitled-actions{display:flex;align-items:center;flex-wrap:wrap;gap:7px}
+.untitled-actions a{background:#273e57;color:#e7f2ff;border:1px solid #52789d;padding:8px;border-radius:8px;font-size:11px;text-decoration:none}
+.untitled-form{display:grid;gap:8px}.untitled-form[hidden]{display:none!important}
+.untitled-form label{font-size:11px;color:#c8d7ee;display:grid;gap:5px}
+.untitled-form input,.untitled-form textarea{background:#111827;border:1px solid #6a7890;border-radius:7px;color:#fff;padding:9px;font-size:11px;width:100%;min-width:0}
+.untitled-message{font-size:11px;color:#ffd2d2}
+.untitled-frame{width:100%;height:370px;max-height:58vh;border:0;border-radius:8px;background:#16161b}
+.untitled-player:empty{display:none}
+
 </style>
 </head>
 <body>
@@ -910,6 +925,7 @@
 <script src="./listener-tracking.js"></script>
 <script src="./event-radar.js?v=56"></script>
 <script src="./collaboration-files.js?v=59-3"></script>
+<script src="./untitled-projects.js?v=60"></script>
 <script>
 const nodes=[
 {id:"uh_sar",name:"uh_sar",role:"Producer / Artist / Director",type:"core",r:34,tags:["All","God's Contraband"],hub:"Center",bio:"Central creative node: producer, artist, arranger, multi-instrumentalist, and creative director. Co-founder and executive producer of God's Contraband."},
@@ -1803,6 +1819,7 @@ function showHubProfile(hubName){
         ${!hubPartifulEvents.length&&hubPartiful?.kind!=="profile"?`<div class="integration-output">No Partiful links yet. Edit the collective's full profile to add one.</div>`:""}
       </div>`:""}
 
+    ${collective&&typeof window.NetworkUntitled?.section==="function"?window.NetworkUntitled.section(collective):""}
     <div class="section-title">People in this hub</div>
     <div style="display:flex;gap:7px;flex-wrap:wrap">${memberButtons}</div>
 
@@ -1826,6 +1843,7 @@ function showHubProfile(hubName){
       if(target)showProfile(target);
     };
   });
+  if(collective&&typeof window.NetworkUntitled?.bindProfile==="function")window.NetworkUntitled.bindProfile(collective);
   const openCollective=document.getElementById("openCollectiveProfile");
   if(openCollective)openCollective.onclick=()=>showProfile(collective);
   const editCollective=document.getElementById("editCollectiveProfile");
@@ -2385,17 +2403,7 @@ function showProfile(n){
     ${category!=="venue"&&typeof window.NetworkEvents?.section==="function" ? window.NetworkEvents.section(n) : ""}
     <div class="section-title">Notifications</div>
     <div id="profileNotifications"></div>
-    ${hasUntitledSection?`
-      <div class="section-title">Untitled</div>
-      <div class="card">
-        <div class="k">Artist / project listening link</div>
-        <div class="notification-add">
-          <input id="untitledLinkInput" aria-label="Untitled listening link" value="${escapeAttr(links.Untitled||"")}" placeholder="https://untitled.stream/...">
-          <button id="saveUntitledLink" aria-label="Save Untitled link">Save</button>
-        </div>
-        <div class="small" id="untitledFeedback" style="margin-top:8px">Paste the artist's Untitled link and save it to this profile.</div>
-        ${untitledURL?`<div class="links"><a href="${escapeAttr(untitledURL)}" target="_blank" rel="noopener noreferrer">Open Untitled ↗</a></div>`:""}
-      </div>`:""}
+    ${hasUntitledSection&&typeof window.NetworkUntitled?.section==="function"?window.NetworkUntitled.section(n):""}
     <div class="section-title">Public Links</div>
     <div class="links">${linksHtml}</div>
     <div class="profile-actions"><button class="save" id="editProfileBtn">Edit profile</button></div>
@@ -2407,6 +2415,7 @@ function showProfile(n){
 
   document.getElementById("editProfileBtn").onclick=()=>openEditProfile(n);
   if(typeof window.NetworkCollab?.bindProfile==="function")window.NetworkCollab.bindProfile(n);
+  if(typeof window.NetworkUntitled?.bindProfile==="function")window.NetworkUntitled.bindProfile(n);
   const venueEdit=document.getElementById("venueEditBooking");
   if(venueEdit)venueEdit.onclick=()=>{
     openEditProfile(n);
@@ -4519,6 +4528,13 @@ if(window.NetworkCollab){
   if(importResult?.personId){
     const importedPerson=nodes.find(n=>n.id===importResult.personId);
     if(importedPerson)showProfile(importedPerson);
+  }
+}
+if(window.NetworkUntitled){
+  const profileId=window.NetworkUntitled.importFromHash();
+  if(profileId){
+    const person=nodes.find(n=>n.id===profileId);
+    if(person)showProfile(person);
   }
 }
 if(window.NetworkSpotify)window.NetworkSpotify.boot().then(function(){
