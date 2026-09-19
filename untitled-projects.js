@@ -40,7 +40,7 @@ function card(p){
  return '<article class="untitled-project" data-project-id="'+esc(p.id)+'"><strong>'+esc(p.title)+'</strong>'+
  (p.projectId?'<small>'+esc(p.projectId)+'</small>':"")+
  '<div class="untitled-actions"><a href="'+esc(p.url)+'" target="_blank" rel="noopener noreferrer">Open in Untitled ↗</a>'+
- (p.embed?'<button type="button" data-play="'+esc(p.id)+'">▶ Play in Network HQ</button>':
+ (p.embed?'<button type="button" data-play="'+esc(p.id)+'">▶ Open player in Network HQ</button>':
  '<span class="untitled-muted">Embed code needed for in-app playback</span>')+
  (p.legacy?"":'<button type="button" data-edit="'+esc(p.id)+'">Edit</button>')+
  '</div><div class="untitled-player" data-player="'+esc(p.id)+'"></div></article>';
@@ -51,7 +51,7 @@ function section(n){
  const items=[...saved,...(legacy&&!saved.some(r=>r.url===legacy)?[{id:"legacy",title:"Existing Untitled link",url:legacy,embed:"",legacy:true}]:[])];
  return '<div class="section-title">Untitled · Project Library</div>'+
  '<section class="untitled-library" data-person-id="'+esc(n.id)+'">'+
- '<p class="untitled-muted">Your private library links stay in this browser; a share/embed player is separate.</p>'+
+ '<p class="untitled-muted">Your private library links stay in this browser; a share/embed player is separate. Untitled does not report pause/play to Network HQ, so record movement indicates its player is open until you close it.</p>'+
  (items.length?items.map(card).join(""):'<p class="untitled-muted">No Untitled project saved yet.</p>')+
  '<button type="button" data-new>＋ Add Untitled project</button>'+
  '<div class="untitled-form" hidden>'+
@@ -89,12 +89,24 @@ function bindProfile(n){
   const p=forProfile(n.id).find(x=>x.id===btn.dataset.play);
   const spot=box.querySelector('[data-player="'+btn.dataset.play+'"]');
   if(!p?.embed||!spot)return;
+  const source="untitled:"+n.id;
+  if(spot.querySelector("iframe")){
+   spot.replaceChildren();
+   btn.textContent="▶ Open player in Network HQ";
+   window.NetworkPlayback?.clear(source);
+   return;
+  }
+  box.querySelectorAll("[data-player]").forEach(other=>other.replaceChildren());
+  box.querySelectorAll("[data-play]").forEach(button=>button.textContent="▶ Open player in Network HQ");
   const frame=document.createElement("iframe");
   frame.src=p.embed;frame.title="Untitled player · "+p.title;
   frame.loading="lazy";frame.allow="autoplay; encrypted-media; clipboard-write; picture-in-picture";
   frame.allowFullscreen=true;
   frame.referrerPolicy="no-referrer";frame.className="untitled-frame";
-  spot.replaceChildren(frame);btn.textContent="Player loaded";
+  spot.replaceChildren(frame);btn.textContent="× Close player";
+  // This source represents the open Untitled player, not verified playback:
+  // cross-origin Untitled embeds expose no supported pause/play event.
+  window.NetworkPlayback?.set(source,[n.id],true);
  });
 }
 function importFromHash(){
