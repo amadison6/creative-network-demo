@@ -465,6 +465,20 @@
 .mix-on-map{font-style:normal;font-weight:700;color:#80e0a5}
 @media(max-width:480px){.mix-song-search{flex-wrap:wrap}.mix-song-search button{width:100%}}
 
+/* v51 — Partiful people / organization identity plus user-supplied event links */
+.partiful-card{background:#1a1725;border:1px solid #4a3d64;border-radius:13px;padding:13px;margin:10px 0}
+.partiful-card .integration-heading strong{color:#e7d8ff}
+.partiful-pill{color:#cfb9f6;background:#332944;border:1px solid #57446e;font-size:10px;border-radius:30px;padding:3px 8px}
+.partiful-card input,.partiful-card textarea{width:100%;min-width:0;color:#f8f3ff;background:#11101c;border:1px solid #514365;padding:9px 10px;font-size:12px;border-radius:9px;outline:none}
+.partiful-card textarea{resize:vertical;line-height:1.5;min-height:64px;margin-top:9px}
+.partiful-card input:focus,.partiful-card textarea:focus{border-color:#a28ace}
+.partiful-card button{background:#785bb4;color:#fff;border:1px solid #9476c5;border-radius:9px;padding:8px 12px;font-size:12px;cursor:pointer}
+.partiful-links{display:flex;flex-wrap:wrap;gap:7px;margin:9px 0}
+.partiful-links a{font-size:12px;padding:8px 10px;border-radius:9px;background:#30263e;border:1px solid #55416b;color:#e2caff;text-decoration:none}
+.partiful-subtitle{display:flex;justify-content:space-between;gap:10px;margin-top:13px;font-weight:750;color:#eee5fa;font-size:12px}
+.partiful-subtitle span{color:#b6a4ce}
+#partifulStatus.error{color:#f1a3a3}
+
 </style>
 </head>
 <body>
@@ -2873,6 +2887,16 @@ document.getElementById("saveProfile").onclick=()=>{
 
 const APP_RELEASES=[
   {
+    version:"v51",file:null,date:"2026-09-18",title:"Partiful profiles and event links",
+    notes:[
+      "Added Partiful personal and organization profiles to existing Network HQ people, collectives, promoters, venues and studios",
+      "Separated Partiful /u/ identity links from /e/ invitations and events",
+      "Added Partiful profile and event fields to Add Profile, Edit Profile and the inspector with browser-local persistence",
+      "Migrated ICE9's existing Partiful event invitation into their Events list without labeling it a person profile",
+      "Kept Partiful guest lists, private RSVP data and mutuals outside this public browser-only prototype"
+    ]
+  },
+  {
     version:"v50",file:null,date:"2026-09-18",title:"Swap ZekeUltra and ICE9 Spotify profiles",
     notes:[
       "Set ZekeUltra's Spotify profile to 66rjQYZAzWZ9n933ytcoTg and ICE9's profile to 1suXRSUWQuSpeC5HyTtCC9, following Ausar's correction",
@@ -3354,6 +3378,26 @@ nodes.forEach(n=>{
   if(photo&&!n.photo)n.photo=photo;
 });
 migrateSpotifyProfileSwapV50();
+
+// One-time migration: the ICE9 link originally stored as "Partiful" was an
+// event invitation (/e/), not a personal Partiful profile (/u/).
+// Move legacy event links to the event list without inventing a profile link.
+function migratePartifulEventsV51(){
+  let changed=false;
+  nodes.forEach(n=>{
+    const legacy=parsePartifulLink(n.links?.Partiful);
+    if(legacy?.kind!=="event")return;
+    n.links=Object.assign({},n.links);
+    delete n.links.Partiful;
+    const previous=Array.isArray(n.partifulEvents)?n.partifulEvents:[];
+    n.partifulEvents=[...new Set([...previous,legacy.url])];
+    persistCustomProfileIfNeeded(n);
+    changed=true;
+  });
+  if(changed)persistEditedProfiles();
+  return changed;
+}
+migratePartifulEventsV51();
 
 function executeNetworkEdit(raw){
   const q=raw.trim();
