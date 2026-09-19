@@ -81,9 +81,10 @@ function htmlList(n,mode="all"){
      "No demos linked to this profile yet. Drop an MP3, WAV or M4A below to start a private playlist.")+'</p>';
 }
 function eligibleDemoArtist(p){
- if(!p||p.id==="uh_sar"||p.profileType==="studio"||p.profileType==="venue"||p.profileType==="filmmaker")return false;
+ if(!p||p.id==="uh_sar"||["studio","venue","filmmaker","manager","promoter","industry"].includes(p.profileType))return false;
  if(p.profileType==="collective")return true;
  const hay=[p.role,p.genres,p.instruments,...(p.tags||[])].filter(Boolean).join(" ");
+ if(/\bmanager\b|management|director|filmmaker/i.test(p.role||"")&&!/musician|singer|producer|rapper|songwriter/i.test(p.role||""))return false;
  return /artist|rap|sing|songwrit|produc|music|vocal|guitar|bass|key|drum|horn|instrument|God's Contraband/i.test(hay);
 }
 function demoPartners(){
