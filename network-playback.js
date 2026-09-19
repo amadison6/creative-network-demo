@@ -59,6 +59,7 @@ function mountSpotify(entry){
  if(!["artist","track","album","playlist","show","episode"].includes(spotify.kind))return;
  const mount=document.createElement("div");
  mount.className="spotify-embed-mount";
+ frame.replaceWith(mount);
  try{
   spotifyApi.createController(mount,{
    uri:"spotify:"+spotify.kind+":"+spotify.id,
@@ -72,7 +73,6 @@ function mountSpotify(entry){
     set(source,[profileId],!d.isPaused&&!d.isBuffering);
    });
   });
-  frame.replaceWith(mount);
  }catch(error){console.warn("Spotify iframe controller failed:",error);mount.replaceWith(frame)}
 }
 function bindSpotify(n,spotify){
