@@ -1326,6 +1326,90 @@ function normalizeUntitledLink(value){
   }catch(_){return ""}
 }
 
+// Public embeds intentionally require no Spotify credentials or client-side secrets.
+function parseSpotifyLink(value){
+  const raw=String(value||"").trim();
+  if(!raw)return null;
+  let kind,id;
+  const uri=/^spotify:(artist|album|track|playlist|show|episode):([a-zA-Z0-9]{22})$/i.exec(raw);
+  if(uri){kind=uri[1].toLowerCase();id=uri[2]}
+  else {
+    try{
+      const u=new URL(raw);
+      if(u.protocol!=="https:" || !["open.spotify.com","play.spotify.com"].includes(u.hostname.toLowerCase()))return null;
+      const match=/^\/(artist|album|track|playlist|show|episode)\/([a-zA-Z0-9]{22})\/?$/i.exec(u.pathname);
+      if(!match)return null;
+      kind=match[1].toLowerCase();id=match[2];
+    }catch(_){return null}
+  }
+  return {kind,id,url:"https://open.spotify.com/"+kind+"/"+id,
+    embedUrl:"https://open.spotify.com/embed/"+kind+"/"+id+"?utm_source=generator"};
+}
+function parseInstagramProfile(value){
+  const raw=String(value||"").trim();
+  if(!raw)return null;
+  let handle=raw.startsWith("@")?raw.slice(1):raw;
+  if(handle.includes("/")||handle.includes(":")){
+    try{
+      const normalized=/^instagram\.com\//i.test(handle)?"https://"+handle:handle;
+      const u=new URL(normalized);
+      if(u.protocol!=="https:" || !["instagram.com","www.instagram.com"].includes(u.hostname.toLowerCase()))return null;
+      const match=/^\/([a-zA-Z0-9._]{1,30})\/?$/.exec(u.pathname);
+      if(!match)return null;
+      handle=match[1];
+    }catch(_){return null}
+  }
+  if(!/^[a-zA-Z0-9._]{1,30}$/.test(handle) || handle.endsWith(".") || handle.includes(".."))return null;
+  return {handle,url:"https://www.instagram.com/"+handle+"/"};
+}
+function commitSocialLink(n,platform,value){
+  const raw=String(value||"").trim();
+  const parsed=raw ? (platform==="Spotify"?parseSpotifyLink(raw):parseInstagramProfile(raw)) : null;
+  if(raw&&!parsed)return false;
+  const before=n.links?.[platform]||"";
+  const after=parsed?.url||"";
+  n.links=Object.assign({},n.links||{});
+  if(after)n.links[platform]=after;else delete n.links[platform];
+  if(before!==after){
+    persistEditedProfiles();
+    persistCustomProfileIfNeeded(n);
+    queueNetworkChange({type:"profile_update",profileId:n.id,profileName:n.name,
+      changes:{links:{from:{[platform]:before||null},to:{[platform]:after||null}}}});
+  }
+  showProfile(n);
+  const status=document.getElementById(platform==="Spotify"?"spotifyLinkStatus":"instagramLinkStatus");
+  if(status)status.textContent=after?platform+" link saved in this browser.":platform+" link removed.";
+  return true;
+}
+async function populateSpotifyMetadata(profileId,spotify){
+  const container=document.getElementById("spotifyMetadata");
+  if(!container||!spotify)return;
+  try{
+    const r=await fetch("https://open.spotify.com/oembed?url="+encodeURIComponent(spotify.url));
+    if(!r.ok) return;
+    const data=await r.json();
+    if(selected?.id!==profileId)return;
+    const active=document.getElementById("spotifyMetadata");
+    if(!active || active.dataset.spotifyId!==spotify.id)return;
+    active.replaceChildren();
+    if(data.thumbnail_url){
+      const imageUrl=new URL(data.thumbnail_url);
+      if(imageUrl.protocol==="https:" && ["i.scdn.co","mosaic.scdn.co"].includes(imageUrl.hostname)){
+        const img=document.createElement("img");
+        img.src=imageUrl.href;img.alt="Spotify artwork";img.loading="lazy";
+        active.appendChild(img);
+      }
+    }
+    if(data.title){
+      const title=document.createElement("span");
+      title.textContent=data.title;
+      active.appendChild(title);
+    }
+  }catch(_){
+    // The iframe still works if Spotify blocks browser-side oEmbed requests.
+  }
+}
+
 function showProfile(n){
   selected=n;
   selectedFocusId=n.id;
