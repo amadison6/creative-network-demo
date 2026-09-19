@@ -1423,13 +1423,16 @@ function showProfile(n){
   const saved=JSON.parse(localStorage.getItem("creativeNetworkNotes")||"{}");
   const note=saved[n.id]||"";
   const links=n.links||{};
+  const isArtist=n.profileType==="musician"||isMusicProfile(n)||isCollectiveEntity(n)||!!links.Spotify;
+  const spotify=parseSpotifyLink(links.Spotify);
+  const instagram=parseInstagramProfile(links.Instagram);
   const hasUntitledSection=n.profileType==="musician"||isMusicProfile(n)||isCollectiveEntity(n);
   const untitledURL=normalizeUntitledLink(links.Untitled||"");
   const chips=[...new Set([n.hub,...(n.tags||[]).filter(t=>t!=="All")])]
     .map(x=>`<span class="chip">${x}</span>`).join("");
 
-  const linksHtml=Object.entries(links).filter(([k])=>!(hasUntitledSection&&k==="Untitled"))
-    .map(([k,v])=>`<a href="${v}" target="_blank" rel="noopener">${k} ↗</a>`).join("")
+  const linksHtml=Object.entries(links).filter(([k])=>!["Spotify","Instagram"].includes(k)&&!(hasUntitledSection&&k==="Untitled"))
+    .map(([k,v])=>`<a href="${escapeAttr(v)}" target="_blank" rel="noopener noreferrer">${escapeAttr(k)} ↗</a>`).join("")
     || `<div class="empty">No public links saved yet.</div>`;
 
   const photoBlock=n.photo
@@ -1530,6 +1533,37 @@ function showProfile(n){
       <div class="card"><div class="k">Hub</div><div class="v">${n.hub}</div></div>
           </div>
     ${specialized}
+    ${isArtist?`
+    <div class="section-title">Spotify · Listen</div>
+    <div class="integration-card">
+      <div class="integration-heading"><strong>Spotify</strong><span class="integration-status">${spotify?"Player ready":"Add an artist link"}</span></div>
+      <div class="integration-input">
+        <input id="spotifyLinkInput" value="${escapeAttr(links.Spotify||"")}" aria-label="Spotify artist, album or track link" placeholder="https://open.spotify.com/artist/…">
+        <button id="saveSpotifyLink" type="button">Save</button>
+      </div>
+      <div id="spotifyLinkStatus" class="integration-output">Paste a Spotify artist, album, track, or playlist URL. No Spotify sign-in is needed to show its player.</div>
+      ${spotify?`
+        <div id="spotifyMetadata" class="spotify-metadata" data-spotify-id="${spotify.id}"></div>
+        <iframe class="spotify-embed" title="Spotify player for ${escapeAttr(n.name)}" src="${escapeAttr(spotify.embedUrl)}" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+        <div class="integration-actions"><a href="${escapeAttr(spotify.url)}" target="_blank" rel="noopener noreferrer">Open on Spotify ↗</a></div>
+      `:""}
+    </div>`:""}
+    <div class="section-title">Instagram · Connect</div>
+    <div class="integration-card">
+      <div class="integration-heading"><strong>Instagram</strong><span class="integration-status">${instagram?"Profile linked":"No profile linked"}</span></div>
+      ${instagram?`
+        <div class="instagram-identity">
+          ${n.photo?`<img class="instagram-avatar" src="${escapeAttr(n.photo)}" alt="${escapeAttr(n.name)} profile picture" loading="lazy" referrerpolicy="no-referrer">`:`<span class="instagram-initial">${escapeAttr(n.name.slice(0,1).toUpperCase())}</span>`}
+          <div><div class="instagram-handle">@${escapeAttr(instagram.handle)}</div><div class="instagram-caption">Linked to this Network HQ profile</div></div>
+        </div>
+        <div class="integration-actions"><a href="${escapeAttr(instagram.url)}" target="_blank" rel="noopener noreferrer">Open Instagram ↗</a></div>
+      `:""}
+      <div class="integration-input">
+        <input id="instagramLinkInput" value="${escapeAttr(links.Instagram||"")}" aria-label="Instagram handle or profile link" placeholder="@artist or https://instagram.com/artist/">
+        <button id="saveInstagramLink" type="button">Save</button>
+      </div>
+      <div id="instagramLinkStatus" class="integration-output">Link by verified handle or profile URL. Upload their image in Edit profile—Instagram profile photos aren't scraped from usernames.</div>
+    </div>
     <div class="section-title">Notifications</div>
     <div id="profileNotifications"></div>
     ${hasUntitledSection?`
@@ -1553,6 +1587,28 @@ function showProfile(n){
   `;
 
   document.getElementById("editProfileBtn").onclick=()=>openEditProfile(n);
+  for(const [platform,inputId,buttonId,statusId] of [
+    ["Spotify","spotifyLinkInput","saveSpotifyLink","spotifyLinkStatus"],
+    ["Instagram","instagramLinkInput","saveInstagramLink","instagramLinkStatus"]
+  ]){
+    const btn=document.getElementById(buttonId),input=document.getElementById(inputId);
+    if(!btn||!input)continue;
+    const save=()=>{
+      if(!commitSocialLink(n,platform,input.value)){
+        const status=document.getElementById(statusId);
+        if(status){
+          status.textContent=platform==="Spotify"?
+            "Use a full open.spotify.com artist, album, track, show or playlist link.":
+            "Use a valid Instagram profile link or @handle (not a post URL).";
+          status.classList.add("error");
+        }
+        input.focus();
+      }
+    };
+    btn.onclick=save;
+    input.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();save()}});
+  }
+  if(spotify)populateSpotifyMetadata(n.id,spotify);
   const saveUntitled=document.getElementById("saveUntitledLink");
   if(saveUntitled)saveUntitled.onclick=()=>{
     const input=document.getElementById("untitledLinkInput");
