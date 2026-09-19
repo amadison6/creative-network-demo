@@ -1808,7 +1808,167 @@ async function populateSpotifyMetadata(profileId,spotify){
   }
 }
 
+
+// Venue profiles are operational records, not artist identities. Keep the
+// contact/photo/notes utilities but never render music publishing or splits.
+function showVenueProfile(n){
+  selected=n;
+  selectedFocusId=n.id;
+  selectedHubName=null;
+  document.querySelector(".app").classList.remove("right-hidden");
+  render();
+  const safe=escapeAttr;
+  const address=String(n.location||"").trim();
+  const directions="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(address||n.name);
+  const members=venueMembersFor(n);
+  const eventApi=window.NetworkEvents;
+  const events=typeof eventApi?.forProfile==="function"?eventApi.forProfile(n.id):[];
+  const stats=[
+    ["Capacity",n.capacity||"Not confirmed"],
+    ["Rental / show rate",n.rates||"Quote not recorded"],
+    ["Connected people",String(members.length)],
+    ["Recorded events",String(events.length)]
+  ];
+  const email=String(n.bookingContact||"").match(/[\w.+-]+@[\w.-]+\.[a-zA-Z]{2,}/)?.[0]||"";
+  const publicLinks=Object.entries(n.links||{}).filter(([type,url])=>
+    !["Spotify","Untitled","Partiful"].includes(type)&&/^https?:\/\//i.test(String(url||"")));
+  const partiful=parsePartifulLink(n.links?.Partiful);
+  const socialLinks=[
+    ...publicLinks,
+    ...(partiful?.kind==="profile"?[["Partiful organizer",partiful.url]]:[])
+  ];
+  const dateWarning=n.id==="venue_slide_thru"?
+    "About 200 is a personal estimate, not verified permitted occupancy. Ask Asean for a dated rental quote.":"Confirm occupancy and quote before reserving.";
+  const slideRoles={
+    sean_slide_thru:"Founder / venue contact · warm path via Addae",
+    addae:"Warm introduction to Asean Townsend",
+    baws:"Knows Asean; helped organize a Mempho show",
+    mempho:"Multiple shows performed here",
+    sockjus:"Performed with band; documented U SLID? listing",
+    punchingbag:"Previously performed here",
+    isis:"ICE9 performed here"
+  };
+  const noteStore=JSON.parse(localStorage.getItem("creativeNetworkNotes")||"{}");
+  const note=noteStore[n.id]||"";
+  const img=n.photo?
+    `<img class="venue-hero-photo" src="${safe(n.photo)}" alt="${safe(n.name)}" loading="lazy" referrerpolicy="no-referrer">`:
+    '<div class="venue-hero-empty">VENUE / LIVE SPACE</div>';
+  const card=(label,value)=>
+    `<div class="card"><div class="k">${safe(label)}</div><div class="v">${safe(value||"Not recorded")}</div></div>`;
+  const quickLinks=[
+    ...(address?[`<a href="${safe(directions)}" target="_blank" rel="noopener noreferrer">Directions ↗</a>`]:[]),
+    ...(email?[`<a href="mailto:${safe(email)}?subject=${encodeURIComponent("Booking inquiry · "+n.name)}">Email booking ↗</a>`]:[]),
+    ...(n.links?.Booking&&/^https?:\/\//i.test(n.links.Booking)?
+      [`<a href="${safe(n.links.Booking)}" target="_blank" rel="noopener noreferrer">Booking form ↗</a>`]:[])
+  ].join("");
+  document.getElementById("profile").innerHTML=`
+    <div class="venue-profile" data-venue-id="${safe(n.id)}">
+      <div class="venue-hero">${img}
+        <div class="venue-kind">LIVE VENUE · ${safe(n.hub||"Location not recorded")}</div>
+        <h2>${safe(n.name)}</h2>
+        <div class="venue-address">${safe(address||"Address not recorded")}</div>
+        <div class="venue-action-row">${quickLinks}
+          <button type="button" id="venueEditBooking">Edit venue details</button>
+          <button type="button" id="venueEventsAdd">＋ Add a show</button>
+        </div>
+      </div>
+      <div class="venue-stat-grid">
+        ${stats.map(([label,value])=>`<div><span>${safe(label)}</span><strong>${safe(value)}</strong></div>`).join("")}
+      </div>
+      <div class="venue-identity-note">${safe(dateWarning)}</div>
+      <div class="section-title">About this space</div>
+      ${card("Venue / programming",n.role)}
+      ${card("Description",n.bio)}
+      <div class="section-title">Booking & costs</div>
+      ${card("Current rates / dated quotes",n.rates||"No rate quoted yet")}
+      <div class="profile-grid">
+        ${card("Capacity",n.capacity)}
+        ${card("Production / rental fee",n.productionFee||"Not quoted")}
+        ${card("Last quoted guarantee",n.lastQuotedGuarantee||"Not quoted")}
+        ${card("Deal / ticket arrangement",n.dealStructure||"Not quoted")}
+        ${card("Door split",n.doorSplit||"Not quoted")}
+      </div>
+      ${card("Booking contact",n.bookingContact)}
+      ${card("Talent buyer / promoter",n.talentBuyer)}
+      ${card("Warm booking introduction",n.warmConnection)}
+      <div class="section-title">Room & production</div>
+      ${card("Equipment / resources",n.resources)}
+      ${card("Backline / PA",n.backline)}
+      ${card("Audience / programming fit",n.audienceFit||n.genres)}
+      <div class="section-title">Connected people · ${members.length}</div>
+      ${members.length?
+        `<div class="venue-network-list">${members.map(p=>`
+          <button type="button" class="venue-network-link" data-connected-id="${safe(p.id)}">
+            <strong>${safe(p.name)}</strong>
+            <span>${safe(n.id==="venue_slide_thru"?(slideRoles[p.id]||"Venue connection"):"Connected to this venue")}</span>
+          </button>`).join("")}</div>`:
+        '<div class="empty">No people connected yet.</div>'}
+      ${typeof eventApi?.section==="function"?eventApi.section(n):
+        '<div class="section-title">Events & show history</div><div class="empty">Event Radar is not available right now.</div>'}
+      <div class="section-title">Show opportunities & background</div>
+      ${card("Potential show / next steps",n.potentialShowNotes)}
+      ${card("Past shows & production history",n.history)}
+      <div class="section-title">Venue links</div>
+      ${socialLinks.length?`<div class="links">${socialLinks.map(([type,url])=>
+        `<a href="${safe(url)}" target="_blank" rel="noopener noreferrer">${safe(type)} ↗</a>`).join("")}</div>`:
+        '<div class="empty">No venue links added yet.</div>'}
+      <div class="section-title">Follow-ups & tasks</div>
+      <div id="venueNotifications"></div>
+      <div class="section-title">Private venue notes</div>
+      <textarea id="venueNotes" placeholder="Booking conversations, dates quoted, people to contact…">${safe(note)}</textarea>
+      <button type="button" class="save" id="saveVenueNotes">Save venue note locally</button>
+      <div class="small" style="margin-top:8px">Changes are stored in this browser until the network backend is connected.</div>
+    </div>`;
+  const edit=document.getElementById("venueEditBooking");
+  if(edit)edit.onclick=()=>openEditProfile(n);
+  const addEvent=document.getElementById("venueEventsAdd");
+  if(addEvent)addEvent.onclick=()=>window.NetworkEvents?.open?.(n.id);
+  document.querySelectorAll("#profile .venue-network-link").forEach(btn=>{
+    btn.onclick=()=>{
+      const p=nodes.find(x=>x.id===btn.dataset.connectedId);
+      if(p)showProfile(p);
+    };
+  });
+  if(typeof eventApi?.bindProfile==="function")eventApi.bindProfile(n);
+  const renderVenueNotifications=()=>{
+    const box=document.getElementById("venueNotifications");if(!box)return;
+    const items=profileNotifications(n.id);
+    box.innerHTML=`${items.map(item=>`
+      <div class="notification-item">
+        <div><div class="notification-copy">${safe(item.text)}</div>
+        <div class="notification-time">${safe(item.createdAt?new Date(item.createdAt).toLocaleString():"")}</div></div>
+        <button type="button" class="notification-dismiss" data-notification-id="${safe(item.id)}">Done</button>
+      </div>`).join("")||'<div class="notification-empty">No open venue follow-ups.</div>'}
+      <div class="notification-add">
+        <input id="newVenueNotification" placeholder="Ask for rates, confirm capacity, follow up…">
+        <button type="button" id="addVenueNotification">Add</button>
+      </div>`;
+    box.querySelectorAll(".notification-dismiss").forEach(btn=>{
+      btn.onclick=()=>{
+        dismissProfileNotification(n.id,btn.dataset.notificationId);
+        render();renderVenueNotifications();
+      };
+    });
+    const add=()=>{
+      const input=document.getElementById("newVenueNotification"),value=input?.value.trim();
+      if(!value)return;
+      addProfileNotification(n.id,value,"manual");
+      render();renderVenueNotifications();
+    };
+    document.getElementById("addVenueNotification").onclick=add;
+    document.getElementById("newVenueNotification").onkeydown=e=>{if(e.key==="Enter")add()};
+  };
+  renderVenueNotifications();
+  document.getElementById("saveVenueNotes").onclick=()=>{
+    const all=JSON.parse(localStorage.getItem("creativeNetworkNotes")||"{}");
+    all[n.id]=document.getElementById("venueNotes").value;
+    localStorage.setItem("creativeNetworkNotes",JSON.stringify(all));
+    document.getElementById("saveVenueNotes").textContent="Saved";
+  };
+}
+
 function showProfile(n){
+  if(n.profileType==="venue")return showVenueProfile(n);
   selected=n;
   selectedFocusId=n.id;
   selectedHubName=null;
