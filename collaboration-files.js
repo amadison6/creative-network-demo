@@ -299,7 +299,7 @@ async function saveUploadedImages(){
  if(!project){report.textContent="Select or name the project these images belong to.";return}
  const goodExt=/\.(?:jpe?g|png|webp|gif|avif|heic|heif)$/i;
  for(const file of selectedImages){
-  if(!file.type.startsWith("image/")&&!goodExt.test(file.name)){
+  if((file.type&&!["image/jpeg","image/png","image/webp","image/gif","image/avif","image/heic","image/heif"].includes(file.type.toLowerCase()))||(!file.type&&!goodExt.test(file.name))){
    report.textContent=file.name+": only image files are supported.";return;
   }
   if(file.size>IMAGE_LIMIT){
