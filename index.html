@@ -3544,6 +3544,49 @@ function migratePartifulEventsV51(){
 }
 migratePartifulEventsV51();
 
+// Existing v53 users have browser-local overrides with the provisional Sean
+// identity. Resolve that single canonical profile without creating duplicates
+// or overwriting unrelated edits.
+function migrateAseanTownsendV54(){
+  const key="creativeNetworkAseanTownsendV54";
+  if(localStorage.getItem(key)==="done")return false;
+  let changed=false;
+  const n=nodes.find(p=>p.id==="sean_slide_thru");
+  if(n){
+    if(n.name==="Sean (Slide Thru)"||n.name==="Sean"){
+      n.name="Asean Townsend (Sean)";changed=true;
+    }
+    if(n.role==="Venue contact / reported founder · surname unconfirmed"){
+      n.role="Slide Thru founder / venue contact";changed=true;
+    }
+    if((n.bio||"").includes("Asean may be the Sean Ausar knows")){
+      n.bio="Ausar confirmed Sean at Slide Thru is Asean Townsend, named in a January 2026 VoyageLA interview about the venue with Hiba El-Kabli. Addae has built a warm relationship with him; Baw$ also knows him and helped put on a Mempho show. Slide Thru founder and venue contact; personal phone/email and specific booking terms are not yet known. Venue site also calls the owners Quick & Veli; those nicknames have not been assigned to either person.";
+      changed=true;
+    }
+    persistCustomProfileIfNeeded(n);
+  }
+  const venue=nodes.find(p=>p.id==="venue_slide_thru");
+  if(venue){
+    if((venue.bookingContact||"").includes("Sean (surname/contact details TBD)")){
+      venue.bookingContact="slidethruthevenue@gmail.com · Asean Townsend (Sean; warm introduction via Addae)";changed=true;
+    }
+    if((venue.talentBuyer||"").includes("Not confirmed; Sean is a warm venue contact")){
+      venue.talentBuyer="Asean Townsend (Sean), founder / venue contact; person responsible for booking individual dates not confirmed";changed=true;
+    }
+    if((venue.bio||"").includes("verify Sean's surname and role rather than assuming identity")){
+      venue.bio=venue.bio.replace("Warm introductions through Addae and Baw$; verify Sean's surname and role rather than assuming identity.","Warm introductions via Addae and Baw$ to Asean Townsend (Sean), whose identity Ausar confirmed.");changed=true;
+    }
+    if((venue.history||"").includes("Sean's exact founder/ownership relationship is unverified.")){
+      venue.history=venue.history.replace("Sean's exact founder/ownership relationship is unverified.","Ausar confirms Sean is Asean Townsend, also named in a VoyageLA interview about the venue; do not assume a particular nickname maps to him.");changed=true;
+    }
+    persistCustomProfileIfNeeded(venue);
+  }
+  if(changed)persistEditedProfiles();
+  localStorage.setItem(key,"done");
+  return changed;
+}
+migrateAseanTownsendV54();
+
 function executeNetworkEdit(raw){
   const q=raw.trim();
   const low=q.toLowerCase();
