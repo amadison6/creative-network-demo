@@ -1,4 +1,4 @@
-/* Network HQ Demo Library v62 — original audio remains in the user's browser IndexedDB.
+/* Network HQ Demo Library v63 — original audio remains in the user's browser IndexedDB.
  * One record/Blob per track, linked to canonical collaborator IDs. No network uploads.
  */
 (function(){
@@ -11,7 +11,15 @@ const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
 const fmtSize=n=>n>1048576?(n/1048576).toFixed(1)+" MB":Math.max(1,Math.round(n/1024))+" KB";
 const ext=file=>String(file?.name||"").split(".").pop().toLowerCase();
-const audioFile=file=>!!file&&["mp3","wav","wave"].includes(ext(file))&&file.size>0&&file.size<=MAX_FILE;
+const SUPPORTED_EXTENSIONS=["mp3","wav","wave","m4a"];
+const audioType=file=>ext(file)==="mp3"?"audio/mpeg":ext(file)==="m4a"?"audio/mp4":"audio/wav";
+const audioFile=file=>!!file&&SUPPORTED_EXTENSIONS.includes(ext(file))&&file.size>0&&file.size<=MAX_FILE;
+const fileError=file=>{
+ if(!file||!SUPPORTED_EXTENSIONS.includes(ext(file)))return "Unsupported format. Choose MP3, WAV or M4A.";
+ if(file.size<=0)return "This file is empty.";
+ if(file.size>MAX_FILE)return "This file is "+fmtSize(file.size)+"; the browser-local limit is 250 MB per demo.";
+ return "";
+};
 const clock=seconds=>Number.isFinite(seconds)?Math.floor(seconds/60)+":"+String(Math.floor(seconds%60)).padStart(2,"0"):"0:00";
 function openDB(){
  if(dbPromise)return dbPromise;
@@ -61,11 +69,11 @@ function htmlList(n){
  return list.length?list.map(t=>'<article class="demo-track" data-demo-row="'+esc(t.id)+'">'+
    '<button class="demo-track-play" type="button" data-demo-play="'+esc(t.id)+'" aria-label="Play '+esc(t.title)+'">'+(playingId===t.id&&player&&!player.paused?'Ⅱ':'▶')+'</button>'+
    '<div class="demo-track-copy"><strong>'+esc(t.title)+'</strong>'+
-   '<span>'+esc(t.filename||"Audio")+" · "+fmtSize(t.size||0)+(t.type==="audio/wav"?" · WAV":t.type==="audio/mpeg"?" · MP3":"")+'</span>'+
+   '<span>'+esc(t.filename||"Audio")+" · "+fmtSize(t.size||0)+(t.type==="audio/wav"?" · WAV":t.type==="audio/mpeg"?" · MP3":t.type==="audio/mp4"?" · M4A":"")+'</span>'+
    '<div class="demo-credit-list">'+(t.collaborators||[]).map(id=>'<button type="button" data-demo-person="'+esc(id)+'">'+esc(personName(id))+'</button>').join("")+'</div>'+
    (t.notes?'<p>'+esc(t.notes)+'</p>':"")+'</div>'+
    '<button type="button" class="demo-track-edit" data-demo-edit="'+esc(t.id)+'" aria-label="Edit demo details">Edit</button></article>').join(""):
-   '<p class="demo-muted">No demos linked to this profile yet. Drop an MP3 or WAV below to start a private playlist.</p>';
+   '<p class="demo-muted">No demos linked to this profile yet. Drop an MP3, WAV or M4A below to start a private playlist.</p>';
 }
 function choices(selected,omit=""){
  return getPeople().filter(p=>p.id!==omit&&p.profileType!=="venue"&&p.profileType!=="studio")
@@ -76,12 +84,12 @@ function section(n){
  const count=loaded?recordsFor(n.id).length:0;
  return '<div class="section-title">Demos'+(count?' · '+count:'')+'</div>'+
  '<section class="demo-library" data-demo-profile="'+esc(n.id)+'">'+
- '<div class="demo-private-label">LOCAL UNRELEASED AUDIO · MP3 / WAV</div>'+
+ '<div class="demo-private-label">LOCAL UNRELEASED AUDIO · MP3 / WAV / M4A</div>'+
  '<p class="demo-muted">Each track appears on every linked collaborator’s playlist. Audio stays on this browser and is never uploaded to Network HQ.</p>'+
  '<div class="demo-list">'+htmlList(n)+'</div>'+
- '<div class="demo-drop" role="button" tabindex="0" aria-label="Add MP3 or WAV demos"><span class="demo-drop-icon">♪</span>'+
- '<strong>Drag & drop MP3 or WAV files</strong><span>or click to choose multiple files · maximum 250 MB each</span></div>'+
- '<input class="demo-file-picker" type="file" accept=".mp3,.wav,.wave,audio/mpeg,audio/wav,audio/x-wav" multiple hidden>'+
+ '<div class="demo-drop" role="button" tabindex="0" aria-label="Add MP3, WAV or M4A demos"><span class="demo-drop-icon">♪</span>'+
+ '<strong>Drag & drop MP3, WAV or M4A files</strong><span>or click to choose multiple files · maximum 250 MB each</span></div>'+
+ '<input class="demo-file-picker" type="file" accept=".mp3,.wav,.wave,.m4a,audio/mpeg,audio/wav,audio/x-wav,audio/mp4,audio/x-m4a" multiple hidden>'+
  '<details class="demo-credit-setup"><summary>Link collaborators for new uploads</summary>'+
  '<p class="demo-muted">This profile will be linked automatically. Check anyone else who worked on the demo; they’ll see the same track in their playlist.</p>'+
  '<input class="demo-credit-search" type="search" placeholder="Find a collaborator…" aria-label="Find demo collaborator">'+
@@ -160,8 +168,11 @@ function redrawSection(n){
 }
 async function handleFiles(files,n,box){
  const list=Array.from(files||[]);if(!list.length)return;
- const invalid=list.filter(f=>!audioFile(f));
- if(invalid.length){message(invalid.map(f=>f.name).join(", ")+": unsupported, empty, or over 250 MB. Use .mp3 or .wav files.",true,box);return}
+ const invalid=list.map(f=>({file:f,error:fileError(f)})).filter(x=>x.error);
+ if(invalid.length){
+   message(invalid.map(x=>x.file.name+": "+x.error).join(" · "),true,box);
+   return;
+ }
  const selected=[...box.querySelectorAll('.demo-credit-option input:checked')].map(x=>x.value);
  const collabs=normalizeCredits([n.id,...selected]);if(!collabs.includes(n.id))collabs.unshift(n.id);
  message("Saving "+list.length+" demo(s) on this device…",false,box);
@@ -169,8 +180,8 @@ async function handleFiles(files,n,box){
  for(const file of list){
   try{
    const id=typeof crypto!=="undefined"&&crypto.randomUUID?crypto.randomUUID():"demo_"+Date.now()+"_"+Math.random().toString(36).slice(2);
-   const title=file.name.replace(/\.(mp3|wav|wave)$/i,"").replace(/[_]+/g," ").trim();
-   await put({id,title:title||file.name,filename:file.name,type:ext(file)==="mp3"?"audio/mpeg":"audio/wav",size:file.size,
+   const title=file.name.replace(/\.(mp3|wav|wave|m4a)$/i,"").replace(/[_]+/g," ").trim();
+   await put({id,title:title||file.name,filename:file.name,type:audioType(file),size:file.size,
     blob:file,collaborators:collabs,notes:"",addedAt:new Date().toISOString()});
    saved++;
   }catch(e){message("Saved "+saved+" file(s). Could not save "+file.name+": "+(e.message||e),true,box);break}
@@ -280,5 +291,5 @@ function init(config){
  });
 }
 window.NetworkDemos={init,section,bindProfile,drawLinks,recordsFor,isPlaying:id=>!!(playingId&&player&&!player.paused&&tracks.find(t=>t.id===playingId)?.collaborators.includes(id)),stateChanged,
- _test:{audioFile,normalizeCredits,recordsFor,drawLinks,openDB,getAll,put,remove}};
+ _test:{audioFile,audioType,fileError,normalizeCredits,recordsFor,drawLinks,openDB,getAll,put,remove}};
 })();
