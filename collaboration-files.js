@@ -81,12 +81,15 @@ function resourceCard(r){
  const href=r.url?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer" class="collab-resource-link">Open ↗</a>':
   '<span class="collab-link-pending">Link not recorded</span>';
  const isImage=/^(image|photo|visual reference)$/i.test(r.type)||r.section==="Visual References";
- const preview=isImage?'<div class="collab-thumb">'+
+ const preview=isImage?(r.url?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer" class="collab-thumb">':
+   '<div class="collab-thumb">')+
   '<span class="collab-thumb-fallback">IMAGE · Open in Drive for full resolution</span>'+
   (thumbnail(r.url)?'<img src="'+esc(thumbnail(r.url))+'" alt="'+esc(r.name)+' preview" loading="lazy" referrerpolicy="no-referrer">':'')+
-  '</div>':"";
+  (r.url?'</a>':'</div>'):"";
+ const title=r.url?'<a class="collab-resource-title" href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer">'+esc(r.name)+'</a>':
+  '<strong>'+esc(r.name)+'</strong>';
  return '<article class="collab-resource">'+preview+
- '<div class="collab-resource-info"><strong>'+esc(r.name)+'</strong>'+
+ '<div class="collab-resource-info">'+title+
  '<div class="collab-resource-meta">'+esc(r.type||"Link")+(r.provider?" · "+esc(r.provider):"")+'</div>'+
  (r.notes?'<p>'+esc(r.notes)+'</p>':"")+
  '<div class="collab-resource-actions">'+href+
