@@ -1724,6 +1724,19 @@ function startOrganicMotion(){
     visible.forEach(n=>{
       const s=ensureMotionState(n),damping=Math.pow(.958,dt);
       s.vx*=damping;s.vy*=damping;s.x+=s.vx*dt;s.y+=s.vy*dt;
+      // Even while coasting, a peripheral collaborator cannot drift back
+      // across the circular hub boundary.
+      if(currentView==="hubs"&&isHubPeripheral(n)){
+        const p=peripheralPlacement(n);
+        const dx=s.x-p.center[0],dy=s.y-p.center[1];
+        const distance=Math.hypot(dx,dy)||1;
+        const minimum=fieldRadiusForHub(p.hub)+(n.r||20)+14;
+        if(distance<minimum){
+          s.x=p.center[0]+dx/distance*minimum;
+          s.y=p.center[1]+dy/distance*minimum;
+          s.vx*=.5;s.vy*=.5;
+        }
+      }
       const el=viewport.querySelector(`.node[data-id="${n.id}"]`);
       if(el)el.setAttribute("transform",`translate(${s.x.toFixed(2)},${s.y.toFixed(2)})`);
     });
