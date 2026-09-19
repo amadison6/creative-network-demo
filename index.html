@@ -2473,7 +2473,9 @@ function renderEditEntityFields(n){
   if(n.profileType==="venue"){
     sec.classList.remove("hidden");title.textContent="Venue / booking details";
     wrap.innerHTML=
-      editField("editCapacity","Capacity",n.capacity)+
+      editField("editVenueWebsite","Venue website",n.links?.Website,"https://...")+
+      editField("editVenueBookingUrl","Venue booking form",n.links?.Booking,"https://...")+
+      editField("editCapacity","Capacity (indicate estimate)",n.capacity)+
       editField("editBookingContact","Booking contact",n.bookingContact)+editField("editTalentBuyer","Talent buyer / promoter",n.talentBuyer)+
       editField("editWarmConnection","Warm connection",n.warmConnection)+
       editField("editRates","Rates / cost notes",n.rates,"Quote amount, date, booking minimum, deposit…")+
@@ -2628,8 +2630,25 @@ document.getElementById("saveProfileEdits").onclick=()=>{
     input.addEventListener("input",()=>input.setCustomValidity(""),{once:true});
     return;
   }
+  const venueUrls={};
+  if(n.profileType==="venue"){
+    for(const [id,key] of [["editVenueWebsite","Website"],["editVenueBookingUrl","Booking"]]){
+      const input=document.getElementById(id),raw=input?.value.trim()||"";
+      if(!raw){venueUrls[key]="";continue}
+      try{
+        const u=new URL(raw);
+        if(!["https:","http:"].includes(u.protocol))throw Error("Invalid protocol");
+        venueUrls[key]=u.href;
+      }catch(_){
+        input.setCustomValidity("Use a full http(s) URL for this venue.");
+        input.reportValidity();
+        input.addEventListener("input",()=>input.setCustomValidity(""),{once:true});
+        return;
+      }
+    }
+  }
   n.name=document.getElementById("editName").value.trim()||n.name;
-  n.artistName=document.getElementById("editArtistName").value.trim();
+  if(n.profileType!=="venue")n.artistName=document.getElementById("editArtistName").value.trim();
   n.role=document.getElementById("editRole").value.trim()||n.role;
   n.hub=document.getElementById("editHub").value.trim()||n.hub;
   n.location=document.getElementById("editLocation").value.trim();
@@ -2641,18 +2660,27 @@ document.getElementById("saveProfileEdits").onclick=()=>{
   const ig=instagramEdit?parseInstagramProfile(instagramEdit).url:"";
   const sp=spotifyEdit?parseSpotifyLink(spotifyEdit).url:"";
   if(ig)n.links.Instagram=ig;else delete n.links.Instagram;
-  if(sp)n.links.Spotify=sp;else delete n.links.Spotify;
+  if(n.profileType!=="venue"){
+    if(sp)n.links.Spotify=sp;else delete n.links.Spotify;
+  }
+  if(n.profileType==="venue"){
+    for(const [key,url] of Object.entries(venueUrls)){
+      if(url)n.links[key]=url;else delete n.links[key];
+    }
+  }
   setSocialLinkRemoved(n.id,"Instagram",!ig);
-  setSocialLinkRemoved(n.id,"Spotify",!sp);
+  if(n.profileType!=="venue")setSocialLinkRemoved(n.id,"Spotify",!sp);
   if(partifulProfileEdit?.kind==="profile")n.links.Partiful=partifulProfileEdit.url;else delete n.links.Partiful;
   n.partifulEvents=partifulEventEdit.urls;
   if(n.profileType==="musician"||isMusicProfile(n)||isCollectiveEntity(n)){
     if(untitledURL)n.links.Untitled=untitledURL;else delete n.links.Untitled;
   }
-  n.pro=document.getElementById("editPRO").value.trim();
-  n.ipi=document.getElementById("editIPI").value.trim();
-  n.legalName=document.getElementById("editLegalName").value.trim();
-  n.publisher=document.getElementById("editPublisher").value.trim();
+  if(n.profileType!=="venue"){
+    n.pro=document.getElementById("editPRO").value.trim();
+    n.ipi=document.getElementById("editIPI").value.trim();
+    n.legalName=document.getElementById("editLegalName").value.trim();
+    n.publisher=document.getElementById("editPublisher").value.trim();
+  }
 
   const v=id=>document.getElementById(id)?.value?.trim()??"";
   if(n.profileType==="venue")Object.assign(n,{capacity:v("editCapacity"),bookingContact:v("editBookingContact"),talentBuyer:v("editTalentBuyer"),warmConnection:v("editWarmConnection"),rates:v("editRates"),lastQuotedGuarantee:v("editQuotedGuarantee"),dealStructure:v("editDealStructure"),doorSplit:v("editDoorSplit"),productionFee:v("editProductionFee"),audienceFit:v("editAudienceFit"),backline:v("editBackline"),resources:v("editResources"),history:v("editHistory"),potentialShowNotes:v("editPotentialShowNotes")});
