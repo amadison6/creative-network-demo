@@ -262,6 +262,84 @@ function edit(id){
  el("collabSave").textContent="Save resource changes";
  showForm("add");
 }
+let selectedImages=[];
+function prepareUpload(personId){
+ selectedImages=[];
+ const files=el("collabImageFiles");if(files)files.value="";
+ el("collabUploadNotes").value="";
+ el("collabUploadList").textContent="No images selected · Maximum 40 MB each";
+ el("collabUploadStatus").textContent="";
+ const projects=[...new Map(rowsFor(personId).filter(r=>r.projectId||r.project).map(r=>[
+   r.projectId||r.project,{projectId:r.projectId,project:r.project}
+ ])).values()];
+ const choice=el("collabUploadProjectChoice");
+ choice.innerHTML='<option value="">New or unlisted project</option>'+
+  projects.map((p,i)=>'<option value="'+i+'">'+esc(p.project)+'</option>').join("");
+ const set=(p)=>{
+  el("collabUploadProject").value=p?.project||"";
+  el("collabUploadProjectId").value=p?.projectId||"";
+ };
+ if(projects.length===1){choice.value="0";set(projects[0])}
+ else{choice.value="";set(null)}
+ choice.onchange=()=>set(choice.value===""?null:projects[Number(choice.value)]);
+}
+function selectImages(files){
+ selectedImages=Array.from(files||[]);
+ const target=el("collabUploadList");
+ target.textContent=selectedImages.length?selectedImages.map(f=>f.name+" · "+(f.size/(1024*1024)).toFixed(1)+" MB").join(" \u00b7 "):
+  "No images selected · Maximum 40 MB each";
+ el("collabUploadStatus").textContent="";
+}
+async function saveUploadedImages(){
+ const report=el("collabUploadStatus"),btn=el("collabSaveImages");
+ const project=el("collabUploadProject").value.trim();
+ const projectId=el("collabUploadProjectId").value.trim();
+ if(!selectedImages.length){report.textContent="Choose at least one image to save.";return}
+ if(!project){report.textContent="Select or name the project these images belong to.";return}
+ const goodExt=/\.(?:jpe?g|png|webp|gif|avif|heic|heif)$/i;
+ for(const file of selectedImages){
+  if(!file.type.startsWith("image/")&&!goodExt.test(file.name)){
+   report.textContent=file.name+": only image files are supported.";return;
+  }
+  if(file.size>IMAGE_LIMIT){
+   report.textContent=file.name+": exceeds this app’s 40 MB image limit. The 250 MB demo-audio setting is separate.";return;
+  }
+ }
+ btn.disabled=true;
+ let saved=0,reused=0;
+ const notes=el("collabUploadNotes").value.trim();
+ try{
+  await openImageDb();
+  for(const file of selectedImages){
+   report.textContent="Saving "+(saved+reused+1)+" of "+selectedImages.length+" images locally…";
+   const fp=[activePerson,projectId||project,file.name,file.size,file.lastModified].join("|");
+   const old=read().find(r=>r.personId===activePerson&&r.localImage&&r.fileFingerprint===fp);
+   const id=old?.resourceId||"collab_image_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,10);
+   await putImage(id,file);
+   const item=normalized({resourceId:id,personId:activePerson,projectId,project,
+    section:"Visual References",name:file.name,type:"Image",url:"",
+    provider:"This browser · original image",notes,dateAdded:new Date().toISOString().slice(0,10),
+    localImage:true,fileFingerprint:fp});
+   if(!item)throw Error("Could not index "+file.name);
+   merge([item]);
+   if(old)reused++;else saved++;
+  }
+  report.textContent=saved+" saved, "+reused+" existing image(s) refreshed. These files are only on this device.";
+  selectedImages=[];el("collabImageFiles").value="";
+  close();redraw();
+ }catch(e){
+  report.textContent="Image storage failed: "+(e.message||"Not enough browser storage")+" · "+(saved+reused)+" completed.";
+ }finally{btn.disabled=false}
+}
+async function removeSavedImage(id,personId){
+ const entry=read().find(r=>r.resourceId===id&&r.personId===personId&&r.localImage);
+ if(!entry||!confirm("Remove "+entry.name+" from this browser’s collaboration library? This deletes its local image bytes."))return;
+ try{
+  await deleteImageBlob(id);
+  save(read().filter(r=>r.resourceId!==id));
+  redraw();
+ }catch(e){alert("Could not remove image: "+e.message)}
+}
 function showForm(which){
  el("collabAddForm").hidden=which!=="add";
  el("collabImportForm").hidden=which!=="import";
