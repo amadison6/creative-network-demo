@@ -527,6 +527,37 @@
 .venue-network-link strong{font-size:12px}
 .venue-network-link span{font-size:11px;color:#a4bbad;line-height:1.35}
 
+/* v55 — Venue View: large, clickable hub fields and practical booking inspector */
+.venue-field{fill:#284332;fill-opacity:.18;stroke:#5d9773;stroke-width:1.5;stroke-dasharray:7 7;cursor:pointer;transition:fill-opacity .2s,stroke .2s}
+.venue-field:hover,.venue-field.selected-venue-field{fill-opacity:.33;stroke:#a8e2b8;stroke-width:2}
+.venue-field-label{font-size:13px;fill:#bce9cd;stroke:#0b0c0f;stroke-width:4px;paint-order:stroke;stroke-linejoin:round;cursor:pointer;font-weight:900;letter-spacing:.015em}
+.venue-field-label:hover{fill:#f0fff4}
+.venue-field-count{fill:#8dbaa0;font-size:10px;pointer-events:none}
+.node.venue-hub circle{stroke:#9bdcb3!important;stroke-width:2.5!important;fill:#254435!important}
+.venue-directory{display:grid;gap:7px;max-height:250px;overflow:auto;margin:10px 0;padding:8px;border:1px solid #395441;border-radius:12px;background:#101d16}
+.venue-directory[hidden]{display:none!important}
+.venue-directory-heading{color:#a0c4aa;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.06em}
+.venue-directory-card{background:#18271e;color:#e1f3e6;border:1px solid #36523d;border-radius:9px;text-align:left;display:flex;flex-direction:column;gap:4px;padding:9px;cursor:pointer;font-size:10px}
+.venue-directory-card strong{font-size:12px}
+.venue-directory-card span{font-size:10px;color:#b0c0b2;line-height:1.3}
+.venue-directory-card:hover,.venue-directory-card.active{border-color:#83c39b;background:#243c2d}
+.venue-hq{background:#15261b;border:1px solid #5a9371;border-radius:14px;padding:13px;margin-bottom:13px}
+.venue-hq-head{display:flex;flex-direction:column;gap:4px}
+.venue-hq-head strong{font-size:16px;color:#ddffe8}
+.venue-hq-head>span{font-size:11px;color:#a5c5af}
+.venue-hq-facts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:13px 0}
+.venue-hq-facts>div{background:#1f3427;border:1px solid #365843;border-radius:9px;padding:9px;min-width:0}
+.venue-hq-facts span{font-size:10px;color:#b9cabe;display:block;margin-bottom:6px}
+.venue-hq-facts strong{font-size:12px;color:#edfff2;line-height:1.35;overflow-wrap:anywhere;display:block}
+.venue-hq-label{font-size:10px;color:#adc6b5;text-transform:uppercase;letter-spacing:.08em}
+.venue-hq-value{font-size:13px;font-weight:750;margin:5px 0 11px;color:#f0fff4}
+.venue-hq-actions{display:flex;flex-wrap:wrap;gap:7px}
+.venue-hq-actions a,.venue-hq-actions button{background:#284d34;border:1px solid #609b71;color:#e5ffed;border-radius:8px;padding:8px 10px;font-size:11px;text-decoration:none;cursor:pointer}
+.venue-hq-note{font-size:11px;line-height:1.5;color:#afcbb7;margin-top:10px}
+.radar-venue-events .radar-history-heading{margin-top:15px;border-top:1px solid #4d3860;padding-top:12px}
+.radar-venue-actions{display:flex;gap:8px;flex-wrap:wrap}
+.radar-venue-events .radar-venue-actions button{flex:1;min-width:120px;background:#705393;border:1px solid #9570bd;border-radius:8px;padding:9px;color:#fff;font-size:11px;cursor:pointer;margin-top:10px}
+
 </style>
 </head>
 <body>
@@ -3165,6 +3196,16 @@ document.getElementById("saveProfile").onclick=()=>{
 })();
 
 const APP_RELEASES=[
+  {
+    version:"v55",file:null,date:"2026-09-18",title:"Venue View as clickable booking hubs",
+    notes:[
+      "Venue View arranges venue hubs with connected performers and contacts around them, like Creative Hubs and Studio View",
+      "Venue fields, labels, bubbles and directory cards open each room's inspector",
+      "Inspector prioritizes address/directions, capacity, rate and booking terms, warm path, past shows and upcoming/unknown-date Event Radar entries",
+      "Added venue-specific editing of rate notes, production resources and show history, preserving saved profiles",
+      "Unquoted fees remain unknown; Event Radar displays recorded links only, not an automatic event feed"
+    ]
+  },
   {
     version:"v54",file:null,date:"2026-09-18",title:"Asean Townsend identity confirmed",
     notes:[
