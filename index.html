@@ -272,6 +272,8 @@
   pointer-events:auto;cursor:pointer;transition:fill .2s ease,stroke .2s ease,opacity .2s ease
 }
 .hub-field:hover{fill:rgba(127,179,255,.055);stroke:#6683a6;opacity:1}
+.hub-field.selected-hub{fill:rgba(127,179,255,.065);stroke:#9bc7fc;stroke-width:2;opacity:1}
+.hub-label.selected-hub-label{fill:#e2efff}
 .hub-field.core-hub{fill:rgba(215,181,109,.025);stroke:#4b4332}
 .studio-field{
   fill:rgba(143,214,168,.026);stroke:#3f6654;stroke-width:1.15;stroke-dasharray:6 8;opacity:.88;
@@ -697,7 +699,7 @@ localProfiles.forEach((p,i)=>{
 })
 
 const hubCenters={Center:[500,360],"Visual / Management":[180,170],"Professor What Trio":[720,155],"Delaware–Philly":[825,320],"R&B Writing Orbit":[200,560],"Baw$ / Sockjus Orbit":[815,560],"Jonah Studio":[560,625],"Joel's DTLA Studio":[420,640],"God's Contraband":[470,190]};
-const offsets={},hubCounts={};nodes.forEach(n=>{hubCounts[n.hub]=(hubCounts[n.hub]||0)+1;const i=hubCounts[n.hub]-1,a=i*2.2,r=n.hub==="Center"?0:42+(i%2)*12;offsets[n.id]=[Math.cos(a)*r,Math.sin(a)*r]});let currentView="relationship",currentFilter="All",selected=null,selectedFocusId=null;const svg=document.getElementById("map"),viewport=document.getElementById("viewport"),ns="http://www.w3.org/2000/svg";function make(tag,attrs={}){
+const offsets={},hubCounts={};nodes.forEach(n=>{hubCounts[n.hub]=(hubCounts[n.hub]||0)+1;const i=hubCounts[n.hub]-1,a=i*2.2,r=n.hub==="Center"?0:42+(i%2)*12;offsets[n.id]=[Math.cos(a)*r,Math.sin(a)*r]});let currentView="relationship",currentFilter="All",selected=null,selectedFocusId=null,selectedHubName=null;const svg=document.getElementById("map"),viewport=document.getElementById("viewport"),ns="http://www.w3.org/2000/svg";function make(tag,attrs={}){
   const el=document.createElementNS(ns,tag);
   Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));
   return el;
@@ -946,13 +948,14 @@ function render(){
     Object.entries(hubCenters).filter(([name])=>name!=="Center").forEach(([name,c])=>{
       const members=nodes.filter(n=>n.hub===name && !isCollectiveEntity(n) && visibleNode(n));
       const radius=Math.max(72,64+members.length*6);
-      const field=make("circle",{cx:c[0],cy:c[1],r:radius,class:`hub-field ${name==="God's Contraband"?"core-hub":""}`});
+      const field=make("circle",{cx:c[0],cy:c[1],r:radius,class:`hub-field ${name==="God's Contraband"?"core-hub":""} ${selectedHubName===name?"selected-hub":""}`,"data-hub":name});
       field.addEventListener("click",()=>showHubProfile(name));
       viewport.appendChild(field);
 
-      const t=make("text",{x:c[0],y:c[1]-radius-12,class:"hub-label","text-anchor":"middle","data-hub":name});
+      const t=make("text",{x:c[0],y:c[1]-radius-12,class:`hub-label ${selectedHubName===name?"selected-hub-label":""}`,"text-anchor":"middle","data-hub":name,role:"button",tabindex:"0","aria-label":`Open ${name} hub profile`});
       t.textContent=name;
       t.addEventListener("click",()=>showHubProfile(name));
+      t.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();showHubProfile(name)}});
       viewport.appendChild(t);
 
       const count=make("text",{x:c[0],y:c[1]-radius+2,class:"hub-count","text-anchor":"middle"});
@@ -1208,13 +1211,15 @@ function profileCategory(n){
 function showHubProfile(hubName){
   selected=null;
   selectedFocusId=null;
+  selectedHubName=hubName;
+  document.querySelector(".app").classList.remove("right-hidden");
   render();
 
   const members=nodes.filter(n=>n.hub===hubName && !isCollectiveEntity(n));
   const collective=nodes.find(n=>isCollectiveEntity(n) && n.hub===hubName);
   const studios=nodes.filter(n=>n.profileType==="studio" && (n.hub===hubName || studioMembersFor(n).some(m=>m.hub===hubName)));
   const projects=[...new Set(members.flatMap(n=>(n.tags||[]).filter(t=>t!=="All" && t!==hubName)))].slice(0,12);
-  const openTasks=members.reduce((sum,n)=>sum+notificationCount(n.id),0);
+  const openTasks=members.reduce((sum,n)=>sum+notificationCount(n.id),0)+(collective?notificationCount(collective.id):0);
   const saved=JSON.parse(localStorage.getItem("creativeNetworkNotes")||"{}");
   const hubKey="hub::"+hubName;
   const note=saved[hubKey]||"";
@@ -1240,6 +1245,15 @@ function showHubProfile(hubName){
       <div class="card"><div class="k">Open tasks</div><div class="v">${openTasks}</div></div>
     </div>
     <div class="card"><div class="k">What this hub represents</div><div class="v">${collective?.bio ? escapeAttr(collective.bio) : "A recurring cluster of people, projects, and resources in your creative network."}</div></div>
+    ${collective ? `
+      <div class="section-title">Collective Details</div>
+      <div class="profile-grid">
+        <div class="card"><div class="k">Type</div><div class="v">${escapeAttr(collective.collectiveType||collective.role||"Creative collective")}</div></div>
+        <div class="card"><div class="k">Status</div><div class="v">${escapeAttr(collective.status||"Not mapped yet")}</div></div>
+      </div>
+      ${collective.founders?`<div class="card"><div class="k">Founders</div><div class="v">${escapeAttr(collective.founders)}</div></div>`:""}
+      <div class="card" style="margin-top:10px"><div class="k">Saved roster</div><div class="v">${escapeAttr(collective.members||"Not mapped yet")}</div></div>
+    ` : ""}
 
     <div class="section-title">People in this hub</div>
     <div style="display:flex;gap:7px;flex-wrap:wrap">${memberButtons}</div>
@@ -1250,7 +1264,7 @@ function showHubProfile(hubName){
     <div class="section-title">Connected studios / resources</div>
     <div style="display:flex;gap:7px;flex-wrap:wrap">${studioButtons}</div>
 
-    ${collective ? `<div class="section-title">Canonical collective</div><button class="secondary-btn" id="openCollectiveProfile">Open ${escapeAttr(collective.name)} profile</button>` : ""}
+    ${collective ? `<div class="section-title">Canonical collective</div><div style="display:flex;gap:7px;flex-wrap:wrap"><button class="secondary-btn" id="openCollectiveProfile">Open full ${escapeAttr(collective.name)} profile</button><button class="secondary-btn" id="editCollectiveProfile">Edit collective details</button></div>` : ""}
 
     <div class="section-title">Hub Notes</div>
     <textarea id="hubNotes">${escapeAttr(note)}</textarea>
@@ -1266,6 +1280,8 @@ function showHubProfile(hubName){
   });
   const openCollective=document.getElementById("openCollectiveProfile");
   if(openCollective)openCollective.onclick=()=>showProfile(collective);
+  const editCollective=document.getElementById("editCollectiveProfile");
+  if(editCollective)editCollective.onclick=()=>openEditProfile(collective);
 
   document.getElementById("saveHubNotes").onclick=()=>{
     const all=JSON.parse(localStorage.getItem("creativeNetworkNotes")||"{}");
@@ -1279,6 +1295,8 @@ function showHubProfile(hubName){
 function showProfile(n){
   selected=n;
   selectedFocusId=n.id;
+  selectedHubName=null;
+  document.querySelector(".app").classList.remove("right-hidden");
   render();
 
   const saved=JSON.parse(localStorage.getItem("creativeNetworkNotes")||"{}");
@@ -1840,7 +1858,9 @@ let isPanning=false;
 let panLast=null;
 
 svg.addEventListener("pointerdown",(e)=>{
-  if(e.target.closest && e.target.closest(".node")) return;
+  // Clickable hub/studio fields and their titles open an inspector; capturing
+  // their pointer on the SVG would reroute the click and silently prevent it.
+  if(e.target.closest && e.target.closest(".node,.hub-field,.hub-label,.studio-field,.studio-field-label")) return;
   isPanning=true;
   panLast={x:e.clientX,y:e.clientY};
   svg.setPointerCapture(e.pointerId);
