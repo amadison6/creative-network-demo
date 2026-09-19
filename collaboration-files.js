@@ -36,6 +36,8 @@ function normalized(r){
   provider:String(obj.provider||"").trim().slice(0,120),
   notes:String(obj.notes||"").trim().slice(0,1300),
   dateAdded:String(obj.dateAdded||"").trim().slice(0,40),
+  localImage:obj.localImage===true,
+  fileFingerprint:String(obj.fileFingerprint||"").slice(0,500),
   visibility:"Private"
  };
 }
@@ -79,10 +81,15 @@ function thumbnail(url){
  return m?"https://drive.google.com/thumbnail?id="+encodeURIComponent(m[1])+"&sz=w360":"";
 }
 function resourceCard(r){
- const href=r.url?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer" class="collab-resource-link">Open ↗</a>':
+ const isLocal=r.localImage===true;
+ const href=isLocal?'<a href="#" class="collab-resource-link" data-collab-view-image="'+esc(r.resourceId)+'">View full image ↗</a>':
+  r.url?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer" class="collab-resource-link">Open ↗</a>':
   '<span class="collab-link-pending">Link not recorded</span>';
- const isImage=/^(image|photo|visual reference)$/i.test(r.type)||r.section==="Visual References";
- const preview=isImage?(r.url?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer" class="collab-thumb">':
+ const isImage=isLocal||/^(image|photo|visual reference)$/i.test(r.type)||r.section==="Visual References";
+ const preview=isLocal?'<a href="#" class="collab-thumb collab-local-thumb" data-collab-view-image="'+esc(r.resourceId)+'">'+
+  '<span class="collab-thumb-fallback">BROWSER IMAGE · Loading preview…</span>'+
+  '<img data-collab-local-preview="'+esc(r.resourceId)+'" alt="'+esc(r.name)+' preview" loading="lazy" hidden></a>':
+  isImage?(r.url?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer" class="collab-thumb">':
    '<div class="collab-thumb">')+
   '<span class="collab-thumb-fallback">IMAGE · Open in Drive for full resolution</span>'+
   (thumbnail(r.url)?'<img src="'+esc(thumbnail(r.url))+'" alt="'+esc(r.name)+' preview" loading="lazy" referrerpolicy="no-referrer">':'')+
@@ -94,7 +101,10 @@ function resourceCard(r){
  '<div class="collab-resource-meta">'+esc(r.type||"Link")+(r.provider?" · "+esc(r.provider):"")+'</div>'+
  (r.notes?'<p>'+esc(r.notes)+'</p>':"")+
  '<div class="collab-resource-actions">'+href+
- '<button type="button" data-collab-edit="'+esc(r.resourceId)+'">Edit</button></div></div></article>';
+ (isLocal?'<button type="button" data-collab-download-image="'+esc(r.resourceId)+'">Save original</button>':'')+
+ '<button type="button" data-collab-edit="'+esc(r.resourceId)+'">Edit</button>'+
+ (isLocal?'<button type="button" data-collab-delete-image="'+esc(r.resourceId)+'">Remove</button>':'')+
+ '</div></div></article>';
 }
 function section(n){
  const list=rowsFor(n.id);
@@ -126,7 +136,8 @@ function section(n){
     '<div class="collab-resources">'+bySection.get(category).map(resourceCard).join("")+'</div>').join("")+
    '</div>';
  }).join(""):'<p class="collab-empty">No private collaboration files installed for this profile yet. Import existing records from the private Collaboration Files tab or add a new resource link.</p>')+
- '<div class="collab-actions"><button type="button" data-collab-add>＋ Add resource link</button>'+
+ '<div class="collab-actions"><button type="button" data-collab-upload>＋ Save images</button>'+
+ '<button type="button" data-collab-add>＋ Add resource link</button>'+
  '<button type="button" data-collab-import>Import records</button>'+
  (list.length?'<button type="button" data-collab-export>Back up JSON</button>':"")+
  '</div><p class="collab-security">Only this browser stores these records. Google Drive still controls who can open each file. This is not password protection on a shared device; never publish private resources to the public site.</p>'+
