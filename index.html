@@ -384,7 +384,7 @@
 </datalist>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v42 · directional profile browsing</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v43 · home recenter & Untitled artist links</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -566,6 +566,7 @@
         <div class="form-field full"><label>Profile / relationship context</label><textarea id="editBio"></textarea></div>
         <div class="form-field"><label>Instagram</label><input id="editInstagram" placeholder="https://instagram.com/..."></div>
         <div class="form-field"><label>Spotify / primary music link</label><input id="editSpotify" placeholder="https://open.spotify.com/..."></div>
+        <div class="form-field" id="editUntitledWrap"><label>Untitled listening link</label><input id="editUntitled" placeholder="https://untitled.stream/..."></div>
         <div class="form-field"><label>PRO</label><input id="editPRO" placeholder="ASCAP / BMI / SESAC"></div>
         <div class="form-field"><label>IPI / CAE</label><input id="editIPI"></div>
         <div class="form-field"><label>Legal writer name</label><input id="editLegalName"></div>
@@ -1293,20 +1294,35 @@ function showHubProfile(hubName){
   };
 }
 
+function normalizeUntitledLink(value){
+  const raw=String(value||"").trim();
+  if(!raw)return "";
+  const candidate=/^untitled\.(?:stream|fm)(?:\/|$)/i.test(raw)?"https://"+raw:raw;
+  try{
+    const url=new URL(candidate);
+    return ["https:","http:"].includes(url.protocol) && url.hostname ? url.href : "";
+  }catch(_){return ""}
+}
+
 function showProfile(n){
   selected=n;
   selectedFocusId=n.id;
   selectedHubName=null;
   document.querySelector(".app").classList.remove("right-hidden");
   render();
+  // Your center node is the home button for the map, even after keyboard
+  // navigation or manual panning at any zoom level.
+  if(n.id==="uh_sar")resetHomeCamera();
 
   const saved=JSON.parse(localStorage.getItem("creativeNetworkNotes")||"{}");
   const note=saved[n.id]||"";
   const links=n.links||{};
+  const hasUntitledSection=n.profileType==="musician"||isMusicProfile(n)||isCollectiveEntity(n);
+  const untitledURL=normalizeUntitledLink(links.Untitled||"");
   const chips=[...new Set([n.hub,...(n.tags||[]).filter(t=>t!=="All")])]
     .map(x=>`<span class="chip">${x}</span>`).join("");
 
-  const linksHtml=Object.entries(links)
+  const linksHtml=Object.entries(links).filter(([k])=>!(hasUntitledSection&&k==="Untitled"))
     .map(([k,v])=>`<a href="${v}" target="_blank" rel="noopener">${k} ↗</a>`).join("")
     || `<div class="empty">No public links saved yet.</div>`;
 
@@ -1410,6 +1426,17 @@ function showProfile(n){
     ${specialized}
     <div class="section-title">Notifications</div>
     <div id="profileNotifications"></div>
+    ${hasUntitledSection?`
+      <div class="section-title">Untitled</div>
+      <div class="card">
+        <div class="k">Artist / project listening link</div>
+        <div class="notification-add">
+          <input id="untitledLinkInput" aria-label="Untitled listening link" value="${escapeAttr(links.Untitled||"")}" placeholder="https://untitled.stream/...">
+          <button id="saveUntitledLink" aria-label="Save Untitled link">Save</button>
+        </div>
+        <div class="small" id="untitledFeedback" style="margin-top:8px">Paste the artist's Untitled link and save it to this profile.</div>
+        ${untitledURL?`<div class="links"><a href="${escapeAttr(untitledURL)}" target="_blank" rel="noopener noreferrer">Open Untitled ↗</a></div>`:""}
+      </div>`:""}
     <div class="section-title">Public Links</div>
     <div class="links">${linksHtml}</div>
     <div class="profile-actions"><button class="save" id="editProfileBtn">Edit profile</button></div>
@@ -1420,6 +1447,28 @@ function showProfile(n){
   `;
 
   document.getElementById("editProfileBtn").onclick=()=>openEditProfile(n);
+  const saveUntitled=document.getElementById("saveUntitledLink");
+  if(saveUntitled)saveUntitled.onclick=()=>{
+    const input=document.getElementById("untitledLinkInput");
+    const raw=input.value.trim(),url=normalizeUntitledLink(raw);
+    const feedback=document.getElementById("untitledFeedback");
+    if(raw&&!url){
+      feedback.textContent="Enter a valid http(s) URL, for example https://untitled.stream/...";
+      input.focus();
+      return;
+    }
+    const previous=n.links?.Untitled||"";
+    n.links=Object.assign({},n.links||{});
+    if(url)n.links.Untitled=url;else delete n.links.Untitled;
+    if(previous!== (n.links.Untitled||"")){
+      persistEditedProfiles();
+      persistCustomProfileIfNeeded(n);
+      queueNetworkChange({type:"profile_update",profileId:n.id,profileName:n.name,changes:{links:{from:{Untitled:previous||null},to:{Untitled:url||null}}}});
+    }
+    showProfile(n);
+    const status=document.getElementById("untitledFeedback");
+    if(status)status.textContent=url?"Untitled link saved locally.":"Untitled link cleared locally.";
+  };
   document.querySelectorAll(".studio-person-link").forEach(btn=>{
     btn.onclick=()=>{
       const target=nodes.find(x=>x.id===btn.dataset.id);
@@ -1630,6 +1679,8 @@ function openEditProfile(n){
   document.getElementById("editBio").value=n.bio||"";
   document.getElementById("editInstagram").value=n.links?.Instagram||"";
   document.getElementById("editSpotify").value=n.links?.Spotify||"";
+  document.getElementById("editUntitled").value=n.links?.Untitled||"";
+  document.getElementById("editUntitledWrap").style.display=(n.profileType==="musician"||isMusicProfile(n)||isCollectiveEntity(n))?"":"none";
   document.getElementById("editPRO").value=n.pro||"";
   document.getElementById("editIPI").value=n.ipi||"";
   document.getElementById("editLegalName").value=n.legalName||"";
@@ -1654,6 +1705,15 @@ document.getElementById("removeProfilePhoto").onclick=()=>{pendingEditPhotoData=
 document.getElementById("saveProfileEdits").onclick=()=>{
   const id=document.getElementById("editProfileId").value,n=nodes.find(x=>x.id===id);if(!n)return;
   const before=profileSnapshot(n),hadPhoto=!!n.photo;
+  const untitledRaw=document.getElementById("editUntitled").value.trim();
+  const untitledURL=normalizeUntitledLink(untitledRaw);
+  if(untitledRaw&&!untitledURL){
+    const input=document.getElementById("editUntitled");
+    input.setCustomValidity("Enter a valid http(s) Untitled link.");
+    input.reportValidity();
+    input.addEventListener("input",()=>input.setCustomValidity(""),{once:true});
+    return;
+  }
   n.name=document.getElementById("editName").value.trim()||n.name;
   n.artistName=document.getElementById("editArtistName").value.trim();
   n.role=document.getElementById("editRole").value.trim()||n.role;
@@ -1667,6 +1727,9 @@ document.getElementById("saveProfileEdits").onclick=()=>{
   const ig=document.getElementById("editInstagram").value.trim(),sp=document.getElementById("editSpotify").value.trim();
   if(ig)n.links.Instagram=ig;else delete n.links.Instagram;
   if(sp)n.links.Spotify=sp;else delete n.links.Spotify;
+  if(n.profileType==="musician"||isMusicProfile(n)||isCollectiveEntity(n)){
+    if(untitledURL)n.links.Untitled=untitledURL;else delete n.links.Untitled;
+  }
   n.pro=document.getElementById("editPRO").value.trim();
   n.ipi=document.getElementById("editIPI").value.trim();
   n.legalName=document.getElementById("editLegalName").value.trim();
@@ -1749,6 +1812,14 @@ const MIN_ZOOM=.72, MAX_ZOOM=4.2;
 let camera={cx:500,cy:360,z:1};
 let cameraTarget={cx:500,cy:360,z:1};
 let cameraRAF=null;
+
+// Home is a deliberate reset, not a slow camera pull toward a previously
+// selected floating profile. Reset both the live view and its animation target.
+function resetHomeCamera(){
+  camera={cx:500,cy:360,z:1};
+  cameraTarget={cx:500,cy:360,z:1};
+  applyCamera();
+}
 
 function applyCamera(){
   const w=BASE_W/camera.z;
@@ -1895,10 +1966,7 @@ svg.addEventListener("pointercancel",stopPan);
 
 document.getElementById("zoomIn").onclick=()=>setZoom(cameraTarget.z*1.24);
 document.getElementById("zoomOut").onclick=()=>setZoom(cameraTarget.z/1.24);
-document.getElementById("zoomReset").onclick=()=>{
-  cameraTarget={cx:500,cy:360,z:1};
-  animateCamera();
-};
+document.getElementById("zoomReset").onclick=resetHomeCamera;
 
 // Navigate by the positions actually rendered on the map. If there is no
 // profile farther in that direction, wrap around so the key still works.
@@ -1930,9 +1998,11 @@ function navigateNearestProfile(direction){
   const next=candidates[0];
   showProfile(next.n);
   document.getElementById("profile").scrollTop=0;
-  cameraTarget.cx=next.p.x;
-  cameraTarget.cy=next.p.y;
-  animateCamera();
+  if(next.n.id!=="uh_sar"){
+    cameraTarget.cx=next.p.x;
+    cameraTarget.cy=next.p.y;
+    animateCamera();
+  }
   return true;
 }
 
@@ -2083,6 +2153,7 @@ const schemas={
     title:"Music profile",
     fields:[
       ["newArtistName","Artist / Stage name","Artist name if different"],
+      ["newUntitled","Untitled listening link","https://untitled.stream/..."],
       ["newInstruments","Instruments / Skills","Drums, bass, keys..."],
       ["newGenres","Genres / Style","R&B, hip-hop, electronic..."],
       ["newPRO","PRO affiliation","BMI / ASCAP / SESAC / other"],
@@ -2098,6 +2169,7 @@ const schemas={
       ["newMembers","Members / roster","Names or roster note"],
       ["newStatus","Status","Active, dormant, project-based..."],
       ["newFounders","Founders","Optional"],
+      ["newUntitled","Untitled listening link","https://untitled.stream/..."],
       ["newGenres","Genres / style","Optional"],
       ["newBusinessEmail","Contact","Optional"]
     ]
@@ -2197,6 +2269,15 @@ document.getElementById("saveProfile").onclick=()=>{
   const hub=document.getElementById("newHub").value.trim()||"Unclassified / Extended Network";
   const relationship=document.getElementById("newRelationship").value.trim();
   const publicLink=document.getElementById("newLink").value.trim();
+  const untitledRaw=document.getElementById("newUntitled")?.value.trim()||"";
+  const untitledURL=normalizeUntitledLink(untitledRaw);
+  if(untitledRaw&&!untitledURL){
+    const input=document.getElementById("newUntitled");
+    input.setCustomValidity("Enter a valid http(s) Untitled link.");
+    input.reportValidity();
+    input.addEventListener("input",()=>input.setCustomValidity(""),{once:true});
+    return;
+  }
   const slug=(name.toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"")||"profile")+"_"+Date.now().toString().slice(-6);
 
   const tags=["All"];
@@ -2215,6 +2296,7 @@ document.getElementById("saveProfile").onclick=()=>{
     bio:relationship||"New profile added directly in the Creative Network prototype.",
     links:publicLink?{Public:publicLink}:{}
   };
+  if(untitledURL)p.links.Untitled=untitledURL;
 
   const val=id=>document.getElementById(id)?.value?.trim()||"";
   if(kind==="musician"){
