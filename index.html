@@ -673,7 +673,7 @@
 </datalist>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v59 · private collaboration files</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v60 · Untitled library & creative hub periphery</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -1012,6 +1012,69 @@ localProfiles.forEach((p,i)=>{
 })
 
 const hubCenters={Center:[500,360],"Visual / Management":[180,170],"Professor What Trio":[720,155],"Delaware–Philly":[825,320],"R&B Writing Orbit":[200,560],"Baw$ / Sockjus Orbit":[815,560],"Jonah Studio":[560,625],"Joel's DTLA Studio":[420,640],"God's Contraband":[470,190]};
+const hubPeripheryNames=Object.keys(hubCenters).filter(x=>x!=="Center");
+function fieldRadiusForHub(name){
+  const memberCount=nodes.filter(n=>n.hub===name&&!n.periphery&&!isCollectiveEntity(n)&&n.profileType!=="venue"&&n.profileType!=="studio").length;
+  return Math.max(72,64+memberCount*6);
+}
+// A person is peripheral when they have no named creative hub, or the
+// relationship is explicitly flagged as adjacent rather than full membership.
+function isHubPeripheral(n){
+  return !!n && !isCollectiveEntity(n)&&n.profileType!=="venue"&&n.profileType!=="studio" &&
+    n.id!=="uh_sar"&&(n.periphery===true||!Object.hasOwn(hubCenters,n.hub)||n.hub==="Center");
+}
+function naturalHubFor(n){
+  if(!n)return"R&B Writing Orbit";
+  if(hubCenters[n.hubAnchor]&&n.hubAnchor!=="Center")return n.hubAnchor;
+  if(hubCenters[n.hub]&&n.hub!=="Center")return n.hub;
+  const scores=new Map(hubPeripheryNames.map(name=>[name,0]));
+  const score=(name,weight)=>{if(scores.has(name))scores.set(name,scores.get(name)+weight)};
+  // Documented one-hop relationships take priority over visual guesses.
+  const direct=edges.flatMap(([a,b,kind])=>{
+    const id=a===n.id?b:b===n.id?a:null;
+    if(!id)return[];
+    const other=nodes.find(p=>p.id===id);
+    return other?[{other,weight:kind==="strong"?5:kind==="future"?1:3}]:[];
+  });
+  direct.forEach(({other,weight})=>{
+    if(other.hub&&scores.has(other.hub))score(other.hub,weight);
+    if(other.hubAnchor&&scores.has(other.hubAnchor))score(other.hubAnchor,weight*.6);
+    // A venue is not itself a creative hub. Look at its actual human bridges.
+    if(other.profileType==="venue"){
+      edges.forEach(([a,b,kind])=>{
+        const peerId=a===other.id?b:b===other.id?a:null;
+        if(!peerId||peerId===n.id)return;
+        const peer=nodes.find(p=>p.id===peerId);
+        if(peer&&scores.has(peer.hub))score(peer.hub,(kind==="strong"?1.3:.6));
+      });
+    }
+  });
+  if((n.tags||[]).includes("God's Contraband"))score("God's Contraband",3);
+  if((n.tags||[]).includes("Visual Artists")||n.profileType==="filmmaker")score("Visual / Management",2.5);
+  if((n.tags||[]).includes("Rising Artists"))score("Baw$ / Sockjus Orbit",.7);
+  if((n.tags||[]).includes("Singer-Songwriters"))score("R&B Writing Orbit",.8);
+  const ordered=[...scores].sort((a,b)=>b[1]-a[1]);
+  if(ordered[0]?.[1]>0)return ordered[0][0];
+  // For an otherwise undocumented profile use its current relationship-map
+  // proximity, not an arbitrary new hub membership.
+  const p=relationshipPos[n.id]||[500,360];
+  return hubPeripheryNames.slice().sort((a,b)=>{
+    const da=Math.hypot(p[0]-hubCenters[a][0],p[1]-hubCenters[a][1]);
+    const db=Math.hypot(p[0]-hubCenters[b][0],p[1]-hubCenters[b][1]);
+    return da-db;
+  })[0];
+}
+function peripheralPlacement(n){
+  const hub=naturalHubFor(n),center=hubCenters[hub];
+  const peers=nodes.filter(p=>isHubPeripheral(p)&&naturalHubFor(p)===hub)
+    .sort((a,b)=>String(a.id).localeCompare(String(b.id)));
+  const index=Math.max(0,peers.findIndex(p=>p.id===n.id)),count=peers.length;
+  const base=Math.atan2(center[1]-360,center[0]-500);
+  const theta=base+(index-(count-1)/2)*.37+(hashUnit(n.id)-.5)*.14;
+  const radius=fieldRadiusForHub(hub)+Math.max(15,n.r||20)+38+(index%2)*8;
+  return {hub,center,radius,point:[center[0]+Math.cos(theta)*radius,center[1]+Math.sin(theta)*radius]};
+}
+
 const offsets={},hubCounts={};nodes.forEach(n=>{hubCounts[n.hub]=(hubCounts[n.hub]||0)+1;const i=hubCounts[n.hub]-1,a=i*2.2,r=n.hub==="Center"?0:42+(i%2)*12;offsets[n.id]=[Math.cos(a)*r,Math.sin(a)*r]});const NODE_AVATAR_PREF_KEY="creativeNetworkNodeAvatarMode";
 let nodeAvatarMode=localStorage.getItem(NODE_AVATAR_PREF_KEY)==="initials"?"initials":"photos";
 function updateNodeAvatarToggle(){
@@ -1156,6 +1219,7 @@ function pos(n){
     }
   }
   if(currentView!=="hubs")return relationshipPos[n.id]||[500,360];
+  if(isHubPeripheral(n))return peripheralPlacement(n).point;
   const anchor=n.hubAnchor||n.hub;
   const c=hubCenters[anchor]||[500,360],o=offsets[n.id]||[0,0];
   const scale=n.periphery?1.9:1;
@@ -1332,7 +1396,7 @@ function render(){
   if(currentView==="hubs"){
     Object.entries(hubCenters).filter(([name])=>name!=="Center").forEach(([name,c])=>{
       const members=nodes.filter(n=>n.hub===name && !isCollectiveEntity(n) && visibleNode(n));
-      const radius=Math.max(72,64+members.length*6);
+      const radius=fieldRadiusForHub(name);
       const field=make("circle",{cx:c[0],cy:c[1],r:radius,class:`hub-field ${name==="God's Contraband"?"core-hub":""} ${selectedHubName===name?"selected-hub":""}`,"data-hub":name});
       field.addEventListener("click",()=>showHubProfile(name));
       viewport.appendChild(field);
@@ -1519,7 +1583,8 @@ function startOrganicMotion(){
 
       let cx=500,cy=360;
       if(currentView==="hubs"){
-        const hc=hubCenters[n.hub]||[500,360];cx=hc[0];cy=hc[1];
+        const hc=isHubPeripheral(n)?peripheralPlacement(n).center:hubCenters[n.hub]||[500,360];
+        cx=hc[0];cy=hc[1];
       }else if(currentView==="venues"){
         if(n.profileType==="venue"){
           const vc=venueHubCenter(n);cx=vc[0];cy=vc[1];
@@ -1572,6 +1637,12 @@ function startOrganicMotion(){
 
       const [filterDx,filterDy]=filterDriftOffset(n,now);
       let tx=radialX+wanderX+filterDx,ty=radialY+wanderY+filterDy;
+      if(currentView==="hubs"&&isHubPeripheral(n)){
+        const placement=peripheralPlacement(n);
+        const dx=tx-placement.center[0],dy=ty-placement.center[1],dist=Math.hypot(dx,dy)||1;
+        const safeMin=fieldRadiusForHub(placement.hub)+(n.r||20)+22;
+        if(dist<safeMin){tx=placement.center[0]+dx/dist*safeMin;ty=placement.center[1]+dy/dist*safeMin}
+      }
 
       if(orbitMode && currentView==="relationship"){
         if(n.id==="uh_sar"){
@@ -3533,6 +3604,15 @@ document.getElementById("saveProfile").onclick=()=>{
 })();
 
 const APP_RELEASES=[
+  {
+    version:"v60",file:null,date:"2026-09-19",title:"Untitled project library and hub periphery",
+    notes:[
+      "Project-specific Untitled library links stay browser-local; exact public embeds can be supplied separately when the music is ready for sharing",
+      "Creative Hubs now places unassigned or explicitly peripheral collaborators outside the hub field rather than inside its border",
+      "Periphery hub choice follows explicit anchor and real network relationships first, creative tags second, and relationship-map proximity otherwise",
+      "Hub membership counts exclude adjacent/peripheral collaborators"
+    ]
+  },
   {
     version:"v59",file:null,date:"2026-09-19",title:"Private collaboration files per project",
     notes:[
