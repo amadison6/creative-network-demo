@@ -1867,6 +1867,20 @@ document.getElementById("removeProfilePhoto").onclick=()=>{pendingEditPhotoData=
 document.getElementById("saveProfileEdits").onclick=()=>{
   const id=document.getElementById("editProfileId").value,n=nodes.find(x=>x.id===id);if(!n)return;
   const before=profileSnapshot(n),hadPhoto=!!n.photo;
+  const spotifyInput=document.getElementById("editSpotify");
+  const instagramInput=document.getElementById("editInstagram");
+  const spotifyEdit=spotifyInput.value.trim(),instagramEdit=instagramInput.value.trim();
+  for(const [raw,valid,input,msg] of [
+    [spotifyEdit,parseSpotifyLink(spotifyEdit),spotifyInput,"Use a full open.spotify.com artist, album or track URL."],
+    [instagramEdit,parseInstagramProfile(instagramEdit),instagramInput,"Use an Instagram profile URL or @handle."]
+  ]){
+    if(raw&&!valid){
+      input.setCustomValidity(msg);
+      input.reportValidity();
+      input.addEventListener("input",()=>input.setCustomValidity(""),{once:true});
+      return;
+    }
+  }
   const untitledRaw=document.getElementById("editUntitled").value.trim();
   const untitledURL=normalizeUntitledLink(untitledRaw);
   if(untitledRaw&&!untitledURL){
@@ -1886,7 +1900,8 @@ document.getElementById("saveProfileEdits").onclick=()=>{
   n.tags=["All",...new Set([...selectedCategories,...typedTags.filter(t=>t!=="All"&&!FILTER_CATEGORIES.includes(t))])];
   n.bio=document.getElementById("editBio").value.trim();
   n.links=Object.assign({},n.links||{});
-  const ig=document.getElementById("editInstagram").value.trim(),sp=document.getElementById("editSpotify").value.trim();
+  const ig=instagramEdit?parseInstagramProfile(instagramEdit).url:"";
+  const sp=spotifyEdit?parseSpotifyLink(spotifyEdit).url:"";
   if(ig)n.links.Instagram=ig;else delete n.links.Instagram;
   if(sp)n.links.Spotify=sp;else delete n.links.Spotify;
   if(n.profileType==="musician"||isMusicProfile(n)||isCollectiveEntity(n)){
@@ -2315,6 +2330,8 @@ const schemas={
     title:"Music profile",
     fields:[
       ["newArtistName","Artist / Stage name","Artist name if different"],
+      ["newSpotify","Spotify artist / music link","https://open.spotify.com/artist/..."],
+      ["newInstagram","Instagram profile or @handle","@artist"],
       ["newUntitled","Untitled listening link","https://untitled.stream/..."],
       ["newInstruments","Instruments / Skills","Drums, bass, keys..."],
       ["newGenres","Genres / Style","R&B, hip-hop, electronic..."],
@@ -2331,6 +2348,8 @@ const schemas={
       ["newMembers","Members / roster","Names or roster note"],
       ["newStatus","Status","Active, dormant, project-based..."],
       ["newFounders","Founders","Optional"],
+      ["newSpotify","Spotify artist / music link","https://open.spotify.com/artist/..."],
+      ["newInstagram","Instagram profile or @handle","@collective"],
       ["newUntitled","Untitled listening link","https://untitled.stream/..."],
       ["newGenres","Genres / style","Optional"],
       ["newBusinessEmail","Contact","Optional"]
@@ -2433,6 +2452,22 @@ document.getElementById("saveProfile").onclick=()=>{
   const publicLink=document.getElementById("newLink").value.trim();
   const untitledRaw=document.getElementById("newUntitled")?.value.trim()||"";
   const untitledURL=normalizeUntitledLink(untitledRaw);
+  const spotifyRaw=document.getElementById("newSpotify")?.value.trim()||"";
+  const instagramRaw=document.getElementById("newInstagram")?.value.trim()||"";
+  const spotify=spotifyRaw?parseSpotifyLink(spotifyRaw):null;
+  const instagram=instagramRaw?parseInstagramProfile(instagramRaw):null;
+  for(const [raw,parsed,inputId,message] of [
+    [spotifyRaw,spotify,"newSpotify","Use a full open.spotify.com artist, album or track URL."],
+    [instagramRaw,instagram,"newInstagram","Use a valid @handle or Instagram profile URL."]
+  ]){
+    if(raw&&!parsed){
+      const input=document.getElementById(inputId);
+      input.setCustomValidity(message);
+      input.reportValidity();
+      input.addEventListener("input",()=>input.setCustomValidity(""),{once:true});
+      return;
+    }
+  }
   if(untitledRaw&&!untitledURL){
     const input=document.getElementById("newUntitled");
     input.setCustomValidity("Enter a valid http(s) Untitled link.");
@@ -2459,6 +2494,8 @@ document.getElementById("saveProfile").onclick=()=>{
     links:publicLink?{Public:publicLink}:{}
   };
   if(untitledURL)p.links.Untitled=untitledURL;
+  if(spotify)p.links.Spotify=spotify.url;
+  if(instagram)p.links.Instagram=instagram.url;
 
   const val=id=>document.getElementById(id)?.value?.trim()||"";
   if(kind==="musician"){
