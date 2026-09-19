@@ -101,22 +101,28 @@ function demoPartners(){
    return priority(a.id)-priority(b.id)||a.name.localeCompare(b.name);
   });
 }
+function demoTileCount(p){
+ return p.id==="uh_sar"?
+   recordsFor("uh_sar").filter(t=>(t.collaborators||[]).every(id=>id==="uh_sar")).length:
+   recordsFor(p.id).filter(t=>(t.collaborators||[]).includes("uh_sar")).length;
+}
 function dashboard(){
  const self=getPeople().find(p=>p.id==="uh_sar")||{id:"uh_sar",name:"My Demos & Beats"};
- const partners=[self,...demoPartners()];
+ // Don't show empty collaborator shortcuts. A real linked song activates a
+ // small circular record/avatar for that artist in the producer's shelf.
+ const partners=[self,...demoPartners()].map(p=>({person:p,count:demoTileCount(p)}))
+  .filter(entry=>entry.count>0);
  const icon=p=>p.photo&&(/^(https:\/\/|data:image\/)/i).test(p.photo)?
    '<img src="'+esc(p.photo)+'" alt="" loading="lazy" referrerpolicy="no-referrer">':
    '<span>'+esc(p.id==="uh_sar"?"♪":p.name.split(/\s+/).map(s=>s[0]).join("").slice(0,2).toUpperCase())+'</span>';
  return '<div class="demo-dashboard"><div class="demo-dashboard-heading">My Demo Library · Collaborator Playlists</div>'+
- '<p class="demo-muted">Choose an artist you make music with to open their demo playlist. Your personal beats live separately below.</p>'+
- '<div class="demo-partner-grid">'+partners.map(p=>{
-  const number=p.id==="uh_sar"?
-   recordsFor("uh_sar").filter(t=>(t.collaborators||[]).every(id=>id==="uh_sar")).length:
-   recordsFor(p.id).filter(t=>(t.collaborators||[]).includes("uh_sar")).length;
-  return '<button type="button" class="demo-partner" data-demo-nav="'+esc(p.id)+'" aria-label="Open '+esc(p.id==="uh_sar"?"My Demos and Beats":p.name+" demos")+'">'+
+ '<p class="demo-muted">Choose an artist with a saved demo to open their playlist. Their circle appears after you link your first song together.</p>'+
+ (partners.length?'<div class="demo-partner-grid">'+partners.map(({person:p,count})=>{
+  return '<button type="button" class="demo-partner" data-demo-nav="'+esc(p.id)+'" aria-label="Open '+esc(p.id==="uh_sar"?"My Demos and Beats":p.name+" demos")+', '+count+' saved">'+
    '<span class="demo-partner-photo">'+icon(p)+'</span><strong>'+esc(p.id==="uh_sar"?"My Demos & Beats":p.name)+'</strong>'+
-   '<small>'+number+' '+(number===1?"demo":"demos")+'</small></button>';
- }).join("")+'</div></div>';
+   '<small>'+count+' '+(count===1?"demo":"demos")+'</small></button>';
+ }).join("")+'</div>':'<p class="demo-muted">No collaborator playlists yet. Upload a demo and link the artist to reveal their circle here.</p>')+
+ '</div>';
 }
 function choices(selected,omit=""){
  return getPeople().filter(p=>p.id!==omit&&p.profileType!=="venue"&&p.profileType!=="studio")
@@ -214,8 +220,10 @@ function redrawSection(n){
  const tmp=document.createElement("div");tmp.innerHTML=section(n);
  const next=tmp.querySelector(".demo-library");
  if(!next)return;
- const title=old.previousElementSibling;
- if(title?.classList?.contains("section-title"))title.textContent="Demos"+(recordsFor(n.id).length?" · "+recordsFor(n.id).length:"");
+ const preceding=old.previousElementSibling;
+ const title=preceding?.classList?.contains("section-title")?preceding:
+   old.closest("details.profile-fold")?.querySelector("summary .section-title");
+ if(title)title.textContent="Demos"+(recordsFor(n.id).length?" · "+recordsFor(n.id).length:"");
  old.replaceWith(next);bindProfile(n);
  stateChanged();
 }
