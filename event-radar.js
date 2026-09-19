@@ -33,6 +33,31 @@
   function keyOf(record){
     const info=urlInfo(record?.url||"");return info?.key||"";
   }
+  // Historical public listings at Slide Thru, verified from source pages.
+  // They are imported as already reviewed and remain in the archive, never
+  // misrepresented as fresh events or automatically discovered notifications.
+  const SLIDE_THRU_ARCHIVE=[
+    {title:"heatWAV. USA Tour — LA",date:"2026-09-13",time:"17:00",
+      url:"https://events.extrachill.com/events/heatwav-stop-2-la-usa-tour",
+      profileIds:["venue_slide_thru"],role:"Associated",
+      source:"Extra Chill event listing",
+      notes:"Past live cypher, rising-artist showcase and DJ sets; listing confirms Slide Thru The Venue, September 13, 2026."},
+    {title:"Boston 2 LA Showcase",date:"2026-08-22",time:"18:00",
+      url:"https://www.bandsintown.com/e/108734196-ramon.-at-slide-thru-the-venue",
+      profileIds:["venue_slide_thru"],role:"Associated",
+      source:"Bandsintown event listing",
+      notes:"Past showcase: Mind Flex, Matty Owens, Hassel G., C4RPOOL and others. See linked listing for full lineup."},
+    {title:"dedwrite LA show",date:"2026-04-17",time:"20:00",
+      url:"https://www.bandsintown.com/e/108125460-dedwrite-at-slide-thru-the-venue",
+      profileIds:["venue_slide_thru"],role:"Associated",
+      source:"Bandsintown event listing",
+      notes:"Past dedwrite show at Slide Thru, April 17, 2026."},
+    {title:"U SLID? Vol. 5 — SockJus lineup",date:"",time:"",
+      url:"https://www.slidethruthevenue.com/events",
+      profileIds:["venue_slide_thru","sockjus"],role:"Associated",
+      source:"Slide Thru official event archive",
+      notes:"The venue names SockJus in its Vol. 5 lineup and prints May 9, but does not show a year. Historical archive; do not treat as a newly scheduled show."}
+  ];
   function synced(){
     const all=read(),byKey=new Map();
     all.forEach(e=>{const k=keyOf(e);if(k)byKey.set(k,e)});
@@ -57,11 +82,27 @@
         all.push(e);byKey.set(info.key,e);changed=true;
       });
     });
+    SLIDE_THRU_ARCHIVE.forEach(seed=>{
+      if(!profiles().some(p=>p.id==="venue_slide_thru"))return;
+      const key=keyOf(seed);
+      const existing=byKey.get(key);
+      if(existing){
+        const ids=[...new Set([...(existing.profileIds||[]),...seed.profileIds])];
+        if(ids.length!==(existing.profileIds||[]).length){existing.profileIds=ids;changed=true}
+        return;
+      }
+      const item=Object.assign({id:uid(),seen:true,hidden:false,
+        addedAt:new Date().toISOString()},seed);
+      all.push(item);byKey.set(key,item);changed=true;
+    });
     if(changed)save(all);
     updateNav(all);
     return all;
   }
-  function upcoming(e){return !e.date||e.date>=today()}
+  function upcoming(e){
+    if(e?.source==="Slide Thru official event archive"&&!e.date)return false;
+    return !e.date||e.date>=today();
+  }
   function count(id){
     return read().filter(e=>!e.hidden&&!e.seen&&upcoming(e)&&e.profileIds?.includes(id)).length;
   }
