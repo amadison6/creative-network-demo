@@ -268,8 +268,10 @@
 .toolbar .search{flex:1 0 240px;min-width:240px}
 @media (prefers-reduced-motion: reduce){.space-fx{display:none}}
 .hub-field{
-  fill:rgba(127,179,255,.025);stroke:#334052;stroke-width:1.1;stroke-dasharray:6 8;opacity:.82;pointer-events:none
+  fill:rgba(127,179,255,.025);stroke:#334052;stroke-width:1.1;stroke-dasharray:6 8;opacity:.82;
+  pointer-events:auto;cursor:pointer;transition:fill .2s ease,stroke .2s ease,opacity .2s ease
 }
+.hub-field:hover{fill:rgba(127,179,255,.055);stroke:#6683a6;opacity:1}
 .hub-field.core-hub{fill:rgba(215,181,109,.025);stroke:#4b4332}
 .studio-field{
   fill:rgba(143,214,168,.026);stroke:#3f6654;stroke-width:1.15;stroke-dasharray:6 8;opacity:.88;
@@ -945,19 +947,12 @@ function render(){
       const members=nodes.filter(n=>n.hub===name && !isCollectiveEntity(n) && visibleNode(n));
       const radius=Math.max(72,64+members.length*6);
       const field=make("circle",{cx:c[0],cy:c[1],r:radius,class:`hub-field ${name==="God's Contraband"?"core-hub":""}`});
+      field.addEventListener("click",()=>showHubProfile(name));
       viewport.appendChild(field);
 
       const t=make("text",{x:c[0],y:c[1]-radius-12,class:"hub-label","text-anchor":"middle","data-hub":name});
       t.textContent=name;
-      t.addEventListener("click",()=>{
-        const collective=nodes.find(n=>isCollectiveEntity(n) && n.hub===name);
-        if(collective){
-          showProfile(collective);
-        }else{
-          document.getElementById("search").value=name;
-          render();
-        }
-      });
+      t.addEventListener("click",()=>showHubProfile(name));
       viewport.appendChild(t);
 
       const count=make("text",{x:c[0],y:c[1]-radius+2,class:"hub-count","text-anchor":"middle"});
@@ -1210,6 +1205,77 @@ function profileCategory(n){
     (n.tags||[]).includes("Visual Artists") ? (n.profileType||"filmmaker") :
     isMusicProfile(n) ? "music" : "person";
 }
+function showHubProfile(hubName){
+  selected=null;
+  selectedFocusId=null;
+  render();
+
+  const members=nodes.filter(n=>n.hub===hubName && !isCollectiveEntity(n));
+  const collective=nodes.find(n=>isCollectiveEntity(n) && n.hub===hubName);
+  const studios=nodes.filter(n=>n.profileType==="studio" && (n.hub===hubName || studioMembersFor(n).some(m=>m.hub===hubName)));
+  const projects=[...new Set(members.flatMap(n=>(n.tags||[]).filter(t=>t!=="All" && t!==hubName)))].slice(0,12);
+  const openTasks=members.reduce((sum,n)=>sum+notificationCount(n.id),0);
+  const saved=JSON.parse(localStorage.getItem("creativeNetworkNotes")||"{}");
+  const hubKey="hub::"+hubName;
+  const note=saved[hubKey]||"";
+
+  const memberButtons=members.length
+    ? members.map(n=>`<button class="secondary-btn hub-member-link" data-id="${escapeAttr(n.id)}">${escapeAttr(n.name)}${notificationCount(n.id)?` · ${notificationCount(n.id)} open`:""}</button>`).join(" ")
+    : '<span class="missing-value">No members mapped yet</span>';
+
+  const studioButtons=studios.length
+    ? studios.map(n=>`<button class="secondary-btn hub-studio-link" data-id="${escapeAttr(n.id)}">${escapeAttr(n.name)}</button>`).join(" ")
+    : '<span class="missing-value">No connected studios mapped yet</span>';
+
+  const projectChips=projects.length
+    ? projects.map(x=>`<span class="chip">${escapeAttr(x)}</span>`).join("")
+    : '<span class="missing-value">No project tags mapped yet</span>';
+
+  document.getElementById("profile").innerHTML=`
+    <div class="entity-badge">Creative Hub</div>
+    <h2>${escapeAttr(hubName)}</h2>
+    <div class="roleline">${collective ? escapeAttr(collective.role||"Collective / creative hub") : "Relationship cluster / working hub"}</div>
+    <div class="profile-grid">
+      <div class="card"><div class="k">Members</div><div class="v">${members.length}</div></div>
+      <div class="card"><div class="k">Open tasks</div><div class="v">${openTasks}</div></div>
+    </div>
+    <div class="card"><div class="k">What this hub represents</div><div class="v">${collective?.bio ? escapeAttr(collective.bio) : "A recurring cluster of people, projects, and resources in your creative network."}</div></div>
+
+    <div class="section-title">People in this hub</div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap">${memberButtons}</div>
+
+    <div class="section-title">Connected projects / tags</div>
+    <div class="chips">${projectChips}</div>
+
+    <div class="section-title">Connected studios / resources</div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap">${studioButtons}</div>
+
+    ${collective ? `<div class="section-title">Canonical collective</div><button class="secondary-btn" id="openCollectiveProfile">Open ${escapeAttr(collective.name)} profile</button>` : ""}
+
+    <div class="section-title">Hub Notes</div>
+    <textarea id="hubNotes">${escapeAttr(note)}</textarea>
+    <button class="save" id="saveHubNotes">Save hub note locally</button>
+    <div class="small" style="margin-top:8px">Hub membership and task counts are calculated from the current network map.</div>
+  `;
+
+  document.querySelectorAll(".hub-member-link,.hub-studio-link").forEach(btn=>{
+    btn.onclick=()=>{
+      const target=nodes.find(n=>n.id===btn.dataset.id);
+      if(target)showProfile(target);
+    };
+  });
+  const openCollective=document.getElementById("openCollectiveProfile");
+  if(openCollective)openCollective.onclick=()=>showProfile(collective);
+
+  document.getElementById("saveHubNotes").onclick=()=>{
+    const all=JSON.parse(localStorage.getItem("creativeNetworkNotes")||"{}");
+    all[hubKey]=document.getElementById("hubNotes").value;
+    localStorage.setItem("creativeNetworkNotes",JSON.stringify(all));
+    document.getElementById("saveHubNotes").textContent="Saved";
+    setTimeout(()=>document.getElementById("saveHubNotes").textContent="Save hub note locally",900);
+  };
+}
+
 function showProfile(n){
   selected=n;
   selectedFocusId=n.id;
@@ -1291,17 +1357,24 @@ function showProfile(n){
       <div class="card" style="margin-top:10px"><div class="k">Potential show notes</div><div class="v">${n.potentialShowNotes||'<span class="missing-value">No show idea saved yet</span>'}</div></div>
       <div class="entity-rate-note">Keep rates as dated quotes / offers. Confirm terms again before locking a show.</div>`;
   }else if(category==="studio"){
+    const studioPeople=studioMembersFor(n);
+    const peopleLinks=studioPeople.length
+      ? studioPeople.map(p=>`<button class="secondary-btn studio-person-link" data-id="${escapeAttr(p.id)}">${escapeAttr(p.name)}</button>`).join(" ")
+      : '<span class="missing-value">Not mapped yet</span>';
     specialized=`
       <div class="section-title">Studio / Resource Profile</div>
       <div class="profile-grid">
-                <div class="card"><div class="k">Capacity</div><div class="v">${n.capacity||'<span class="missing-value">Not added yet</span>'}</div></div>
+        <div class="card"><div class="k">Capacity</div><div class="v">${n.capacity||'<span class="missing-value">Not added yet</span>'}</div></div>
         <div class="card"><div class="k">Access / control</div><div class="v">${n.access||'<span class="missing-value">Not added yet</span>'}</div></div>
         <div class="card"><div class="k">Availability</div><div class="v">${n.availability||'<span class="missing-value">Not added yet</span>'}</div></div>
+        <div class="card"><div class="k">Location</div><div class="v">${n.location||n.address||'<span class="missing-value">Not added yet</span>'}</div></div>
       </div>
-      <div class="card"><div class="k">Equipment / resources</div><div class="v">${n.resources||'<span class="missing-value">Not added yet</span>'}</div></div>
-      <div class="card" style="margin-top:10px"><div class="k">Frequent people</div><div class="v">${n.frequentPeople||'<span class="missing-value">Not mapped yet</span>'}</div></div>
-      <div class="card" style="margin-top:10px"><div class="k">History / usage</div><div class="v">${n.history||'<span class="missing-value">Not mapped yet</span>'}</div></div>
-      <div class="card" style="margin-top:10px"><div class="k">Rates / cost</div><div class="v">${n.rates||'<span class="missing-value">Not mapped yet</span>'}</div></div>`;
+      <div class="card"><div class="k">Owner / contact</div><div class="v">${n.owner||n.contact||n.organization||'<span class="missing-value">Not added yet</span>'}</div></div>
+      <div class="card" style="margin-top:10px"><div class="k">Equipment / resources</div><div class="v">${n.resources||'<span class="missing-value">Not added yet</span>'}</div></div>
+      <div class="card" style="margin-top:10px"><div class="k">Connected people</div><div class="v" style="display:flex;gap:7px;flex-wrap:wrap">${peopleLinks}</div></div>
+      <div class="card" style="margin-top:10px"><div class="k">History / sessions</div><div class="v">${n.history||'<span class="missing-value">Not mapped yet</span>'}</div></div>
+      <div class="card" style="margin-top:10px"><div class="k">Rates / cost</div><div class="v">${n.rates||'<span class="missing-value">Not mapped yet</span>'}</div></div>
+      <div class="card" style="margin-top:10px"><div class="k">Files / resources</div><div class="v">${n.files||'<span class="missing-value">No files linked yet</span>'}</div></div>`;
   }
 
   document.getElementById("profile").innerHTML=`
@@ -1328,6 +1401,12 @@ function showProfile(n){
   `;
 
   document.getElementById("editProfileBtn").onclick=()=>openEditProfile(n);
+  document.querySelectorAll(".studio-person-link").forEach(btn=>{
+    btn.onclick=()=>{
+      const target=nodes.find(x=>x.id===btn.dataset.id);
+      if(target)showProfile(target);
+    };
+  });
 
   const renderProfileNotifications=()=>{
     const box=document.getElementById("profileNotifications");if(!box)return;
