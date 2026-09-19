@@ -1390,6 +1390,8 @@ function showHubProfile(hubName){
   const saved=JSON.parse(localStorage.getItem("creativeNetworkNotes")||"{}");
   const hubKey="hub::"+hubName;
   const note=saved[hubKey]||"";
+  const hubPartiful=collective?parsePartifulLink(collective.links?.Partiful):null;
+  const hubPartifulEvents=(collective?.partifulEvents||[]).map(parsePartifulLink).filter(x=>x?.kind==="event");
 
   const memberButtons=members.length
     ? members.map(n=>`<button class="secondary-btn hub-member-link" data-id="${escapeAttr(n.id)}">${escapeAttr(n.name)}${notificationCount(n.id)?` · ${notificationCount(n.id)} open`:""}</button>`).join(" ")
@@ -1421,6 +1423,17 @@ function showHubProfile(hubName){
       ${collective.founders?`<div class="card"><div class="k">Founders</div><div class="v">${escapeAttr(collective.founders)}</div></div>`:""}
       <div class="card" style="margin-top:10px"><div class="k">Saved roster</div><div class="v">${escapeAttr(collective.members||"Not mapped yet")}</div></div>
     ` : ""}
+
+    ${collective?`
+      <div class="section-title">Partiful</div>
+      <div class="partiful-card">
+        <div class="integration-heading"><strong>${escapeAttr(collective.name)}</strong><span class="partiful-pill">Collective / org</span></div>
+        <div class="partiful-links">
+          ${hubPartiful?.kind==="profile"?`<a href="${escapeAttr(hubPartiful.url)}" target="_blank" rel="noopener noreferrer">Open Partiful profile ↗</a>`:""}
+          ${hubPartifulEvents.map((e,i)=>`<a href="${escapeAttr(e.url)}" target="_blank" rel="noopener noreferrer">Event ${i+1} ↗</a>`).join("")}
+        </div>
+        ${!hubPartifulEvents.length&&hubPartiful?.kind!=="profile"?`<div class="integration-output">No Partiful links yet. Edit the collective's full profile to add one.</div>`:""}
+      </div>`:""}
 
     <div class="section-title">People in this hub</div>
     <div style="display:flex;gap:7px;flex-wrap:wrap">${memberButtons}</div>
