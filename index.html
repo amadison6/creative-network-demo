@@ -683,8 +683,8 @@
 .demo-connection{stroke:#86c5c1;stroke-width:1.5;stroke-dasharray:3.5 7;stroke-opacity:.36;pointer-events:none}
 .demo-connection.demo-connection-playing{stroke:#c3fff1;stroke-width:3;stroke-dasharray:8 3;stroke-opacity:.95;filter:drop-shadow(0 0 5px #8ce8cc)}
 .node .demo-play-ring{display:none;fill:none;stroke:#abf4df;stroke-width:2.6;stroke-dasharray:6 3;pointer-events:none}
-.node.demo-spinning .demo-play-ring{display:block;animation:demo-ring-rotate 5s linear infinite;transform-box:fill-box;transform-origin:center}
-.node.demo-spinning .node-avatar-photo{animation:demo-record-spin 2.8s linear infinite;transform-box:fill-box;transform-origin:center}
+.node.demo-spinning .demo-play-ring{display:block;animation:demo-ring-rotate 30s linear infinite;transform-box:fill-box;transform-origin:center}
+.node.demo-spinning .node-avatar-photo{animation:demo-record-spin 24s linear infinite;transform-box:fill-box;transform-origin:center}
 @keyframes demo-record-spin{to{transform:rotate(360deg)}}
 @keyframes demo-ring-rotate{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.node.demo-spinning .node-avatar-photo,.node.demo-spinning .demo-play-ring{animation:none}}
@@ -744,7 +744,7 @@
 </datalist>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v63 · M4A demo support</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v64 · slower demo record spin</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -3691,6 +3691,10 @@ document.getElementById("saveProfile").onclick=()=>{
 })();
 
 const APP_RELEASES=[
+  {
+    version:"v64",file:null,date:"2026-09-19",title:"Slower record spin during demo playback",
+    notes:["Playing collaborators’ photo circles now rotate once every 24 seconds instead of 2.8 seconds", "Playback accent rings rotate once every 30 seconds instead of 5 seconds", "Reduced-motion preference remains respected; audio playback unchanged"]
+  },
   {
     version:"v63",file:null,date:"2026-09-19",title:"M4A audio demos and accurate file errors",
     notes:[
