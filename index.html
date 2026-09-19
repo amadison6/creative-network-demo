@@ -369,6 +369,63 @@
 .network-spotify-controls{display:flex;gap:12px;margin-top:3px}
 .network-spotify-controls button{cursor:pointer;border:1px solid #42654d;background:#1d3e2b;color:#e9f9ee;border-radius:9px;padding:7px 12px}
 .network-spotify-controls button:disabled{opacity:.45;cursor:not-allowed}
+
+/* Network HQ v46 — modal playlist builder */
+.mix-entry{margin-top:5px;color:#9fe2b8!important;border:1px solid #315b49!important;background:#15231d!important;font-weight:750}
+.mix-profile-open{cursor:pointer;padding:10px 12px;border-radius:9px;border:1px solid #4c6f57;background:#183324;color:#baf5c9;font-weight:750;font-size:12px}
+.network-mix-backdrop{position:fixed;inset:0;z-index:1200;background:#000c;display:flex;align-items:center;justify-content:center;padding:22px}
+.network-mix-backdrop[hidden]{display:none!important}
+.network-mix-panel{width:min(1100px,100%);height:min(830px,calc(100dvh - 38px));overflow:hidden;display:flex;flex-direction:column;background:#11151b;border:1px solid #415548;border-radius:18px;color:#f4f7f5;box-shadow:0 20px 90px #000e}
+.network-mix-panel button,.network-mix-panel input,.network-mix-panel select,.network-mix-panel textarea{font:inherit}
+.network-mix-panel button{cursor:pointer;background:#1c2b25;border:1px solid #466654;color:#c5f1d5;border-radius:8px;padding:7px 10px;font-size:12px}
+.network-mix-panel button:disabled{cursor:not-allowed;opacity:.42}
+.network-mix-panel a{color:#9fdfb9;text-decoration:none;font-size:11px;white-space:nowrap}
+.network-mix-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:19px 22px 13px;border-bottom:1px solid #283b32}
+.network-mix-head strong{font-size:19px}
+.network-mix-head p{color:#94a69c;font-size:12px;margin:5px 0 0}
+.network-mix-head #mixClose{font-size:23px;line-height:24px;padding:0 9px}
+.mix-connection{display:flex;gap:11px;align-items:center;flex-wrap:wrap;padding:10px 22px;font-size:11px;color:#c1d4c7;border-bottom:1px solid #283b32;background:#15211a}
+.mix-ok{color:#9debba}
+.mix-two-columns{min-height:0;flex:1;display:grid;grid-template-columns:minmax(0,1.23fr) minmax(0,1fr)}
+.mix-catalog,.mix-selection{min-height:0;overflow-y:auto;padding:15px 18px}
+.mix-selection{border-left:1px solid #283b32;background:#141922}
+.mix-line,.mix-section-head{display:flex;gap:10px;align-items:center;justify-content:space-between;margin:5px 0 10px}
+.mix-line label,.mix-section-head strong,.mix-save label{font-size:12px;color:#d2e4d8;font-weight:750}
+.mix-section-head{margin-top:20px}
+#mixArtist,#mixTrackSearch,.mix-save input,.mix-save textarea{width:100%;border:1px solid #3b4b46;background:#0c1015;border-radius:9px;color:#f0f5ef;padding:10px 11px;font-size:13px;outline:none}
+#mixTrackSearch{margin-bottom:8px}
+.mix-release,.mix-track,.mix-draft-track{display:flex;align-items:center;gap:9px;border:1px solid #293b34;background:#17201c;border-radius:10px;padding:9px;margin-bottom:7px}
+.mix-release-label,.mix-track-text{min-width:0;flex:1;display:flex;flex-direction:column;gap:4px}
+.mix-release-label strong,.mix-track-text strong{font-size:12px;overflow-wrap:anywhere}
+.mix-release-label span,.mix-track-text span,.mix-track-index,.mix-draft-index{font-size:10px;color:#93a79b;line-height:1.4}
+.mix-row-actions{display:flex;align-items:center;gap:6px}
+.mix-row-actions button{white-space:nowrap}
+.mix-track button,.mix-draft-track button{padding:5px 8px;white-space:nowrap}
+.mix-track>a,.mix-draft-track>a{font-size:14px}
+.mix-track-list{margin-top:8px}
+.mix-more{margin:6px 0 10px}
+.mix-muted{color:#91a69a;font-size:12px;line-height:1.6}
+.mix-draft{max-height:39vh;min-height:110px;overflow-y:auto}
+.mix-draft-track{background:#1a232d}
+.mix-draft-index{width:15px;flex:none}
+.mix-save{border-top:1px solid #33473c;padding-top:13px;margin-top:9px}
+.mix-save label{display:block;margin:10px 0 7px}
+.mix-save textarea{min-height:56px;resize:vertical}
+.mix-privacy{margin:10px 0;color:#9cb1a5;font-size:11px}
+#mixCreate{width:100%;background:#1db954;border-color:#1db954;color:#09200f;font-weight:850;font-size:13px;padding:11px}
+.mix-result{font-size:12px;line-height:1.6;margin:10px 0;color:#bcf1ce}
+.mix-footer{border-top:1px solid #33463a;padding:11px 22px;display:flex;align-items:center;justify-content:space-between;gap:15px;color:#abc7b3;font-size:12px}
+.mix-footer .mix-error{color:#f2aaac}
+@media(max-width:740px){
+  .network-mix-backdrop{padding:0}
+  .network-mix-panel{width:100%;height:100dvh;border-radius:0}
+  .mix-two-columns{display:block;overflow-y:auto}
+  .mix-catalog,.mix-selection{overflow:visible;padding:14px}
+  .mix-selection{border-left:0;border-top:1px solid #283b32}
+  .mix-draft{max-height:none}
+  .mix-footer{padding:10px}
+}
+
 </style>
 </head>
 <body>
@@ -424,12 +481,13 @@
 </datalist>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v45 · Spotify Premium playback</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v46 · cross-artist playlist builder</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
 <button class="viewbtn" data-view="studios">Studio View</button>
 <button class="viewbtn" data-view="venues">Venue View</button>
+<button class="viewbtn mix-entry" id="networkMixButton">♫ Mix Builder</button>
 <div class="view-explainer" id="viewExplainer">
   <strong>Relationship View</strong><br>
   Who is close to you? Distance represents direct relationship strength; rings separate core, working network, and outer orbit.
@@ -643,6 +701,7 @@
 </div>
 
 <script src="./spotify-full.js"></script>
+<script src="./spotify-playlists.js"></script>
 <script>
 const nodes=[
 {id:"uh_sar",name:"uh_sar",role:"Producer / Artist / Director",type:"core",r:34,tags:["All","God's Contraband"],hub:"Center",bio:"Central creative node: producer, artist, arranger, multi-instrumentalist, and creative director. Co-founder and executive producer of God's Contraband."},
@@ -1576,6 +1635,7 @@ function showProfile(n){
         <iframe class="spotify-embed" title="Spotify player for ${escapeAttr(n.name)}" src="${escapeAttr(spotify.embedUrl)}" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe>
         <div class="integration-actions"><a href="${escapeAttr(spotify.url)}" target="_blank" rel="noopener noreferrer">Open on Spotify ↗</a></div>
       `:""}
+      ${spotify?.kind==="artist"?`<div class="integration-actions"><button class="mix-profile-open" id="mixBrowseArtist" type="button">♫ Browse catalog · Add to mix</button></div>`:""}
       ${window.NetworkSpotify ? window.NetworkSpotify.renderCard(n,spotify) : ""}
     </div>`:""}
     <div class="section-title">Instagram · Connect</div>
@@ -1640,6 +1700,8 @@ function showProfile(n){
   }
   if(spotify)populateSpotifyMetadata(n.id,spotify);
   if(isArtist&&window.NetworkSpotify)window.NetworkSpotify.bindCard(n,spotify);
+  const mixArtistButton=document.getElementById("mixBrowseArtist");
+  if(mixArtistButton)mixArtistButton.onclick=()=>window.NetworkPlaylists?.open(n.id);
   const saveUntitled=document.getElementById("saveUntitledLink");
   if(saveUntitled)saveUntitled.onclick=()=>{
     const input=document.getElementById("untitledLinkInput");
@@ -2639,6 +2701,16 @@ document.getElementById("saveProfile").onclick=()=>{
 
 const APP_RELEASES=[
   {
+    version:"v46",file:null,date:"2026-09-18",title:"Cross-artist Spotify mix builder",
+    notes:[
+      "Browse albums and singles of Spotify-linked artists already in the map",
+      "Collect tracks from different artist catalogs and reorder a locally saved draft",
+      "Create a private Spotify playlist explicitly on your connected Spotify account",
+      "Use current /me/playlists and /playlists/{id}/items endpoints and request playlist-modify-private permission",
+      "No automatic playlist creation or public sharing; user previews and confirms before saving"
+    ]
+  },
+  {
     version:"v45",file:null,date:"2026-09-18",title:"Spotify Connect full-song playback",
     notes:[
       "Spotify Developer Client ID input, explicit Premium sign-in and PKCE authentication",
@@ -3321,7 +3393,10 @@ if(typeof APP_RELEASES!=="undefined" && !APP_RELEASES.some(r=>r.version==="v15")
 }
 
 render();applyCamera();showProfile(nodes.find(n=>n.id==="diontae")||nodes.find(n=>n.id==="baws"));
-if(window.NetworkSpotify)window.NetworkSpotify.boot().catch(function(error){
+if(window.NetworkPlaylists)window.NetworkPlaylists.boot();
+if(window.NetworkSpotify)window.NetworkSpotify.boot().then(function(){
+  if(window.NetworkPlaylists)window.NetworkPlaylists.onAuthReady();
+}).catch(function(error){
   const panel=document.getElementById("spotifyLiveStatus");
   if(panel)panel.textContent="Spotify connection error. Please try reloading.";
   console.error("Network HQ Spotify initialization failed",error);
