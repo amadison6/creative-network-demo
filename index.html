@@ -779,7 +779,7 @@
 <div class="modal-backdrop hidden" id="editProfileModal">
   <div class="modal">
     <div class="modal-head">
-      <h2>Edit profile</h2>
+      <h2 id="editProfileHeading">Edit profile</h2>
       <button class="close-modal" id="closeEditProfileModal">×</button>
     </div>
     <div class="modal-body">
@@ -787,33 +787,33 @@
       <div class="photo-edit-card">
         <div class="photo-edit-preview" id="editPhotoPreview"><span>No profile photo</span></div>
         <div class="photo-edit-controls">
-          <label class="photo-upload-btn">Upload profile picture<input type="file" id="editPhotoFile" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.gif,.avif,.heic,.heif" hidden></label>
+          <label class="photo-upload-btn"><span id="editPhotoUploadLabel">Upload profile picture</span><input type="file" id="editPhotoFile" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.gif,.avif,.heic,.heif" hidden></label>
           <button class="secondary-btn photo-remove-btn" id="removeProfilePhoto" type="button">Remove photo</button>
           <div class="type-help" id="editPhotoStatus">Supports JPG/JPEG, PNG, WebP, GIF, AVIF, and HEIC/HEIF when your browser can decode them. Images are resized and stored only in this browser.</div>
         </div>
       </div>
       <div class="form-grid">
-        <div class="form-field"><label>Name</label><input id="editName"></div>
-        <div class="form-field"><label>Artist / public name</label><input id="editArtistName"></div>
-        <div class="form-field"><label>Primary role</label><input id="editRole"></div>
-        <div class="form-field"><label>Hub / scene</label><input id="editHub"></div>
-        <div class="form-field"><label>Location / neighborhood</label><input id="editLocation" list="locationOptions" placeholder="e.g. Boyle Heights, Los Angeles, CA"></div>
+        <div class="form-field"><label id="editNameLabel">Name</label><input id="editName"></div>
+        <div class="form-field music-profile-only"><label>Artist / public name</label><input id="editArtistName"></div>
+        <div class="form-field"><label id="editRoleLabel">Primary role</label><input id="editRole"></div>
+        <div class="form-field"><label id="editHubLabel">Hub / scene</label><input id="editHub"></div>
+        <div class="form-field"><label id="editLocationLabel">Location / neighborhood</label><input id="editLocation" list="locationOptions" placeholder="e.g. Boyle Heights, Los Angeles, CA"></div>
         <div class="form-field full">
           <label>Categories / filters</label>
           <div class="category-grid" id="editCategoryGrid"></div>
           <div class="type-help">A profile can belong to multiple categories. These directly control the sidebar filters.</div>
         </div>
         <div class="form-field full"><label>Other tags</label><input id="editTags" placeholder="Custom tags that are not sidebar filters"></div>
-        <div class="form-field full"><label>Profile / relationship context</label><textarea id="editBio"></textarea></div>
+        <div class="form-field full"><label id="editBioLabel">Profile / relationship context</label><textarea id="editBio"></textarea></div>
         <div class="form-field"><label>Instagram</label><input id="editInstagram" placeholder="https://instagram.com/..."></div>
         <div class="form-field full"><label>Partiful profile / Org Profile</label><input id="editPartifulProfile" placeholder="https://partiful.com/u/..."></div>
         <div class="form-field full"><label>Partiful event / invite links (one per line)</label><textarea id="editPartifulEvents" rows="3" placeholder="https://partiful.com/e/..."></textarea></div>
-        <div class="form-field"><label>Spotify / primary music link</label><input id="editSpotify" placeholder="https://open.spotify.com/..."></div>
-        <div class="form-field" id="editUntitledWrap"><label>Untitled listening link</label><input id="editUntitled" placeholder="https://untitled.stream/..."></div>
-        <div class="form-field"><label>PRO</label><input id="editPRO" placeholder="ASCAP / BMI / SESAC"></div>
-        <div class="form-field"><label>IPI / CAE</label><input id="editIPI"></div>
-        <div class="form-field"><label>Legal writer name</label><input id="editLegalName"></div>
-        <div class="form-field"><label>Publisher / admin</label><input id="editPublisher"></div>
+        <div class="form-field music-profile-only"><label>Spotify / primary music link</label><input id="editSpotify" placeholder="https://open.spotify.com/..."></div>
+        <div class="form-field music-profile-only" id="editUntitledWrap"><label>Untitled listening link</label><input id="editUntitled" placeholder="https://untitled.stream/..."></div>
+        <div class="form-field music-profile-only"><label>PRO</label><input id="editPRO" placeholder="ASCAP / BMI / SESAC"></div>
+        <div class="form-field music-profile-only"><label>IPI / CAE</label><input id="editIPI"></div>
+        <div class="form-field music-profile-only"><label>Legal writer name</label><input id="editLegalName"></div>
+        <div class="form-field music-profile-only"><label>Publisher / admin</label><input id="editPublisher"></div>
       </div>
       <div class="dynamic-section hidden" id="editEntitySection">
         <div class="dynamic-title" id="editEntityTitle">Entity details</div>
@@ -2537,6 +2537,16 @@ function renderEditCategories(n){
     </label>`).join("");
 }
 function openEditProfile(n){
+  const isVenue=n.profileType==="venue";
+  editProfileModal.classList.toggle("venue-editor",isVenue);
+  document.getElementById("editProfileHeading").textContent=isVenue?"Edit venue / booking details":"Edit profile";
+  document.getElementById("editPhotoUploadLabel").textContent=isVenue?"Upload venue photo":"Upload profile picture";
+  document.getElementById("editNameLabel").textContent=isVenue?"Venue name":"Name";
+  document.getElementById("editRoleLabel").textContent=isVenue?"Venue type / programming":"Primary role";
+  document.getElementById("editHubLabel").textContent=isVenue?"Area / neighborhood":"Hub / scene";
+  document.getElementById("editLocationLabel").textContent=isVenue?"Full street address":"Location / neighborhood";
+  document.getElementById("editBioLabel").textContent=isVenue?"About the room / programming":"Profile / relationship context";
+  document.getElementById("editLocation").placeholder=isVenue?"Street address, city, state and ZIP":"e.g. Boyle Heights, Los Angeles, CA";
   pendingEditPhotoData=null;
   document.getElementById("editPhotoFile").value="";
   document.getElementById("editPhotoStatus").textContent="Supports JPG/JPEG, PNG, WebP, GIF, AVIF, and HEIC/HEIF when your browser can decode them. Images stay local to this browser.";
