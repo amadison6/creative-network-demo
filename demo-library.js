@@ -6,7 +6,7 @@
 const DB_NAME="creativeNetworkAudioDemosV1", STORE="tracks";
 const MAX_FILE=250*1024*1024;
 let dbPromise=null,tracks=[],loaded=false,dbError="",playingId="",currentUrl="",player=null;
-let getPeople=()=>[],refreshMap=()=>{},openPerson=()=>{};
+let getPeople=()=>[],getConnections=()=>[],refreshMap=()=>{},openPerson=()=>{};
 const $=id=>document.getElementById(id);
 const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
 const fmtSize=n=>n>1048576?(n/1048576).toFixed(1)+" MB":Math.max(1,Math.round(n/1024))+" KB";
@@ -62,10 +62,13 @@ function normalizeCredits(ids){
 }
 function recordsFor(id){return tracks.filter(t=>t.collaborators?.includes(id))}
 function personName(id){return getPeople().find(p=>p.id===id)?.name||id}
-function htmlList(n){
+function htmlList(n,mode="all"){
  if(dbError)return '<p class="demo-error">'+esc(dbError)+'</p>';
  if(!loaded)return '<p class="demo-muted">Loading locally saved demos…</p>';
- const list=recordsFor(n.id).sort((a,b)=>String(b.addedAt).localeCompare(String(a.addedAt)));
+ const own=n.id==="uh_sar";
+ const list=recordsFor(n.id).filter(t=>!own||mode!=="solo"||(t.collaborators||[]).every(id=>id==="uh_sar"))
+  .filter(t=>!own||mode!=="shared"||(t.collaborators||[]).some(id=>id!=="uh_sar"))
+  .sort((a,b)=>String(b.addedAt).localeCompare(String(a.addedAt)));
  return list.length?list.map(t=>'<article class="demo-track" data-demo-row="'+esc(t.id)+'">'+
    '<button class="demo-track-play" type="button" data-demo-play="'+esc(t.id)+'" aria-label="Play '+esc(t.title)+'">'+(playingId===t.id&&player&&!player.paused?'Ⅱ':'▶')+'</button>'+
    '<div class="demo-track-copy"><strong>'+esc(t.title)+'</strong>'+
@@ -73,20 +76,67 @@ function htmlList(n){
    '<div class="demo-credit-list">'+(t.collaborators||[]).map(id=>'<button type="button" data-demo-person="'+esc(id)+'">'+esc(personName(id))+'</button>').join("")+'</div>'+
    (t.notes?'<p>'+esc(t.notes)+'</p>':"")+'</div>'+
    '<button type="button" class="demo-track-edit" data-demo-edit="'+esc(t.id)+'" aria-label="Edit demo details">Edit</button></article>').join(""):
-   '<p class="demo-muted">No demos linked to this profile yet. Drop an MP3, WAV or M4A below to start a private playlist.</p>';
+   '<p class="demo-muted">'+(own&&mode==="solo"?"No solo demos or beats yet. Upload something and leave other collaborator boxes unchecked.":
+     own&&mode==="shared"?"No collaborative sessions saved here yet. Select your collaborators during upload or edit a demo to link their profiles.":
+     "No demos linked to this profile yet. Drop an MP3, WAV or M4A below to start a private playlist.")+'</p>';
+}
+function eligibleDemoArtist(p){
+ if(!p||p.id==="uh_sar"||p.profileType==="studio"||p.profileType==="venue"||p.profileType==="filmmaker")return false;
+ if(p.profileType==="collective")return true;
+ const hay=[p.role,p.genres,p.instruments,...(p.tags||[])].filter(Boolean).join(" ");
+ return /artist|rap|sing|songwrit|produc|music|vocal|guitar|bass|key|drum|horn|instrument|God's Contraband/i.test(hay);
+}
+function demoPartners(){
+ const connected=new Set(getConnections().flatMap(([a,b,kind])=>{
+  if(a==="uh_sar"&&b!=="uh_sar"&&kind!=="future")return[b];
+  if(b==="uh_sar"&&a!=="uh_sar"&&kind!=="future")return[a];
+  return[];
+ }));
+ const recorded=new Set(tracks.filter(t=>t.collaborators?.includes("uh_sar"))
+  .flatMap(t=>t.collaborators||[]));
+ return getPeople().filter(p=>eligibleDemoArtist(p)&&(connected.has(p.id)||recorded.has(p.id)))
+  .sort((a,b)=>{
+   const priority=id=>id==="gods_contraband_group"?0:id==="free"?1:id==="camille"?2:10;
+   return priority(a.id)-priority(b.id)||a.name.localeCompare(b.name);
+  });
+}
+function dashboard(){
+ const self=getPeople().find(p=>p.id==="uh_sar")||{id:"uh_sar",name:"My Demos & Beats"};
+ const partners=[self,...demoPartners()];
+ const icon=p=>p.photo&&(/^(https:\/\/|data:image\/)/i).test(p.photo)?
+   '<img src="'+esc(p.photo)+'" alt="" loading="lazy" referrerpolicy="no-referrer">':
+   '<span>'+esc(p.id==="uh_sar"?"♪":p.name.split(/\s+/).map(s=>s[0]).join("").slice(0,2).toUpperCase())+'</span>';
+ return '<div class="demo-dashboard"><div class="demo-dashboard-heading">My Demo Library · Collaborator Playlists</div>'+
+ '<p class="demo-muted">Choose an artist you make music with to open their demo playlist. Your personal beats live separately below.</p>'+
+ '<div class="demo-partner-grid">'+partners.map(p=>{
+  const number=p.id==="uh_sar"?
+   recordsFor("uh_sar").filter(t=>(t.collaborators||[]).every(id=>id==="uh_sar")).length:
+   recordsFor(p.id).filter(t=>(t.collaborators||[]).includes("uh_sar")).length;
+  return '<button type="button" class="demo-partner" data-demo-nav="'+esc(p.id)+'" aria-label="Open '+esc(p.id==="uh_sar"?"My Demos and Beats":p.name+" demos")+'">'+
+   '<span class="demo-partner-photo">'+icon(p)+'</span><strong>'+esc(p.id==="uh_sar"?"My Demos & Beats":p.name)+'</strong>'+
+   '<small>'+number+' '+(number===1?"demo":"demos")+'</small></button>';
+ }).join("")+'</div></div>';
 }
 function choices(selected,omit=""){
  return getPeople().filter(p=>p.id!==omit&&p.profileType!=="venue"&&p.profileType!=="studio")
  .sort((a,b)=>a.name.localeCompare(b.name))
  .map(p=>'<label class="demo-credit-option" data-name="'+esc(p.name.toLowerCase())+'"><input type="checkbox" value="'+esc(p.id)+'"'+(selected.includes(p.id)?" checked":"")+'><span>'+esc(p.name)+'</span></label>').join("");
 }
+function listContent(n){
+ if(n.id!=="uh_sar")return htmlList(n);
+ const solo=loaded?recordsFor("uh_sar").filter(t=>(t.collaborators||[]).every(id=>id==="uh_sar")).length:0;
+ const shared=loaded?recordsFor("uh_sar").filter(t=>(t.collaborators||[]).some(id=>id!=="uh_sar")).length:0;
+ return '<div class="demo-list-heading" id="mySoloDemos">My Demos & Beats · '+solo+'</div>'+htmlList(n,"solo")+
+ '<div class="demo-list-heading">Shared Sessions · '+shared+'</div>'+htmlList(n,"shared");
+}
 function section(n){
  const count=loaded?recordsFor(n.id).length:0;
  return '<div class="section-title">Demos'+(count?' · '+count:'')+'</div>'+
  '<section class="demo-library" data-demo-profile="'+esc(n.id)+'">'+
+ (n.id==="uh_sar"?dashboard():"")+
  '<div class="demo-private-label">LOCAL UNRELEASED AUDIO · MP3 / WAV / M4A</div>'+
  '<p class="demo-muted">Each track appears on every linked collaborator’s playlist. Audio stays on this browser and is never uploaded to Network HQ.</p>'+
- '<div class="demo-list">'+htmlList(n)+'</div>'+
+ '<div class="demo-list">'+listContent(n)+'</div>'+
  '<div class="demo-drop" role="button" tabindex="0" aria-label="Add MP3, WAV or M4A demos"><span class="demo-drop-icon">♪</span>'+
  '<strong>Drag & drop MP3, WAV or M4A files</strong><span>or click to choose multiple files · maximum 250 MB each</span></div>'+
  '<input class="demo-file-picker" type="file" accept=".mp3,.wav,.wave,.m4a,audio/mpeg,audio/wav,audio/x-wav,audio/mp4,audio/x-m4a" multiple hidden>'+
@@ -116,7 +166,9 @@ function bootPlayer(){
 function stateChanged(){
  const active=!!(playingId&&player&&!player.paused&&!player.ended);
  const t=tracks.find(t=>t.id===playingId);
- document.querySelectorAll(".node").forEach(node=>{
+ if(window.NetworkPlayback?.set){
+  window.NetworkPlayback.set("demo",active?t?.collaborators||[]:[],active);
+ }else document.querySelectorAll(".node").forEach(node=>{
   const id=node.dataset.id;
   node.classList.toggle("demo-spinning",active&&!!t?.collaborators?.includes(id));
  });
@@ -210,6 +262,18 @@ function bindProfile(n){
  box.querySelectorAll("[data-demo-play]").forEach(btn=>btn.onclick=()=>play(btn.dataset.demoPlay));
  box.querySelectorAll("[data-demo-edit]").forEach(btn=>btn.onclick=()=>openEditor(btn.dataset.demoEdit));
  box.querySelectorAll("[data-demo-person]").forEach(btn=>btn.onclick=()=>openPerson(btn.dataset.demoPerson));
+ box.querySelectorAll("[data-demo-nav]").forEach(btn=>btn.onclick=()=>{
+  const id=btn.dataset.demoNav;
+  if(id!=="uh_sar")openPerson(id);
+  const pane=document.getElementById("profile");
+  if(id==="uh_sar"){
+   const solo=pane?.querySelector("#mySoloDemos");
+   if(solo?.scrollIntoView)solo.scrollIntoView({behavior:"smooth",block:"nearest"});
+  }else{
+   const list=pane?.querySelector(".demo-library");
+   if(list?.scrollIntoView)list.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+ });
  stateChanged();
 }
 function bootEditor(){
@@ -282,6 +346,7 @@ function drawLinks(viewport,make,visible,ensureState,edgeEls){
 }
 function init(config){
  getPeople=config.getPeople||getPeople;
+ getConnections=config.getConnections||getConnections;
  refreshMap=config.refreshMap||refreshMap;
  openPerson=config.openPerson||openPerson;
  bootPlayer();bootEditor();
@@ -291,5 +356,5 @@ function init(config){
  });
 }
 window.NetworkDemos={init,section,bindProfile,drawLinks,recordsFor,isPlaying:id=>!!(playingId&&player&&!player.paused&&tracks.find(t=>t.id===playingId)?.collaborators.includes(id)),stateChanged,
- _test:{audioFile,audioType,fileError,normalizeCredits,recordsFor,drawLinks,openDB,getAll,put,remove}};
+ _test:{audioFile,audioType,fileError,normalizeCredits,recordsFor,demoPartners,dashboard,listContent,drawLinks,openDB,getAll,put,remove}};
 })();
