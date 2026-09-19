@@ -493,5 +493,5 @@ function importFromHash(){
  }
 }
 window.NetworkCollab={section,bindProfile,open,boot,importFromHash,
- _test:{read,rowsFor,parsePayload,merge,thumbnail,resourceCard,normalized}};
+ _test:{read,rowsFor,parsePayload,merge,thumbnail,resourceCard,normalized,prepareUpload,selectImages,saveUploadedImages,findImage,putImage,deleteImageBlob}};
 })();
