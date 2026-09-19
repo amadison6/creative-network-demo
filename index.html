@@ -689,6 +689,20 @@
 @keyframes demo-ring-rotate{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.node.demo-spinning .node-avatar-photo,.node.demo-spinning .demo-play-ring,.node.music-spinning .node-avatar-photo,.node.music-spinning .demo-play-ring{animation:none}}
 
+/* v65 · Producer demo shelf + multisource vinyl */
+.demo-dashboard{border:1px solid #426772;background:#172631;border-radius:12px;padding:12px;display:grid;gap:9px}
+.demo-dashboard-heading{font-size:13px;font-weight:850;color:#c5eef2}
+.demo-partner-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.demo-partner{min-width:0;background:#1f3440;border:1px solid #466573;border-radius:10px;color:#eaf8fa;padding:8px 5px;display:flex;align-items:center;flex-direction:column;gap:5px;cursor:pointer}
+.demo-partner:hover,.demo-partner:focus-visible{background:#315060;border-color:#a0d5e0}
+.demo-partner-photo{width:47px;height:47px;border-radius:50%;overflow:hidden;background:#354952;display:grid;place-items:center;font-weight:900;color:#ecfbff;border:2px solid #6897a2}
+.demo-partner-photo img{height:100%;width:100%;object-fit:cover;display:block}
+.demo-partner strong{font-size:10px;line-height:1.15;overflow-wrap:anywhere;text-align:center}
+.demo-partner small{color:#b1c8d3;font-size:9px}
+.demo-list-heading{font-size:11px;font-weight:850;letter-spacing:.045em;color:#bce6ed;margin-top:10px;border-bottom:1px solid #3f5967;padding-bottom:6px}
+.network-soundcloud-embed{width:100%;height:175px;display:block;border:0;border-radius:9px;background:#16191f}
+.spotify-embed-mount{width:100%;min-height:352px}
+
 </style>
 </head>
 <body>
@@ -940,6 +954,7 @@
         <div class="form-field full"><label>Partiful profile / Org Profile</label><input id="editPartifulProfile" placeholder="https://partiful.com/u/..."></div>
         <div class="form-field full"><label>Partiful event / invite links (one per line)</label><textarea id="editPartifulEvents" rows="3" placeholder="https://partiful.com/e/..."></textarea></div>
         <div class="form-field music-profile-only"><label>Spotify / primary music link</label><input id="editSpotify" placeholder="https://open.spotify.com/..."></div>
+        <div class="form-field music-profile-only"><label>SoundCloud track / playlist link</label><input id="editSoundCloud" placeholder="https://soundcloud.com/..."></div>
         <div class="form-field music-profile-only" id="editUntitledWrap"><label>Untitled listening link</label><input id="editUntitled" placeholder="https://untitled.stream/..."></div>
         <div class="form-field music-profile-only"><label>PRO</label><input id="editPRO" placeholder="ASCAP / BMI / SESAC"></div>
         <div class="form-field music-profile-only"><label>IPI / CAE</label><input id="editIPI"></div>
@@ -2258,7 +2273,7 @@ function showProfile(n){
   const chips=[...new Set([n.hub,...(n.tags||[]).filter(t=>t!=="All")])]
     .map(x=>`<span class="chip">${x}</span>`).join("");
 
-  const linksHtml=Object.entries(links).filter(([k])=>!["Spotify","Instagram","Partiful"].includes(k)&&!(hasUntitledSection&&k==="Untitled"))
+  const linksHtml=Object.entries(links).filter(([k])=>!["Spotify","Instagram","Partiful"].includes(k)&&!(hasUntitledSection&&k==="Untitled")&&!(isArtist&&k==="SoundCloud"&&window.NetworkPlayback?.safeSoundCloud(links.SoundCloud)))
     .map(([k,v])=>`<a href="${escapeAttr(v)}" target="_blank" rel="noopener noreferrer">${escapeAttr(k)} ↗</a>`).join("")
     || `<div class="empty">No public links saved yet.</div>`;
 
@@ -2442,6 +2457,7 @@ function showProfile(n){
       ${spotify?.kind==="artist"?`<div class="integration-actions"><button class="mix-profile-open" id="mixBrowseArtist" type="button">♫ Browse catalog · Add to mix</button></div>`:""}
       ${window.NetworkSpotify ? window.NetworkSpotify.renderCard(n,spotify) : ""}
     </div>`:""}
+    ${isArtist&&typeof window.NetworkPlayback?.soundCloudCard==="function"?window.NetworkPlayback.soundCloudCard(n):""}
     ${window.NetworkListeners ? window.NetworkListeners.card(n,spotify) : ""}
     <div class="section-title">Instagram · Connect</div>
     <div class="integration-card">
@@ -2574,6 +2590,8 @@ function showProfile(n){
   }
   if(spotify)populateSpotifyMetadata(n.id,spotify);
   if(isArtist&&window.NetworkSpotify)window.NetworkSpotify.bindCard(n,spotify);
+  if(spotify)window.NetworkPlayback?.bindSpotify(n,spotify);
+  if(isArtist)window.NetworkPlayback?.bindSoundCloud(n);
   if(window.NetworkListeners)window.NetworkListeners.bind();
   const mixArtistButton=document.getElementById("mixBrowseArtist");
   if(mixArtistButton)mixArtistButton.onclick=()=>window.NetworkPlaylists?.open(n.id);
@@ -2828,6 +2846,7 @@ function openEditProfile(n){
   document.getElementById("editPartifulProfile").value=parsePartifulLink(n.links?.Partiful)?.kind==="profile"?parsePartifulLink(n.links.Partiful).url:"";
   document.getElementById("editPartifulEvents").value=(n.partifulEvents||[]).join("\n");
   document.getElementById("editSpotify").value=n.links?.Spotify||"";
+  document.getElementById("editSoundCloud").value=n.links?.SoundCloud||"";
   document.getElementById("editUntitled").value=n.links?.Untitled||"";
   document.getElementById("editUntitledWrap").style.display=(n.profileType==="musician"||isMusicProfile(n)||isCollectiveEntity(n))?"":"none";
   document.getElementById("editPRO").value=n.pro||"";
@@ -2872,9 +2891,11 @@ document.getElementById("saveProfileEdits").onclick=()=>{
   const spotifyInput=document.getElementById("editSpotify");
   const instagramInput=document.getElementById("editInstagram");
   const spotifyEdit=spotifyInput.value.trim(),instagramEdit=instagramInput.value.trim();
+  const soundCloudInput=document.getElementById("editSoundCloud"),soundCloudEdit=soundCloudInput.value.trim();
   for(const [raw,valid,input,msg] of [
     [spotifyEdit,parseSpotifyLink(spotifyEdit),spotifyInput,"Use a full open.spotify.com artist, album or track URL."],
-    [instagramEdit,parseInstagramProfile(instagramEdit),instagramInput,"Use an Instagram profile URL or @handle."]
+    [instagramEdit,parseInstagramProfile(instagramEdit),instagramInput,"Use an Instagram profile URL or @handle."],
+    [soundCloudEdit,window.NetworkPlayback?.safeSoundCloud(soundCloudEdit),soundCloudInput,"Use an HTTPS soundcloud.com track or playlist link."]
   ]){
     if(raw&&!valid){
       input.setCustomValidity(msg);
@@ -2921,9 +2942,11 @@ document.getElementById("saveProfileEdits").onclick=()=>{
   n.links=Object.assign({},n.links||{});
   const ig=instagramEdit?parseInstagramProfile(instagramEdit).url:"";
   const sp=spotifyEdit?parseSpotifyLink(spotifyEdit).url:"";
+  const sc=soundCloudEdit?window.NetworkPlayback?.safeSoundCloud(soundCloudEdit):"";
   if(ig)n.links.Instagram=ig;else delete n.links.Instagram;
   if(n.profileType!=="venue"){
     if(sp)n.links.Spotify=sp;else delete n.links.Spotify;
+    if(sc)n.links.SoundCloud=sc;else delete n.links.SoundCloud;
   }
   if(n.profileType==="venue"){
     for(const [key,url] of Object.entries(venueUrls)){
@@ -3372,6 +3395,7 @@ const schemas={
     fields:[
       ["newArtistName","Artist / Stage name","Artist name if different"],
       ["newSpotify","Spotify artist / music link","https://open.spotify.com/artist/..."],
+      ["newSoundCloud","SoundCloud track / playlist link","https://soundcloud.com/..."],
       ["newInstagram","Instagram profile or @handle","@artist"],
       ["newUntitled","Untitled listening link","https://untitled.stream/..."],
       ["newInstruments","Instruments / Skills","Drums, bass, keys..."],
@@ -3390,6 +3414,7 @@ const schemas={
       ["newStatus","Status","Active, dormant, project-based..."],
       ["newFounders","Founders","Optional"],
       ["newSpotify","Spotify artist / music link","https://open.spotify.com/artist/..."],
+      ["newSoundCloud","SoundCloud track / playlist link","https://soundcloud.com/..."],
       ["newInstagram","Instagram profile or @handle","@collective"],
       ["newUntitled","Untitled listening link","https://untitled.stream/..."],
       ["newGenres","Genres / style","Optional"],
@@ -3526,11 +3551,14 @@ document.getElementById("saveProfile").onclick=()=>{
   const untitledRaw=document.getElementById("newUntitled")?.value.trim()||"";
   const untitledURL=normalizeUntitledLink(untitledRaw);
   const spotifyRaw=document.getElementById("newSpotify")?.value.trim()||"";
+  const soundCloudRaw=document.getElementById("newSoundCloud")?.value.trim()||"";
+  const soundCloud=window.NetworkPlayback?.safeSoundCloud(soundCloudRaw)||"";
   const instagramRaw=document.getElementById("newInstagram")?.value.trim()||"";
   const spotify=spotifyRaw?parseSpotifyLink(spotifyRaw):null;
   const instagram=instagramRaw?parseInstagramProfile(instagramRaw):null;
   for(const [raw,parsed,inputId,message] of [
     [spotifyRaw,spotify,"newSpotify","Use a full open.spotify.com artist, album or track URL."],
+    [soundCloudRaw,soundCloud,"newSoundCloud","Use a full HTTPS soundcloud.com track or playlist URL."],
     [instagramRaw,instagram,"newInstagram","Use a valid @handle or Instagram profile URL."]
   ]){
     if(raw&&!parsed){
@@ -3568,6 +3596,7 @@ document.getElementById("saveProfile").onclick=()=>{
   };
   if(untitledURL)p.links.Untitled=untitledURL;
   if(spotify)p.links.Spotify=spotify.url;
+  if(soundCloud)p.links.SoundCloud=soundCloud;
   if(instagram)p.links.Instagram=instagram.url;
   if(partifulNew?.kind==="profile")p.links.Partiful=partifulNew.url;
   if(partifulEventNew?.kind==="event")p.partifulEvents=[partifulEventNew.url];
