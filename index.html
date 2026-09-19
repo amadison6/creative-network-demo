@@ -426,6 +426,35 @@
   .mix-footer{padding:10px}
 }
 
+/* v47 — source-labeled audience monitoring; no synthetic listener counts */
+.listener-card{background:#131e1b;border:1px solid #416554;border-radius:13px;padding:13px;margin:10px 0}
+.listener-card strong{font-size:13px}
+.listener-pill{border:1px solid #4a6757;color:#a7d2b6;font-size:10px;border-radius:30px;padding:3px 7px}
+.listener-current{color:#e6fff0;font-weight:850;font-size:30px;letter-spacing:-.02em;margin:6px 0}
+.listener-caption,.listener-source,.listener-wait,.listener-flat{color:#9baca2;font-size:11px;line-height:1.5;margin:5px 0}
+.listener-delta{margin:7px 0;font-size:13px;font-weight:800}
+.listener-up{color:#59d793;font-size:12px;font-weight:800}
+.listener-down{color:#f18187;font-size:12px;font-weight:800}
+.listener-actions{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 5px}
+.listener-actions button,.listener-watch-bottom button{cursor:pointer;background:#193025;border:1px solid #416f50;color:#b9eecd;border-radius:8px;font-size:11px;padding:7px 9px}
+.listener-actions button:disabled{opacity:.45;cursor:not-allowed}
+.listener-watch-backdrop{position:fixed;inset:0;background:#000b;z-index:1300;display:flex;align-items:center;justify-content:center;padding:18px}
+.listener-watch-backdrop[hidden]{display:none!important}
+.listener-watch-dialog{width:min(680px,100%);max-height:90dvh;overflow:hidden;display:flex;flex-direction:column;border:1px solid #456b55;border-radius:16px;background:#111b16;color:#f2f8f4;box-shadow:0 15px 75px #000b}
+.listener-watch-head{padding:19px 20px 15px;border-bottom:1px solid #2e4636;display:flex;align-items:center;justify-content:space-between}
+.listener-watch-head strong{font-size:20px}
+.listener-watch-head div div{font-size:11px;color:#aac1b0;margin-top:5px}
+.listener-watch-head button{color:#dbf5e1;background:#233b2e;border:1px solid #426751;border-radius:8px;font-size:18px;padding:5px 10px;cursor:pointer}
+.listener-watch-rows{padding:14px 17px;overflow-y:auto;min-height:0}
+.listener-watch-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(90px,auto);gap:4px 12px;border:1px solid #32493b;background:#17251c;padding:12px 13px;border-radius:10px;margin-bottom:9px}
+.listener-watch-name{display:flex;justify-content:space-between;align-items:center;gap:9px}
+.listener-watch-name strong{font-size:13px}
+.listener-watch-name a{font-size:10px;color:#9cdeb6;text-decoration:none}
+.listener-watch-value{font-size:17px;text-align:right;font-weight:850;color:#e2f7e9}
+.listener-watch-delta{font-size:12px;grid-column:1/2}
+.listener-watch-date{font-size:10px;color:#849d8c;text-align:right}
+.listener-watch-bottom{border-top:1px solid #365242;padding:12px 18px;display:flex;gap:14px;align-items:center;justify-content:space-between;font-size:11px;color:#91ae99}
+
 </style>
 </head>
 <body>
@@ -481,13 +510,14 @@
 </datalist>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v46 · cross-artist playlist builder</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v47 · audience watch framework</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
 <button class="viewbtn" data-view="studios">Studio View</button>
 <button class="viewbtn" data-view="venues">Venue View</button>
 <button class="viewbtn mix-entry" id="networkMixButton">♫ Mix Builder</button>
+<button class="viewbtn mix-entry" id="listenerWatchButton">↗ Audience Watch</button>
 <div class="view-explainer" id="viewExplainer">
   <strong>Relationship View</strong><br>
   Who is close to you? Distance represents direct relationship strength; rings separate core, working network, and outer orbit.
@@ -702,6 +732,7 @@
 
 <script src="./spotify-full.js"></script>
 <script src="./spotify-playlists.js"></script>
+<script src="./listener-tracking.js"></script>
 <script>
 const nodes=[
 {id:"uh_sar",name:"uh_sar",role:"Producer / Artist / Director",type:"core",r:34,tags:["All","God's Contraband"],hub:"Center",bio:"Central creative node: producer, artist, arranger, multi-instrumentalist, and creative director. Co-founder and executive producer of God's Contraband."},
@@ -1638,6 +1669,7 @@ function showProfile(n){
       ${spotify?.kind==="artist"?`<div class="integration-actions"><button class="mix-profile-open" id="mixBrowseArtist" type="button">♫ Browse catalog · Add to mix</button></div>`:""}
       ${window.NetworkSpotify ? window.NetworkSpotify.renderCard(n,spotify) : ""}
     </div>`:""}
+    ${window.NetworkListeners ? window.NetworkListeners.card(n,spotify) : ""}
     <div class="section-title">Instagram · Connect</div>
     <div class="integration-card">
       <div class="integration-heading"><strong>Instagram</strong><span class="integration-status">${instagram?"Profile linked":"No profile linked"}</span></div>
@@ -1700,6 +1732,7 @@ function showProfile(n){
   }
   if(spotify)populateSpotifyMetadata(n.id,spotify);
   if(isArtist&&window.NetworkSpotify)window.NetworkSpotify.bindCard(n,spotify);
+  if(window.NetworkListeners)window.NetworkListeners.bind();
   const mixArtistButton=document.getElementById("mixBrowseArtist");
   if(mixArtistButton)mixArtistButton.onclick=()=>window.NetworkPlaylists?.open(n.id);
   const saveUntitled=document.getElementById("saveUntitledLink");
@@ -2703,6 +2736,15 @@ document.getElementById("saveProfile").onclick=()=>{
 
 const APP_RELEASES=[
   {
+    version:"v47",file:null,date:"2026-09-18",title:"Audience Watch framework",
+    notes:[
+      "Added artist monthly-listener cards with green growth, red decline, and percentage comparisons when measured data is available",
+      "Added network artist watchlist and date/source labeling, with hourly checks for updated snapshots while the website is open",
+      "Prepared listener-stats.json as an empty authorized-data feed: no invented figures and no Spotify page scraping",
+      "Spotify account connection does not grant access to monthly listeners; licensed audience analytics access is still required for automatic data collection"
+    ]
+  },
+  {
     version:"v46",file:null,date:"2026-09-18",title:"Cross-artist Spotify mix builder",
     notes:[
       "Browse albums and singles of Spotify-linked artists already in the map",
@@ -3396,6 +3438,7 @@ if(typeof APP_RELEASES!=="undefined" && !APP_RELEASES.some(r=>r.version==="v15")
 
 render();applyCamera();showProfile(nodes.find(n=>n.id==="diontae")||nodes.find(n=>n.id==="baws"));
 if(window.NetworkPlaylists)window.NetworkPlaylists.boot();
+if(window.NetworkListeners)window.NetworkListeners.boot();
 if(window.NetworkSpotify)window.NetworkSpotify.boot().then(function(){
   if(window.NetworkPlaylists)window.NetworkPlaylists.onAuthReady();
 }).catch(function(error){
