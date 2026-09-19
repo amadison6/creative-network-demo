@@ -41,7 +41,19 @@ function normalized(r){
 }
 function parsePayload(raw){
  const input=typeof raw==="string"?JSON.parse(raw):raw;
- const rows=Array.isArray(input)?input:input?.rows||input?.values||input?.records;
+ let rows=Array.isArray(input)?input:input?.rows||input?.values||input?.records;
+ if(input?.v===1&&Array.isArray(input.r)){
+   // Private one-time install packet: compact values reconstruct the existing
+   // canonical Resource IDs, person and project, never a second entity.
+   const sections=SECTION_ORDER;
+   rows=input.r.map(([suffix,section,name,type,url,provider,notes])=>[
+     String(input.prefix||"jordan_unstoppable_")+String(suffix||""),
+     String(input.p||""),String(input.i||""),String(input.n||""),
+     sections[Number(section)]||"Other resources",
+     name||"",type||"",url||"",provider||"",notes||"",
+     String(input.d||""),"Private"
+   ]);
+ }
  if(!Array.isArray(rows))throw Error("Paste the Collaboration Files JSON array or a sheet-values JSON object.");
  const ordered=rows.length&&Array.isArray(rows[0])&&String(rows[0][0]||"").trim()==="Resource ID"?rows.slice(1):rows;
  if(ordered.length>500)throw Error("Import is limited to 500 resources at a time.");
@@ -129,7 +141,7 @@ function populateProjects(personId,projectId=""){
  const index=projects.findIndex(p=>p.projectId===projectId);
  select.value=index>=0?String(index):"";
  select.onchange=()=>{
-  const p=projects[+select.value];
+  const p=select.value===""?null:projects[Number(select.value)];
   if(p){el("collabProjectId").value=p.projectId;el("collabProject").value=p.project}
  };
 }
@@ -167,8 +179,8 @@ function open(personId,mode="add"){
  activePerson=personId;
  const modal=el("collabModal");modal.hidden=false;
  const title=el("collabModalTitle");
- const person=document.querySelector('.collab-panel[data-person-id="'+CSS.escape(personId)+'"]');
- title.textContent="Collaboration Files · "+(person?.closest("#profile")?.querySelector("h2")?.textContent||personId);
+ const person=[...(typeof nodes!=="undefined"?nodes:[])].find(n=>n.id===personId);
+ title.textContent="Collaboration Files · "+(person?.name||personId);
  clearForm(personId);
  showForm(mode);
  if(mode==="import")el("collabJson").focus();
@@ -270,7 +282,8 @@ function importFromHash(){
   const records=parsePayload(text);
   const out=merge(records);
   window.history.replaceState(null,"",window.location.pathname+window.location.search);
-  return out;
+  return Object.assign({},out,{personId:records.length===1?records[0].personId:
+    records.every(r=>r.personId===records[0]?.personId)?records[0].personId:""});
  }catch(e){
   console.warn("Collaboration import failed:",e.message);
   return {error:e.message};
