@@ -237,7 +237,7 @@
       "Spotify Premium and a Spotify Developer app are required.";
     if (input) input.disabled = authorized();
     if (full) {
-      full.disabled = !authorized() || !ready;
+      full.disabled = !authorized() || !ready || full.dataset.supported === "false";
       full.textContent = !authorized() ? "Connect to play full songs" :
         (ready ? "Play full songs here" : "Preparing player…");
     }
@@ -274,7 +274,7 @@
       '<button id="spotifyDisconnectBtn" type="button" hidden>Disconnect</button></div>' +
       '<div class="integration-output" id="spotifyAccountStatus">Checking Spotify…</div>' +
       '<div class="integration-actions">' +
-      '<button id="spotifyFullPlay" type="button"' + (!supported ? " disabled" : "") +
+      '<button id="spotifyFullPlay" data-supported="' + (supported ? "true" : "false") + '" type="button"' + (!supported ? " disabled" : "") +
       '>Play full songs here</button></div>' +
       '<div id="spotifyLiveStatus" class="integration-output" aria-live="polite"></div>' +
       '<p class="integration-help">One-time setup: create a Spotify Developer app, enable Web API and Web Playback SDK, and register this exact redirect URI: ' +
@@ -290,6 +290,7 @@
       try { player.disconnect(); } catch (_) {}
     }
     player = null;
+    sdkLoading = null;
     ready = false;
     deviceId = "";
     currentSong = "";
@@ -376,6 +377,7 @@
           player.addListener("not_ready", function () {
             ready = false;
             deviceId = "";
+            sdkLoading = null;
             setMessage("Spotify playback device disconnected. Refresh to reconnect.");
           });
           for (const name of ["initialization_error", "authentication_error", "account_error"]) {
