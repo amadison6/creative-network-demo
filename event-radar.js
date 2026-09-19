@@ -138,14 +138,33 @@
       (!profileView?'<button data-radar-hide="'+safe(e.id)+'" type="button">Remove</button>':'')+
       '</div></div>';
   }
+  function forProfile(id){
+    return read().filter(e=>!e.hidden&&e.profileIds?.includes(id));
+  }
   function section(n){
-    const list=synced().filter(e=>!e.hidden&&e.profileIds?.includes(n.id))
-      .sort((a,b)=>(a.date||"9999").localeCompare(b.date||"9999")).slice(0,8);
+    const list=synced().filter(e=>!e.hidden&&e.profileIds?.includes(n.id));
     const newCount=count(n.id);
+    if(n.profileType==="venue"){
+      const future=list.filter(upcoming).sort((a,b)=>(a.date||"9999").localeCompare(b.date||"9999"));
+      const history=list.filter(e=>!upcoming(e)).sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+      return '<div class="section-title">Shows & events'+(newCount?' · '+newCount+' new':'')+'</div>'+
+        '<div class="radar-profile-card radar-venue-events">'+
+        '<div class="radar-profile-head">Upcoming / date to confirm · '+future.length+'</div>'+
+        (future.length?future.map(e=>eventRow(e,true)).join(""):
+          '<div class="radar-muted">No upcoming events have been recorded for this venue. This is not a live schedule.</div>')+
+        '<div class="radar-profile-head radar-history-heading">Past shows / event history · '+history.length+'</div>'+
+        (history.length?history.slice(0,8).map(e=>eventRow(e,true)).join(""):
+          '<div class="radar-muted">No past shows linked yet.</div>')+
+        (history.length>8?'<div class="radar-muted">Open Event Radar for more historical listings.</div>':"")+
+        '<div class="radar-venue-actions"><button type="button" id="radarAddForProfile">＋ Add a show at this venue</button>'+
+        '<button type="button" id="radarOpenForProfile">Open Event Radar ↗</button></div>'+
+        '<div class="radar-muted">Source: links and events recorded in Network HQ. This is not an automatically updated venue calendar.</div></div>';
+    }
+    list.sort((a,b)=>(a.date||"9999").localeCompare(b.date||"9999"));
     return '<div class="section-title">Event Radar'+(newCount?' · '+newCount+' new':'')+'</div>'+
       '<div class="radar-profile-card">'+
       '<div class="radar-profile-head">Events connected to '+safe(n.name)+'</div>'+
-      (list.length?list.map(e=>eventRow(e,true)).join(""):
+      (list.length?list.slice(0,8).map(e=>eventRow(e,true)).join(""):
         '<div class="radar-muted">No events linked yet. Save an event when you learn someone is hosting or performing.</div>')+
       '<button type="button" id="radarAddForProfile">＋ Add or link event</button>'+
       '</div>';
@@ -153,6 +172,8 @@
   function bindProfile(n){
     const btn=el("radarAddForProfile");
     if(btn)btn.onclick=()=>openRadar(n.id);
+    const openBtn=el("radarOpenForProfile");
+    if(openBtn)openBtn.onclick=()=>openRadar(n.id);
     document.querySelectorAll("#profile [data-radar-profile-open]").forEach(b=>b.onclick=()=>openRadar(n.id));
     document.querySelectorAll("#profile [data-radar-seen]").forEach(b=>b.onclick=()=>modify(b.dataset.radarSeen,"seen"));
   }
@@ -312,6 +333,6 @@
     document.addEventListener("keydown",e=>{if(e.key==="Escape"&&open){e.preventDefault();close()}});
     synced();
   }
-  window.NetworkEvents={boot,sync:synced,count,section,bindProfile,open:openRadar,close,refreshMap:()=>{if(typeof window.render==="function")window.render();},
+  window.NetworkEvents={boot,sync:synced,count,section,forProfile,bindProfile,open:openRadar,close,refreshMap:()=>{if(typeof window.render==="function")window.render();},
     _test:{dateOK,urlInfo,upcoming,keyOf,labelDate}};
 })();
