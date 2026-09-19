@@ -520,7 +520,7 @@
 </datalist>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v49 · Zeke Spotify identity repair</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v50 · Spotify profile swap</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -752,7 +752,7 @@ const nodes=[
 {id:"balam",name:"Balam",role:"Guitar / Bass",profileType:"musician",instruments:"Guitar, bass",genres:"R&B / live-band / songwriting",type:"person",r:24,tags:["All","Musicians","Writing Camps","God's Contraband"],hub:"Professor What Trio",bio:"Guitarist, bassist, composer and arranger. Strong writing-session fit with Cam, Free and uh_sar."},
 {id:"drew",name:"Drew",role:"Bass / Producer",profileType:"musician",instruments:"Bass, multi-instrumentalist",genres:"Production / live musicianship",type:"person",r:23,tags:["All","Musicians","Producers"],hub:"Professor What Trio",bio:"Elite musician, bassist, producer, engineer and multi-instrumentalist."},
 {id:"free",name:"Free",role:"Singer / Writer",type:"bridge",r:29,tags:["All","Singer-Songwriters","Writing Camps","God's Contraband","Rising Artists"],hub:"Delaware–Philly",bio:"Singer and writer with strong natural rhythm. Core bridge between God's Contraband and the Delaware/Philly artist scene.",links:{Spotify:"https://open.spotify.com/artist/4twpepGEgW66i8ZkhEg6yW"}},
-{id:"zeke",name:"ZekeUltra",photo:"https://dice-media.imgix.net/attachments/2024-03-26/57b7632a-43e5-400b-b1f7-19b8cf1cc09d.jpg?auto=format%2Ccompress&crop=faces%2Ccenter&fit=crop&h=722&q=80&rect=0%2C55%2C530%2C530&w=722",role:"Artist / Writer",type:"person",r:22,tags:["All","Rising Artists"],hub:"Delaware–Philly",bio:"Artist and writer, close friend/collaborator of Free, connected to the Delaware and Philly scene.",links:{Spotify:"https://open.spotify.com/artist/1suXRSUWQuSpeC5HyTtCC9"}},
+{id:"zeke",name:"ZekeUltra",photo:"https://dice-media.imgix.net/attachments/2024-03-26/57b7632a-43e5-400b-b1f7-19b8cf1cc09d.jpg?auto=format%2Ccompress&crop=faces%2Ccenter&fit=crop&h=722&q=80&rect=0%2C55%2C530%2C530&w=722",role:"Artist / Writer",type:"person",r:22,tags:["All","Rising Artists"],hub:"Delaware–Philly",bio:"Artist and writer, close friend/collaborator of Free, connected to the Delaware and Philly scene.",links:{Spotify:"https://open.spotify.com/artist/66rjQYZAzWZ9n933ytcoTg"}},
 {id:"camille",name:"Camille",role:"Songwriter",type:"core",r:25,tags:["All","Singer-Songwriters","Writing Camps"],hub:"R&B Writing Orbit",bio:"Good friend and developing songwriting partner focused on R&B writing and outside placements."},
 {id:"brit",name:"Brit",role:"R&B Artist",type:"person",r:21,tags:["All","Rising Artists"],hub:"R&B Writing Orbit",bio:"R&B artist in Camille's wider social/creative circle. Warm potential collaboration path.",links:{Spotify:"https://open.spotify.com/artist/2MdJ6HaAJ9lvopGsirEuz6"}},
 {id:"okay",name:"okay coleman!",photo:"https://i1.sndcdn.com/avatars-slswcIB5dHX2z29T-w2jjXw-t1080x1080.jpg",role:"Artist / Producer",type:"person",r:19,tags:["All","Rising Artists","Producers"],hub:"R&B Writing Orbit",bio:"Alternative R&B / indie soul artist and producer in an adjacent warm network.",links:{Spotify:"https://open.spotify.com/artist/2kAc58JeMNRXTVm3sVHrSN"}},
@@ -774,7 +774,7 @@ const nodes=[
 ,{id:"studio_the_school",name:"The School",role:"Private Creative / Rehearsal Room",profileType:"studio",type:"hubnode",r:24,tags:["All","Studios"],hub:"Studio Spaces",location:"Los Angeles",capacity:"Roughly 3× the size of Downtown Rehearsals",access:"uh_sar controls access",availability:"Weekdays after 5 PM to avoid disrupting students",frequentPeople:"uh_sar · Free · Solomon",resources:"Fender Jazz Bass · Fender Telecaster · 64-key Nord (organ / piano / synth sections) · 2 medium KRK monitors · Akai MPC Mini · Solomon's bass · Solomon's microphone",rates:"Private / not commercially priced",history:"uh_sar and Free work here often. Solomon has also used the room; sessions have been less frequent while Solomon is in rollout mode.",bio:"Large second-floor creative room at the family school. Public demo intentionally omits the street address."}
 ,{id:"studio_drew_hollywood",name:"Drew's Hollywood Studio",role:"Recording / Creative Studio",profileType:"studio",type:"hubnode",r:22,tags:["All","Studios"],hub:"Studio Spaces",location:"Hollywood, Los Angeles",capacity:"TBD",access:"Drew primary; Cam shares the space; Balam also uses it",availability:"TBD",frequentPeople:"Drew · Cam · Balam",resources:"Equipment inventory still needs to be mapped",rates:"TBD",history:"Drew moved into his own Hollywood studio after being a long-time Downtown Rehearsals tenant.",bio:"Hollywood studio used by Drew, Cam, and Balam. Equipment, capacity, and access details still need to be fleshed out."}
 ,{id:"studio_jonah",name:"Jonah's Studio",role:"Recording Studio",profileType:"studio",type:"hubnode",r:21,tags:["All","Studios"],hub:"Studio Spaces",location:"TBD",capacity:"TBD",access:"Jonah",availability:"TBD",frequentPeople:"Jonah",resources:"TBD — needs an exploratory visit / conversation",rates:"TBD",history:"Known studio resource in Jonah's orbit; details are not mapped yet.",bio:"Studio to explore further. Equipment, room details, access, and regular collaborators are still open questions."}
-,{id:"studio_diontae_inglewood",name:"Diontae's Inglewood Space",role:"Private Recording / Rehearsal Space",profileType:"studio",type:"hubnode",r:21,tags:["All","Studios"],hub:"Studio Spaces",location:"Inglewood, California",capacity:"TBD",access:"Diontae",availability:"By arrangement",frequentPeople:"Diontae · God's Contraband",resources:"Equipment inventory still needs to be mapped",rates:"Private / TBD",history:"God's Contraband uses the space from time to time.",bio:"Private Inglewood creative space associated with Diontae. Exact residential details are intentionally excluded from the public demo."},{id:"isis",name:"Isis / ICE9",artistName:"ICE9",role:"Rapper / Visual Artist",profileType:"musician",instruments:"Voice; multidisciplinary visual practice",genres:"Hip-hop / multidisciplinary art",type:"bridge",r:24,tags:["All","Rising Artists","Visual Artists"],hub:"LA Visual Art Scene",bio:"Rapper, painter, graffiti artist and sculptor. Connected to Free and ZekeUltra; potential future art-gallery / live-show collaborator.",links:{Instagram:"https://www.instagram.com/handofisis/",Spotify:"https://open.spotify.com/artist/66rjQYZAzWZ9n933ytcoTg",Partiful:"https://partiful.com/e/cI43ocb5DeayrLzwQbko?c=Byft4AfX"}},{id:"venue_gold_diggers",name:"Gold-Diggers",role:"Live Music Venue",profileType:"venue",type:"hubnode",r:28,tags:["All","Places"],hub:"East Hollywood",location:"5632 Santa Monica Blvd, Los Angeles, CA 90038",capacity:"175",bookingContact:"bookinginfo@gold-diggers.com",warmConnection:"Brit + okay coleman! recently performed here",audienceFit:"Intimate live sets, showcases, emerging artists, industry-facing room",potentialShowNotes:"Potential future God's Contraband / Light Show room; warm path through Brit and okay coleman!",links:{Website:"https://gold-diggers.com/"},bio:"East Hollywood live-music venue, bar, hotel and recording complex."}
+,{id:"studio_diontae_inglewood",name:"Diontae's Inglewood Space",role:"Private Recording / Rehearsal Space",profileType:"studio",type:"hubnode",r:21,tags:["All","Studios"],hub:"Studio Spaces",location:"Inglewood, California",capacity:"TBD",access:"Diontae",availability:"By arrangement",frequentPeople:"Diontae · God's Contraband",resources:"Equipment inventory still needs to be mapped",rates:"Private / TBD",history:"God's Contraband uses the space from time to time.",bio:"Private Inglewood creative space associated with Diontae. Exact residential details are intentionally excluded from the public demo."},{id:"isis",name:"Isis / ICE9",artistName:"ICE9",role:"Rapper / Visual Artist",profileType:"musician",instruments:"Voice; multidisciplinary visual practice",genres:"Hip-hop / multidisciplinary art",type:"bridge",r:24,tags:["All","Rising Artists","Visual Artists"],hub:"LA Visual Art Scene",bio:"Rapper, painter, graffiti artist and sculptor. Connected to Free and ZekeUltra; potential future art-gallery / live-show collaborator.",links:{Instagram:"https://www.instagram.com/handofisis/",Spotify:"https://open.spotify.com/artist/1suXRSUWQuSpeC5HyTtCC9",Partiful:"https://partiful.com/e/cI43ocb5DeayrLzwQbko?c=Byft4AfX"}},{id:"venue_gold_diggers",name:"Gold-Diggers",role:"Live Music Venue",profileType:"venue",type:"hubnode",r:28,tags:["All","Places"],hub:"East Hollywood",location:"5632 Santa Monica Blvd, Los Angeles, CA 90038",capacity:"175",bookingContact:"bookinginfo@gold-diggers.com",warmConnection:"Brit + okay coleman! recently performed here",audienceFit:"Intimate live sets, showcases, emerging artists, industry-facing room",potentialShowNotes:"Potential future God's Contraband / Light Show room; warm path through Brit and okay coleman!",links:{Website:"https://gold-diggers.com/"},bio:"East Hollywood live-music venue, bar, hotel and recording complex."}
 
 ];
 
@@ -2746,6 +2746,13 @@ document.getElementById("saveProfile").onclick=()=>{
 
 const APP_RELEASES=[
   {
+    version:"v50",file:null,date:"2026-09-18",title:"Swap ZekeUltra and ICE9 Spotify profiles",
+    notes:[
+      "Set ZekeUltra's Spotify profile to 66rjQYZAzWZ9n933ytcoTg and ICE9's profile to 1suXRSUWQuSpeC5HyTtCC9, following Ausar's correction",
+      "Migrated both older browser-saved links once while preserving Instagram, other fields and future edits"
+    ]
+  },
+  {
     version:"v49",file:null,date:"2026-09-18",title:"ZekeUltra Spotify identity repair",
     notes:[
       "Repaired ZekeUltra's canonical Spotify link to artist 1suXRSUWQuSpeC5HyTtCC9",
@@ -3179,22 +3186,29 @@ const VERIFIED_INSTAGRAMS={
 // Retain originally shared artist IDs when older browser overrides predate this release.
 const USER_SHARED_SPOTIFY={
   free:"https://open.spotify.com/artist/4twpepGEgW66i8ZkhEg6yW",
-  zeke:"https://open.spotify.com/artist/1suXRSUWQuSpeC5HyTtCC9",
-  isis:"https://open.spotify.com/artist/66rjQYZAzWZ9n933ytcoTg"
+  zeke:"https://open.spotify.com/artist/66rjQYZAzWZ9n933ytcoTg",
+  isis:"https://open.spotify.com/artist/1suXRSUWQuSpeC5HyTtCC9"
 };
-// The first demo temporarily assigned ICE9's Spotify ID to Zeke. Earlier
-// browser-local profile overrides can retain that bad assignment across releases.
-// Repair the canonical artist identity AND the saved override before rendering.
-function repairZekeSpotifyIdentity(){
-  const n=nodes.find(x=>x.id==="zeke");
-  if(!n)return false;
-  const correct=USER_SHARED_SPOTIFY.zeke;
-  if(n.links?.Spotify===correct)return false;
-  n.links=Object.assign({},n.links||{});
-  n.links.Spotify=correct;
-  persistEditedProfiles();
-  persistCustomProfileIfNeeded(n);
-  return true;
+// Correct the artist links in saved browser profile overrides exactly once.
+// Later user edits must remain editable; do not force-reset on every page load.
+function migrateSpotifyProfileSwapV50(){
+  const key="creativeNetworkSpotifyProfileSwapV50";
+  if(localStorage.getItem(key)==="done")return false;
+  let changed=false;
+  for(const id of ["zeke","isis"]){
+    const n=nodes.find(x=>x.id===id);
+    if(!n)continue;
+    const correct=USER_SHARED_SPOTIFY[id];
+    if(n.links?.Spotify!==correct){
+      n.links=Object.assign({},n.links||{});
+      n.links.Spotify=correct;
+      persistCustomProfileIfNeeded(n);
+      changed=true;
+    }
+  }
+  if(changed)persistEditedProfiles();
+  localStorage.setItem(key,"done");
+  return changed;
 }
 let suppressedSocial={};
 try{suppressedSocial=JSON.parse(localStorage.getItem(SOCIAL_REMOVALS_KEY)||"{}")}catch(_){}
@@ -3212,7 +3226,7 @@ nodes.forEach(n=>{
   const photo=VERIFIED_PUBLIC_PHOTOS[n.id];
   if(photo&&!n.photo)n.photo=photo;
 });
-repairZekeSpotifyIdentity();
+migrateSpotifyProfileSwapV50();
 
 function executeNetworkEdit(raw){
   const q=raw.trim();
