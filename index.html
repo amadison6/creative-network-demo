@@ -1163,6 +1163,32 @@ function clearProfileNotifications(profileId){
   const store=getNotificationStore(),items=store[profileId]||[];
   items.forEach(x=>x.dismissed=true);store[profileId]=items;saveNotificationStore(store);
 }
+function renderVenueDirectory(){
+  const box=document.getElementById("venueDirectory");
+  if(!box)return;
+  box.hidden=currentView!=="venues";
+  if(box.hidden)return;
+  const venues=nodes.filter(n=>n.profileType==="venue");
+  box.innerHTML='<div class="venue-directory-heading">Mapped venues · '+venues.length+'</div>'+
+    venues.map(n=>{
+      const events=window.NetworkEvents?.forProfile(n.id)||[];
+      const people=venueMembersFor(n);
+      const rate=(n.rates||"").trim();
+      const knownRate=rate&&!/^(unknown|not quoted|tbd)/i.test(rate) ?rate:"Request quote";
+      return '<button type="button" class="venue-directory-card'+
+        (selectedFocusId===n.id?' active':'')+'" data-venue-id="'+escapeAttr(n.id)+'">'+
+        '<strong>'+escapeAttr(n.name)+'</strong>'+
+        '<span>'+escapeAttr(n.location||"Location to confirm")+'</span>'+
+        '<span>'+escapeAttr(n.capacity||"Capacity unknown")+' · '+people.length+' connections</span>'+
+        '<span>'+escapeAttr(knownRate)+' · '+events.length+' recorded events</span></button>';
+    }).join("");
+  box.querySelectorAll("[data-venue-id]").forEach(btn=>{
+    btn.onclick=()=>{
+      const target=nodes.find(n=>n.id===btn.dataset.venueId);
+      if(target)showProfile(target);
+    };
+  });
+}
 function render(){
   viewport.innerHTML="";
   edgeEls.length=0;
@@ -1347,6 +1373,7 @@ function render(){
   });
 
   updateLayerEmpty();
+  renderVenueDirectory();
   applyCamera();
   startOrganicMotion();
 }
