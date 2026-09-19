@@ -14,6 +14,85 @@ function el(id){return document.getElementById(id)}
 function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;")}
 function read(){try{const records=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(records)?records:[]}catch(_){return []}}
 function save(records){localStorage.setItem(KEY,JSON.stringify(records))}
+const IMAGE_DB="creativeNetworkCollaborationImagesV1",IMAGE_STORE="images",IMAGE_LIMIT=40*1024*1024;
+let imageDb=null;
+const objectUrls=new Set();
+function resetImageUrls(){
+ for(const u of objectUrls)URL.revokeObjectURL(u);
+ objectUrls.clear();
+}
+function imageUrl(blob){
+ const url=URL.createObjectURL(blob);objectUrls.add(url);return url;
+}
+function openImageDb(){
+ if(imageDb)return Promise.resolve(imageDb);
+ if(!window.indexedDB)return Promise.reject(Error("This browser does not support local image storage."));
+ return new Promise((resolve,reject)=>{
+  const req=window.indexedDB.open(IMAGE_DB,1);
+  req.onupgradeneeded=()=>req.result.createObjectStore(IMAGE_STORE,{keyPath:"resourceId"});
+  req.onerror=()=>reject(req.error||Error("Could not open image storage"));
+  req.onsuccess=()=>{imageDb=req.result;imageDb.onversionchange=()=>{imageDb.close();imageDb=null};resolve(imageDb)};
+ });
+}
+async function findImage(id){
+ const db=await openImageDb();
+ return new Promise((resolve,reject)=>{
+  const req=db.transaction(IMAGE_STORE,"readonly").objectStore(IMAGE_STORE).get(id);
+  req.onsuccess=()=>resolve(req.result||null);
+  req.onerror=()=>reject(req.error||Error("Image unavailable"));
+ });
+}
+async function putImage(resourceId,file){
+ const db=await openImageDb();
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction(IMAGE_STORE,"readwrite");
+  tx.objectStore(IMAGE_STORE).put({resourceId,blob:file,fileName:file.name,mime:file.type,bytes:file.size,createdAt:new Date().toISOString()});
+  tx.oncomplete=resolve;
+  tx.onabort=()=>reject(tx.error||Error("Browser storage quota may be full"));
+  tx.onerror=()=>reject(tx.error||Error("Could not store image"));
+ });
+}
+async function deleteImageBlob(id){
+ const db=await openImageDb();
+ return new Promise((resolve,reject)=>{
+  const tx=db.transaction(IMAGE_STORE,"readwrite");
+  tx.objectStore(IMAGE_STORE).delete(id);
+  tx.oncomplete=resolve;
+  tx.onabort=()=>reject(tx.error||Error("Could not remove image"));
+  tx.onerror=()=>reject(tx.error||Error("Could not remove image"));
+ });
+}
+function downloadImage(id){
+ findImage(id).then(file=>{
+  if(!file?.blob)throw Error("Image bytes are not on this device.");
+  const link=document.createElement("a");
+  const url=imageUrl(file.blob);
+  link.href=url;link.download=file.fileName||"collaboration-image";
+  document.body.appendChild(link);link.click();link.remove();
+ }).catch(e=>alert(e.message));
+}
+function hydrateImages(panel){
+ resetImageUrls();
+ const previews=panel.querySelectorAll("[data-collab-local-preview]");
+ previews.forEach(img=>{
+  const id=img.dataset.collabLocalPreview;
+  findImage(id).then(file=>{
+   // Profile may have switched during asynchronous load.
+   if(!img.isConnected)return;
+   const fallback=img.closest(".collab-thumb")?.querySelector(".collab-thumb-fallback");
+   if(!file?.blob){if(fallback)fallback.textContent="Image not saved in this browser — restore the original file";return}
+   const url=imageUrl(file.blob);
+   img.src=url;img.hidden=false;
+   if(fallback)fallback.remove();
+   panel.querySelectorAll("[data-collab-view-image]").forEach(a=>{
+    if(a.dataset.collabViewImage===id){a.href=url;a.target="_blank";a.rel="noopener noreferrer"}
+   });
+  }).catch(e=>{
+   const fallback=img.closest(".collab-thumb")?.querySelector(".collab-thumb-fallback");
+   if(fallback)fallback.textContent="Preview unavailable: "+e.message;
+  });
+ });
+}
 function validUrl(raw){
   if(!raw)return "";
   try{const u=new URL(raw);return ["https:","http:"].includes(u.protocol)?u.href:""}catch(_){return ""}
