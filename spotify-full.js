@@ -8,7 +8,7 @@
   const AUTH_KEY = "creativeNetworkSpotifySession";
   const PENDING_KEY = "creativeNetworkSpotifyPKCE";
   const RETURN_KEY = "creativeNetworkSpotifyReturnProfile";
-  const SCOPES = "streaming user-modify-playback-state user-read-private";
+  const SCOPES = "streaming user-modify-playback-state user-read-private playlist-modify-private";
   let player = null;
   let deviceId = "";
   let ready = false;
@@ -108,7 +108,8 @@
       access_token: data.access_token,
       refresh_token: data.refresh_token || (previous && previous.refresh_token) || "",
       expires_at: Date.now() + Math.max(1, Number(data.expires_in) || 3600) * 1000,
-      client_id: clientId()
+      client_id: clientId(),
+      scopes: data.scope || (previous && previous.scopes) || SCOPES
     });
   }
   async function accessToken(force) {
@@ -156,7 +157,11 @@
         description = data.error && (data.error.message || data.error.reason) || "";
       } catch (_) {}
       if (response.status === 403) {
-        throw new Error("Spotify declined playback (403). Check Premium, Developer app allowlist, and playback permissions." +
+        const playlistAction=/^\/(me\/playlists|playlists\/)/.test(path);
+        throw new Error(playlistAction ?
+          "Spotify declined the playlist request (403). Reconnect Spotify with playlist permission or check Developer app access." +
+          (description ? " " + description : "") :
+          "Spotify declined this request (403). Check Premium, Developer app allowlist and permissions." +
           (description ? " " + description : ""));
       }
       if (response.status === 429) throw new Error("Spotify rate/quota limit reached. Try again later.");
@@ -499,6 +504,13 @@
     renderCard: renderCard,
     bindCard: bindCard,
     boot: boot,
-    disconnect: disconnect
+    disconnect: disconnect,
+    api: spotifyAPI,
+    isConnected: authorized,
+    hasPlaylistScope: function () {
+      const s=readSession();
+      return !!(s && typeof s.scopes==="string" && s.scopes.split(/\s+/).includes("playlist-modify-private"));
+    },
+    reconnectForPlaylist: function (profileId) { return beginAuthorization(profileId || ""); }
   };
 })();
