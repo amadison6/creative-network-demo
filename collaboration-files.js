@@ -266,6 +266,7 @@ function showForm(which){
  el("collabAddForm").hidden=which!=="add";
  el("collabImportForm").hidden=which!=="import";
  el("collabExportForm").hidden=which!=="export";
+ el("collabUploadForm").hidden=which!=="upload";
  status("");
 }
 function open(personId,mode="add"){
@@ -277,6 +278,7 @@ function open(personId,mode="add"){
  title.textContent="Collaboration Files · "+(person?.name||personId);
  clearForm(personId);
  showForm(mode);
+ if(mode==="upload")prepareUpload(personId);
  if(mode==="import")el("collabJson").focus();
  else if(mode==="add")el("collabResourceName").focus();
 }
@@ -286,11 +288,13 @@ function redraw(){
  else if(typeof selected!=="undefined"&&selected?.id===activePerson&&typeof showVenueProfile==="function")showVenueProfile(selected);
 }
 function saveForm(){
+ const existing=editing?read().find(r=>r.resourceId===editing&&r.personId===activePerson):null;
  const obj=normalized({resourceId:editing||"",personId:activePerson,projectId:el("collabProjectId").value,
  project:el("collabProject").value,section:el("collabSection").value,
  name:el("collabResourceName").value,type:el("collabType").value,
- url:el("collabResourceUrl").value,provider:el("collabProvider").value,
- notes:el("collabNotes").value,dateAdded:new Date().toISOString().slice(0,10)});
+ url:existing?.localImage?"":el("collabResourceUrl").value,provider:existing?.localImage?"This browser · original image":el("collabProvider").value,
+ notes:el("collabNotes").value,dateAdded:new Date().toISOString().slice(0,10),
+ localImage:existing?.localImage===true,fileFingerprint:existing?.fileFingerprint||""});
  if(!obj){status("Enter a resource name and a valid http(s) link, or leave the link blank until you have it.",true);return}
  merge([obj]);status("Saved locally.");close();redraw();
 }
@@ -316,11 +320,18 @@ function bindProfile(n){
  if(!pane)return;
  pane.querySelectorAll('.collab-panel[data-person-id]').forEach(panel=>{
   if(panel.dataset.personId!==n.id)return;
+  panel.querySelectorAll("[data-collab-upload]").forEach(b=>b.onclick=()=>open(n.id,"upload"));
   panel.querySelectorAll("[data-collab-add]").forEach(b=>b.onclick=()=>open(n.id,"add"));
   panel.querySelectorAll("[data-collab-import]").forEach(b=>b.onclick=()=>open(n.id,"import"));
   panel.querySelectorAll("[data-collab-export]").forEach(b=>b.onclick=()=>{open(n.id,"export")});
   panel.querySelectorAll("[data-collab-edit]").forEach(b=>b.onclick=()=>{open(n.id,"add");edit(b.dataset.collabEdit)});
-  panel.querySelectorAll(".collab-thumb img").forEach(img=>{
+  panel.querySelectorAll("[data-collab-download-image]").forEach(b=>b.onclick=()=>downloadImage(b.dataset.collabDownloadImage));
+  panel.querySelectorAll("[data-collab-view-image]").forEach(a=>a.onclick=e=>{
+    if(!a.href||a.getAttribute("href")==="#"){e.preventDefault();alert("The original image is not available in this browser yet.")}
+  });
+  panel.querySelectorAll("[data-collab-delete-image]").forEach(b=>b.onclick=()=>removeSavedImage(b.dataset.collabDeleteImage,n.id));
+  hydrateImages(panel);
+  panel.querySelectorAll(".collab-thumb img:not([data-collab-local-preview])").forEach(img=>{
    img.onerror=()=>{img.remove()};
   });
  });
@@ -351,8 +362,19 @@ function boot(){
  '<textarea id="collabJson" rows="10" placeholder="Paste JSON rows or records here"></textarea>'+
  '<button type="button" id="collabImport">Import into this browser</button></div>'+
  '<div id="collabExportForm" class="collab-form" hidden>'+
- '<p>Export the private resources for this collaborator as a JSON backup. Do not upload it to the public GitHub repository.</p>'+
+ '<p>Export private resource metadata/links as JSON. Browser-saved image bytes are NOT included: use “Save original” for each uploaded image. Do not upload the backup to the public GitHub repository.</p>'+
  '<button type="button" id="collabExport">Download private JSON backup</button></div>'+
+ '<div id="collabUploadForm" class="collab-form" hidden>'+
+ '<p>Save image originals to your private browser storage and attach them to a project on this collaborator’s profile. Images are not uploaded to Drive or synced between devices.</p>'+
+ '<label>Project</label><select id="collabUploadProjectChoice"></select>'+
+ '<label>Project name</label><input id="collabUploadProject" placeholder="God’s Contraband — Unstoppable">'+
+ '<label>Project ID (optional)</label><input id="collabUploadProjectId" placeholder="gc_unstoppable">'+
+ '<label>Shared notes (optional)</label><textarea id="collabUploadNotes" rows="2" placeholder="Lighting, framing, scene, or mood notes"></textarea>'+
+ '<label class="collab-image-drop" id="collabImageDrop" tabindex="0">Drag image files here or choose files'+
+ '<input type="file" id="collabImageFiles" accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/heic,image/heif" multiple></label>'+
+ '<div class="collab-upload-list" id="collabUploadList">No images selected · Maximum 40 MB each</div>'+
+ '<button type="button" id="collabSaveImages">Save images to this browser</button>'+
+ '<div class="collab-upload-status" id="collabUploadStatus" aria-live="polite"></div></div>'+
  '<div id="collabStatus" aria-live="polite"></div>'+
  '<p class="collab-security">This is local storage, not a login or encrypted vault. Private Google Drive files remain governed by their own sharing permissions.</p>'+
  '</div></section>';
@@ -362,6 +384,14 @@ function boot(){
  el("collabSave").onclick=saveForm;
  el("collabImport").onclick=importJson;
  el("collabExport").onclick=exportJson;
+ el("collabImageFiles").onchange=e=>selectImages(e.target.files);
+ el("collabSaveImages").onclick=saveUploadedImages;
+ const drop=el("collabImageDrop");
+ drop.ondragover=e=>{e.preventDefault();drop.classList.add("collab-dragover")};
+ drop.ondragleave=()=>drop.classList.remove("collab-dragover");
+ drop.ondrop=e=>{e.preventDefault();drop.classList.remove("collab-dragover");selectImages(e.dataTransfer?.files)};
+ drop.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();el("collabImageFiles").click()}};
+
  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!modal.hidden)close()});
 }
 function importFromHash(){
