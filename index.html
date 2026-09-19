@@ -580,6 +580,9 @@
 .venue-profile .links{display:flex;gap:7px;flex-wrap:wrap}
 .venue-profile .links a{overflow-wrap:anywhere}
 
+.node-avatar-photo{pointer-events:none}
+#nodeAvatarToggle.active{border-color:#82ad92;color:#d5ffe2;background:#203728}
+
 </style>
 </head>
 <body>
@@ -635,7 +638,7 @@
 </datalist>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v57 · distinct venue profiles</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v58 · photo circle toggle</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -654,7 +657,7 @@
 <div class="section-title">Legend</div><div class="legend"><div><span class="dot gold"></span>Core/direct relationship</div><div><span class="dot blue"></span>Bridge / connector</div><div><span class="dot green"></span>Hub / infrastructure</div><div style="margin-top:7px"><span class="line-key strong"></span>Established / strong</div><div><span class="line-key budding"></span>Budding connection</div><div><span class="line-key potential"></span>Potential connection</div></div>
 <div class="section-title">Weekly Review</div><div class="small">Use your Tuesday check-in to refresh social links, photos, releases, sessions, and map relationships.</div>
 </aside>
-<main class="main"><canvas id="spaceFx" class="space-fx" aria-hidden="true"></canvas><div class="toolbar"><button class="icon-btn" id="toggleLeft" title="Hide/show navigation">☰</button><input id="search" class="search" placeholder="Search people, roles, hubs..." /><div class="pill" id="status">Relationship view</div><button class="zoom-btn" id="previousProfile" title="Nearest profile to the left (←)" aria-label="Previous profile">←</button><button class="zoom-btn" id="nextProfile" title="Nearest profile to the right (→)" aria-label="Next profile">→</button><button class="add-btn" id="addProfile">＋ Profile</button><button class="ai-toggle" id="aiToggle">Ask Network</button><button class="version-btn" id="orbitBtn" title="Orbit visible profiles clockwise around uh_sar">◎ Orbit</button><button class="version-btn" id="gravityBtn" title="Experimental: connected profiles exert a subtle pull in Orbit mode">◌ Gravity</button><button class="version-btn" id="syncBtn" title="Review profile changes waiting to sync">↗ Sync<span id="syncCount"></span></button><button class="version-btn" id="versionLogBtn">History</button><button class="version-btn" id="talkEditBtn">Talk + Edit</button><button class="icon-btn" id="toggleRight" title="Hide/show profile panel">◧</button><button class="icon-btn" id="focusMode" title="Toggle full map">⛶</button><div class="zoom-controls"><button class="zoom-btn" id="zoomOut" title="Zoom out">−</button><button class="zoom-btn" id="zoomReset" title="Reset map">↺</button><button class="zoom-btn" id="zoomIn" title="Zoom in">+</button></div></div><svg id="map" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet"><g id="viewport"></g></svg>
+<main class="main"><canvas id="spaceFx" class="space-fx" aria-hidden="true"></canvas><div class="toolbar"><button class="icon-btn" id="toggleLeft" title="Hide/show navigation">☰</button><input id="search" class="search" placeholder="Search people, roles, hubs..." /><div class="pill" id="status">Relationship view</div><button class="zoom-btn" id="previousProfile" title="Nearest profile to the left (←)" aria-label="Previous profile">←</button><button class="zoom-btn" id="nextProfile" title="Nearest profile to the right (→)" aria-label="Next profile">→</button><button class="add-btn" id="addProfile">＋ Profile</button><button class="ai-toggle" id="aiToggle">Ask Network</button><button class="version-btn" id="nodeAvatarToggle" type="button" aria-pressed="true" title="Show initials instead of profile photos">◉ Photos</button><button class="version-btn" id="orbitBtn" title="Orbit visible profiles clockwise around uh_sar">◎ Orbit</button><button class="version-btn" id="gravityBtn" title="Experimental: connected profiles exert a subtle pull in Orbit mode">◌ Gravity</button><button class="version-btn" id="syncBtn" title="Review profile changes waiting to sync">↗ Sync<span id="syncCount"></span></button><button class="version-btn" id="versionLogBtn">History</button><button class="version-btn" id="talkEditBtn">Talk + Edit</button><button class="icon-btn" id="toggleRight" title="Hide/show profile panel">◧</button><button class="icon-btn" id="focusMode" title="Toggle full map">⛶</button><div class="zoom-controls"><button class="zoom-btn" id="zoomOut" title="Zoom out">−</button><button class="zoom-btn" id="zoomReset" title="Reset map">↺</button><button class="zoom-btn" id="zoomIn" title="Zoom in">+</button></div></div><svg id="map" viewBox="0 0 1000 720" preserveAspectRatio="xMidYMid meet"><g id="viewport"></g></svg>
 <div class="ai-panel hidden" id="aiPanel">
   <div class="ai-head">
     <strong>Network Intelligence</strong>
@@ -973,7 +976,18 @@ localProfiles.forEach((p,i)=>{
 })
 
 const hubCenters={Center:[500,360],"Visual / Management":[180,170],"Professor What Trio":[720,155],"Delaware–Philly":[825,320],"R&B Writing Orbit":[200,560],"Baw$ / Sockjus Orbit":[815,560],"Jonah Studio":[560,625],"Joel's DTLA Studio":[420,640],"God's Contraband":[470,190]};
-const offsets={},hubCounts={};nodes.forEach(n=>{hubCounts[n.hub]=(hubCounts[n.hub]||0)+1;const i=hubCounts[n.hub]-1,a=i*2.2,r=n.hub==="Center"?0:42+(i%2)*12;offsets[n.id]=[Math.cos(a)*r,Math.sin(a)*r]});let currentView="relationship",currentFilter="All",selected=null,selectedFocusId=null,selectedHubName=null;const svg=document.getElementById("map"),viewport=document.getElementById("viewport"),ns="http://www.w3.org/2000/svg";function make(tag,attrs={}){
+const offsets={},hubCounts={};nodes.forEach(n=>{hubCounts[n.hub]=(hubCounts[n.hub]||0)+1;const i=hubCounts[n.hub]-1,a=i*2.2,r=n.hub==="Center"?0:42+(i%2)*12;offsets[n.id]=[Math.cos(a)*r,Math.sin(a)*r]});const NODE_AVATAR_PREF_KEY="creativeNetworkNodeAvatarMode";
+let nodeAvatarMode=localStorage.getItem(NODE_AVATAR_PREF_KEY)==="initials"?"initials":"photos";
+function updateNodeAvatarToggle(){
+  const btn=document.getElementById("nodeAvatarToggle");
+  if(!btn)return;
+  const photos=nodeAvatarMode==="photos";
+  btn.textContent=photos?"◉ Photos":"◎ Initials";
+  btn.setAttribute("aria-pressed",String(photos));
+  btn.title=photos?"Switch map circles back to initials":"Show profile photos inside map circles";
+  btn.classList.toggle("active",photos);
+}
+let currentView="relationship",currentFilter="All",selected=null,selectedFocusId=null,selectedHubName=null;const svg=document.getElementById("map"),viewport=document.getElementById("viewport"),ns="http://www.w3.org/2000/svg";function make(tag,attrs={}){
   const el=document.createElementNS(ns,tag);
   Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));
   return el;
@@ -1377,6 +1391,7 @@ function render(){
     viewport.appendChild(line);edgeEls.push(line);
   });
 
+  let nodeAvatarClipIndex=0;
   nodes.filter(visibleNode).forEach(n=>{
     const s=ensureMotionState(n);
     const g=make("g",{class:"node",transform:`translate(${s.x},${s.y})`,"data-id":n.id});
@@ -1390,6 +1405,31 @@ function render(){
       (currentView==="studios"&&n.profileType==="studio")?31:
       ((currentView==="relationship"&&currentFilter==="Bands & Collectives"&&isCollectiveEntity(n))?34:n.r);
     g.appendChild(make("circle",{r:rr,fill,class:n.type==="core"?"core":n.type==="bridge"?"bridge":n.type==="hubnode"?"hubnode":"person"}));
+
+    // Initials stay behind the photo, so missing/broken photos gracefully fall back.
+    const initials=n.name.split(/\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase();
+    const av=make("text",{x:0,y:4,"text-anchor":"middle",fill:"#dfe4ea","font-size":rr>25?"13":"11","font-weight":"800"});
+    av.textContent=initials;g.appendChild(av);
+
+    const photo=typeof n.photo==="string"&&(
+      /^https:\/\//i.test(n.photo)||
+      /^data:image\/(?:png|jpe?g|webp|gif|avif);base64,/i.test(n.photo)
+    )?n.photo:"";
+    if(nodeAvatarMode==="photos"&&photo){
+      const clipId="network-node-avatar-"+nodeAvatarClipIndex++;
+      const defs=make("defs");
+      const clip=make("clipPath",{id:clipId});
+      clip.appendChild(make("circle",{cx:0,cy:0,r:rr-2}));
+      defs.appendChild(clip);g.appendChild(defs);
+      const size=(rr-2)*2;
+      const image=make("image",{
+        x:-(rr-2),y:-(rr-2),width:size,height:size,
+        href:photo,"preserveAspectRatio":"xMidYMid slice",
+        "clip-path":"url(#"+clipId+")",class:"node-avatar-photo"
+      });
+      image.addEventListener("error",()=>image.setAttribute("display","none"));
+      g.appendChild(image);
+    }
 
     const notifCount=notificationCount(n.id);
     if(notifCount>0){
@@ -1408,10 +1448,6 @@ function render(){
       count.textContent=newEvents>99?"99+":String(newEvents);
       badge.appendChild(count);g.appendChild(badge);
     }
-
-    const initials=n.name.split(/\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase();
-    const av=make("text",{x:0,y:4,"text-anchor":"middle",fill:"#dfe4ea","font-size":n.r>25?"13":"11","font-weight":"800"});
-    av.textContent=initials;g.appendChild(av);
 
     const name=make("text",{x:0,y:n.r+16,"text-anchor":"middle",class:"name"});
     name.textContent=n.name;g.appendChild(name);
@@ -2765,6 +2801,13 @@ function setOrbitMode(on){
   Object.values(motionState).forEach(st=>{if(st){st.vx*=.25;st.vy*=.25}});
   render();
 }
+document.getElementById("nodeAvatarToggle").onclick=()=>{
+  nodeAvatarMode=nodeAvatarMode==="photos"?"initials":"photos";
+  localStorage.setItem(NODE_AVATAR_PREF_KEY,nodeAvatarMode);
+  updateNodeAvatarToggle();
+  render();
+};
+updateNodeAvatarToggle();
 document.getElementById("orbitBtn").onclick=()=>setOrbitMode(!orbitMode);
 function setGravityMode(on){
   gravityMode=!!on;
@@ -3450,6 +3493,15 @@ document.getElementById("saveProfile").onclick=()=>{
 })();
 
 const APP_RELEASES=[
+  {
+    version:"v58",file:null,date:"2026-09-19",title:"Photo circles with instant initials rollback",
+    notes:[
+      "Optional profile pictures cropped to map circles with an Initials/Photos toolbar toggle",
+      "Photo mode defaults on for this experiment; switch to Initials at any time",
+      "Browser remembers the visual preference without modifying profile data or map relationships",
+      "Profiles without photos or images that fail to load display initials, and badges remain on top of photos"
+    ]
+  },
   {
     version:"v57",file:null,date:"2026-09-19",title:"Venue profiles built for booking",
     notes:[
