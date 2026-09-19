@@ -479,6 +479,47 @@
 .partiful-subtitle span{color:#b6a4ce}
 #partifulStatus.error{color:#f1a3a3}
 
+/* v52 · Event Radar */
+.node-event-radar circle{fill:#a47ae5;stroke:#322545;stroke-width:1.5}
+.node-event-radar text{fill:#170d22;font-size:10px;font-weight:900}
+.radar-profile-card{background:#201a2c;border:1px solid #4e3e62;border-radius:13px;padding:12px;margin:10px 0}
+.radar-profile-head{font-size:12px;color:#ecdfff;font-weight:800;margin-bottom:9px}
+.radar-profile-card>button{color:#f4eaff;background:#594179;border:1px solid #8d6ba9;border-radius:8px;padding:9px;font-size:11px;cursor:pointer;margin-top:10px;width:100%}
+.radar-event{background:#211a2c;border:1px solid #4a3a5c;border-radius:10px;padding:12px;margin:7px 0;color:#f3ecfc}
+.radar-event.radar-unread{border-color:#a17ada}
+.radar-event-top{display:flex;justify-content:space-between;align-items:start;gap:8px;font-size:12px}
+.radar-new{background:#a077e2;color:#190e25;font-size:9px;font-weight:900;border-radius:25px;padding:4px 6px}
+.radar-event-date{font-size:11px;color:#debef9;font-weight:700;margin:5px 0}
+.radar-event-meta,.radar-event-note,.radar-muted{font-size:11px;line-height:1.5;color:#ae9abf;margin-top:5px}
+.radar-event-note{color:#cfc1dc}
+.radar-event-buttons{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.radar-event-buttons a,.radar-event-buttons button{color:#e8d3ff;background:#342641;border:1px solid #6d4f82;border-radius:8px;padding:6px 9px;font-size:10px;text-decoration:none;cursor:pointer}
+.radar-backdrop{position:fixed;inset:0;z-index:1400;padding:14px;background:#000c;display:flex;align-items:center;justify-content:center}
+.radar-backdrop[hidden]{display:none!important}
+.radar-dialog{width:min(1000px,100%);max-height:94dvh;background:#130f1b;color:#f3eafd;display:flex;flex-direction:column;border-radius:16px;border:1px solid #6c4c83;box-shadow:0 15px 70px #000b}
+.radar-head{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:17px 19px;border-bottom:1px solid #4a3358}
+.radar-head strong{font-size:20px}.radar-head p{font-size:11px;color:#bca3d0;margin:5px 0 0}
+.radar-head>button{font-size:22px;color:#f5e7ff;background:#362446;border:1px solid #684a7c;border-radius:9px;padding:4px 11px;cursor:pointer}
+.radar-columns{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(290px,.9fr);min-height:0;overflow:hidden}
+.radar-list-pane{min-width:0;display:flex;flex-direction:column;overflow:hidden;padding:14px}
+.radar-tabs{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 10px}
+.radar-tabs button{font-size:11px;color:#c5acda;background:#281e32;border:1px solid #453251;border-radius:15px;padding:6px 9px;cursor:pointer}
+.radar-tabs button.active{background:#8058a9;color:#fff}
+.radar-items{min-height:80px;overflow-y:auto;padding-right:5px}
+.radar-form{padding:15px;overflow-y:auto;background:#1a1424;display:flex;flex-direction:column;gap:8px;border-left:1px solid #4c385b}
+.radar-form>strong{font-size:15px}.radar-form p{font-size:11px;color:#c0a9d3;margin:0 0 4px;line-height:1.4}
+.radar-form label{font-size:11px;color:#d9c4ed;font-weight:700}
+.radar-form input,.radar-form select,.radar-form textarea{width:100%;background:#0f0d16;border:1px solid #624b75;color:#f5eeff;border-radius:9px;padding:9px;font-size:12px;min-width:0}
+.radar-form textarea{resize:vertical}
+.radar-dates{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.radar-dates>div{min-width:0;display:flex;flex-direction:column;gap:8px}
+.radar-form-actions{display:flex;gap:8px;flex-wrap:wrap}
+.radar-form-actions button{background:#875abe;border:1px solid #af84dd;color:#fff;border-radius:8px;padding:9px 13px;font-weight:800;font-size:11px;cursor:pointer}
+.radar-form-actions button#radarCancelEdit{background:#31233b}
+.radar-disclosure{padding:9px;border:1px solid #463454;border-radius:8px;color:#c2afce;font-size:10px;line-height:1.5}
+.radar-error{color:#faacb8!important}
+@media(max-width:660px){.radar-backdrop{padding:7px}.radar-dialog{max-height:97dvh}.radar-columns{grid-template-columns:minmax(0,1fr);overflow-y:auto}.radar-list-pane{max-height:38dvh;overflow:visible}.radar-form{border-left:0;border-top:1px solid #4c385b;overflow:visible}}
+
 </style>
 </head>
 <body>
@@ -534,7 +575,7 @@
 </datalist>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v51 · Partiful profiles & events</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v52 · Event Radar</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -542,6 +583,7 @@
 <button class="viewbtn" data-view="venues">Venue View</button>
 <button class="viewbtn mix-entry" id="networkMixButton">♫ Mix Builder</button>
 <button class="viewbtn mix-entry" id="listenerWatchButton">↗ Audience Watch</button>
+<button class="viewbtn mix-entry" id="networkEventRadarButton">◈ Event Radar</button>
 <div class="view-explainer" id="viewExplainer">
   <strong>Relationship View</strong><br>
   Who is close to you? Distance represents direct relationship strength; rings separate core, working network, and outer orbit.
@@ -767,6 +809,7 @@
 <script src="./spotify-full.js"></script>
 <script src="./spotify-playlists.js"></script>
 <script src="./listener-tracking.js"></script>
+<script src="./event-radar.js"></script>
 <script>
 const nodes=[
 {id:"uh_sar",name:"uh_sar",role:"Producer / Artist / Director",type:"core",r:34,tags:["All","God's Contraband"],hub:"Center",bio:"Central creative node: producer, artist, arranger, multi-instrumentalist, and creative director. Co-founder and executive producer of God's Contraband."},
@@ -1196,6 +1239,14 @@ function render(){
       const bt=make("text",{x:0,y:3.2,"text-anchor":"middle"});
       bt.textContent=notifCount>99?"99+":String(notifCount);
       badge.appendChild(bt);g.appendChild(badge);
+    }
+    const newEvents=window.NetworkEvents?.count(n.id)||0;
+    if(newEvents>0){
+      const badge=make("g",{class:"node-event-radar",transform:`translate(${(-rr*.74).toFixed(1)},${(-rr*.74).toFixed(1)})`});
+      badge.appendChild(make("circle",{r:10}));
+      const count=make("text",{x:0,y:3.2,"text-anchor":"middle"});
+      count.textContent=newEvents>99?"99+":String(newEvents);
+      badge.appendChild(count);g.appendChild(badge);
     }
 
     const initials=n.name.split(/\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase();
@@ -1779,6 +1830,7 @@ function showProfile(n){
       <div class="integration-actions"><button id="savePartifulEvents" type="button">Save event links</button></div>
       <div class="integration-output" id="partifulStatus" aria-live="polite">Links are saved to this existing Network HQ profile, not a new contact. Only add event links you intend to keep here.</div>
     </div>
+    ${window.NetworkEvents ? window.NetworkEvents.section(n) : ""}
     <div class="section-title">Notifications</div>
     <div id="profileNotifications"></div>
     ${hasUntitledSection?`
@@ -1802,6 +1854,7 @@ function showProfile(n){
   `;
 
   document.getElementById("editProfileBtn").onclick=()=>openEditProfile(n);
+  if(window.NetworkEvents)window.NetworkEvents.bindProfile(n);
   document.getElementById("savePartifulProfile").onclick=()=>{
     const input=document.getElementById("partifulProfileInput");
     const raw=input.value.trim(),parsed=parsePartifulLink(raw);
@@ -2900,6 +2953,16 @@ document.getElementById("saveProfile").onclick=()=>{
 
 const APP_RELEASES=[
   {
+    version:"v52",file:null,date:"2026-09-18",title:"Event Radar",
+    notes:[
+      "Added a shared upcoming-events and event-history watchlist linked to existing Network HQ profiles",
+      "Seeded previously saved Partiful invitations as undated reviewed entries, without claiming they are new events",
+      "Added purple event badges for unreviewed event links, independently of open-task badges",
+      "Added event name, date, role, notes and public URL, with editing, duplicate-link merging and local persistence",
+      "Event Radar has no automatic discovery feed or background notifications yet; new events are added manually or through saved Partiful links"
+    ]
+  },
+  {
     version:"v51",file:null,date:"2026-09-18",title:"Partiful profiles and event links",
     notes:[
       "Added Partiful personal and organization profiles to existing Network HQ people, collectives, promoters, venues and studios",
@@ -3678,6 +3741,7 @@ if(typeof APP_RELEASES!=="undefined" && !APP_RELEASES.some(r=>r.version==="v15")
 render();applyCamera();showProfile(nodes.find(n=>n.id==="diontae")||nodes.find(n=>n.id==="baws"));
 if(window.NetworkPlaylists)window.NetworkPlaylists.boot();
 if(window.NetworkListeners)window.NetworkListeners.boot();
+if(window.NetworkEvents)window.NetworkEvents.boot();
 if(window.NetworkSpotify)window.NetworkSpotify.boot().then(function(){
   if(window.NetworkPlaylists)window.NetworkPlaylists.onAuthReady();
 }).catch(function(error){
