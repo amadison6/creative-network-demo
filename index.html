@@ -683,11 +683,11 @@
 .demo-connection{stroke:#86c5c1;stroke-width:1.5;stroke-dasharray:3.5 7;stroke-opacity:.36;pointer-events:none}
 .demo-connection.demo-connection-playing{stroke:#c3fff1;stroke-width:3;stroke-dasharray:8 3;stroke-opacity:.95;filter:drop-shadow(0 0 5px #8ce8cc)}
 .node .demo-play-ring{display:none;fill:none;stroke:#abf4df;stroke-width:2.6;stroke-dasharray:6 3;pointer-events:none}
-.node.demo-spinning .demo-play-ring{display:block;animation:demo-ring-rotate 30s linear infinite;transform-box:fill-box;transform-origin:center}
-.node.demo-spinning .node-avatar-photo{animation:demo-record-spin 24s linear infinite;transform-box:fill-box;transform-origin:center}
+.node.demo-spinning .demo-play-ring,.node.music-spinning .demo-play-ring{display:block;animation:demo-ring-rotate 39s linear infinite;transform-box:fill-box;transform-origin:center}
+.node.demo-spinning .node-avatar-photo,.node.music-spinning .node-avatar-photo{animation:demo-record-spin 31s linear infinite;transform-box:fill-box;transform-origin:center}
 @keyframes demo-record-spin{to{transform:rotate(360deg)}}
 @keyframes demo-ring-rotate{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){.node.demo-spinning .node-avatar-photo,.node.demo-spinning .demo-play-ring{animation:none}}
+@media(prefers-reduced-motion:reduce){.node.demo-spinning .node-avatar-photo,.node.demo-spinning .demo-play-ring,.node.music-spinning .node-avatar-photo,.node.music-spinning .demo-play-ring{animation:none}}
 
 </style>
 </head>
@@ -744,7 +744,7 @@
 </datalist>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v64 · slower demo record spin</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v65 · producer playlists & multi-source record spin</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -976,13 +976,14 @@
   </div>
 </div>
 
-<script src="./spotify-full.js"></script>
+<script src="./network-playback.js?v=65"></script>
+<script src="./spotify-full.js?v=65"></script>
 <script src="./spotify-playlists.js"></script>
 <script src="./listener-tracking.js"></script>
 <script src="./event-radar.js?v=56"></script>
 <script src="./collaboration-files.js?v=59-3"></script>
-<script src="./untitled-projects.js?v=61"></script>
-<script src="./demo-library.js?v=63"></script>
+<script src="./untitled-projects.js?v=65"></script>
+<script src="./demo-library.js?v=65"></script>
 <script>
 const nodes=[
 {id:"uh_sar",name:"uh_sar",role:"Producer / Artist / Director",type:"core",r:34,tags:["All","God's Contraband"],hub:"Center",bio:"Central creative node: producer, artist, arranger, multi-instrumentalist, and creative director. Co-founder and executive producer of God's Contraband."},
@@ -1640,6 +1641,7 @@ function render(){
   updateLayerEmpty();
   renderVenueDirectory();
   if(window.NetworkDemos?.stateChanged)window.NetworkDemos.stateChanged();
+  window.NetworkPlayback?.sync();
   applyCamera();
   startOrganicMotion();
 }
@@ -1834,6 +1836,8 @@ function profileCategory(n){
     isMusicProfile(n) ? "music" : "person";
 }
 function showHubProfile(hubName){
+  const hubCollective=nodes.find(n=>isCollectiveEntity(n)&&n.hub===hubName);
+  window.NetworkPlayback?.enter(hubCollective?.id||"hub:"+hubName);
   selected=null;
   selectedFocusId=null;
   selectedHubName=hubName;
@@ -2230,6 +2234,7 @@ function showVenueProfile(n){
 }
 
 function showProfile(n){
+  window.NetworkPlayback?.enter(n.id);
   if(n.profileType==="venue")return showVenueProfile(n);
   selected=n;
   selectedFocusId=n.id;
@@ -4648,6 +4653,7 @@ if(window.NetworkUntitled){
 }
 if(window.NetworkDemos)window.NetworkDemos.init({
   getPeople:()=>nodes,
+  getConnections:()=>edges,
   refreshMap:()=>render(),
   openPerson:id=>{const person=nodes.find(n=>n.id===id);if(person)showProfile(person)}
 });
