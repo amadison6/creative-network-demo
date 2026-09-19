@@ -2096,6 +2096,21 @@ document.getElementById("removeProfilePhoto").onclick=()=>{pendingEditPhotoData=
 document.getElementById("saveProfileEdits").onclick=()=>{
   const id=document.getElementById("editProfileId").value,n=nodes.find(x=>x.id===id);if(!n)return;
   const before=profileSnapshot(n),hadPhoto=!!n.photo;
+  const partifulRaw=document.getElementById("editPartifulProfile").value.trim();
+  const partifulProfileEdit=parsePartifulLink(partifulRaw);
+  const partifulEventEdit=parsePartifulEventLines(document.getElementById("editPartifulEvents").value);
+  if(partifulRaw&&partifulProfileEdit?.kind!=="profile"){
+    const input=document.getElementById("editPartifulProfile");
+    input.setCustomValidity("Use a personal or Org Profile URL: https://partiful.com/u/...");
+    input.reportValidity();input.addEventListener("input",()=>input.setCustomValidity(""),{once:true});
+    return;
+  }
+  if(partifulEventEdit.error){
+    const input=document.getElementById("editPartifulEvents");
+    input.setCustomValidity(partifulEventEdit.error);
+    input.reportValidity();input.addEventListener("input",()=>input.setCustomValidity(""),{once:true});
+    return;
+  }
   const spotifyInput=document.getElementById("editSpotify");
   const instagramInput=document.getElementById("editInstagram");
   const spotifyEdit=spotifyInput.value.trim(),instagramEdit=instagramInput.value.trim();
@@ -2135,6 +2150,8 @@ document.getElementById("saveProfileEdits").onclick=()=>{
   if(sp)n.links.Spotify=sp;else delete n.links.Spotify;
   setSocialLinkRemoved(n.id,"Instagram",!ig);
   setSocialLinkRemoved(n.id,"Spotify",!sp);
+  if(partifulProfileEdit?.kind==="profile")n.links.Partiful=partifulProfileEdit.url;else delete n.links.Partiful;
+  n.partifulEvents=partifulEventEdit.urls;
   if(n.profileType==="musician"||isMusicProfile(n)||isCollectiveEntity(n)){
     if(untitledURL)n.links.Untitled=untitledURL;else delete n.links.Untitled;
   }
@@ -2683,6 +2700,21 @@ document.getElementById("saveProfile").onclick=()=>{
   const hub=document.getElementById("newHub").value.trim()||"Unclassified / Extended Network";
   const relationship=document.getElementById("newRelationship").value.trim();
   const publicLink=document.getElementById("newLink").value.trim();
+  const partifulRaw=document.getElementById("newPartifulProfile").value.trim();
+  const partifulEventRaw=document.getElementById("newPartifulEvent").value.trim();
+  const partifulNew=parsePartifulLink(partifulRaw);
+  const partifulEventNew=parsePartifulLink(partifulEventRaw);
+  for(const [raw,parsed,type,id,msg] of [
+    [partifulRaw,partifulNew,"profile","newPartifulProfile","Use a Partiful personal or Org Profile URL (partiful.com/u/...)."],
+    [partifulEventRaw,partifulEventNew,"event","newPartifulEvent","Use a Partiful event invitation (partiful.com/e/...)."]
+  ]){
+    if(raw&&parsed?.kind!==type){
+      const input=document.getElementById(id);
+      input.setCustomValidity(msg);input.reportValidity();
+      input.addEventListener("input",()=>input.setCustomValidity(""),{once:true});
+      return;
+    }
+  }
   const untitledRaw=document.getElementById("newUntitled")?.value.trim()||"";
   const untitledURL=normalizeUntitledLink(untitledRaw);
   const spotifyRaw=document.getElementById("newSpotify")?.value.trim()||"";
@@ -2729,6 +2761,8 @@ document.getElementById("saveProfile").onclick=()=>{
   if(untitledURL)p.links.Untitled=untitledURL;
   if(spotify)p.links.Spotify=spotify.url;
   if(instagram)p.links.Instagram=instagram.url;
+  if(partifulNew?.kind==="profile")p.links.Partiful=partifulNew.url;
+  if(partifulEventNew?.kind==="event")p.partifulEvents=[partifulEventNew.url];
 
   const val=id=>document.getElementById(id)?.value?.trim()||"";
   if(kind==="musician"){
@@ -2754,7 +2788,7 @@ document.getElementById("saveProfile").onclick=()=>{
   relationshipPos[p.id]=[500+Math.cos(a)*rad,360+Math.sin(a)*rad];
   offsets[p.id]=[0,0];
 
-  ["newName","newRole","newHub","newLocation","newRelationship","newLink"].forEach(id=>{const el=document.getElementById(id);if(el)el.value=""});
+  ["newName","newRole","newHub","newLocation","newRelationship","newLink","newPartifulProfile","newPartifulEvent"].forEach(id=>{const el=document.getElementById(id);if(el)el.value=""});
   renderDynamicFields();
   closeProfileModal();
   if(kind==="venue")currentView="venues";else if(kind==="studio")currentView="studios";
