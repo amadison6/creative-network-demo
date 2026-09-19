@@ -351,6 +351,24 @@
 .instagram-handle{font-size:13px;color:#eef2f7;font-weight:750;overflow-wrap:anywhere}
 .instagram-caption{font-size:10px;color:#8492a3}
 @media(max-width:650px){.integration-input{flex-wrap:wrap}.integration-input button{min-height:36px}}
+/* v45 - opt-in Spotify Connect, account setup and persistent player */
+.spotify-full-card{background:#111a1a;border:1px solid #31574a;border-radius:13px;padding:12px;margin:12px 0 0}
+.spotify-full-card .integration-input{display:flex;gap:6px;flex-wrap:wrap}
+.spotify-full-card .integration-input input{flex:1 1 100%;width:100%}
+.spotify-full-card .integration-input button{font-size:11px}
+.spotify-full-card a{color:#96ddba}
+.spotify-full-card code{font-size:10px;overflow-wrap:anywhere;user-select:all}
+.spotify-full-card p{margin:8px 0}
+#spotifyFullPlay{padding:10px 12px;background:#1db954;color:#07190c;border:0;border-radius:9px;font-weight:800;cursor:pointer}
+#spotifyFullPlay:disabled{opacity:.44;cursor:not-allowed}
+#spotifyCopyRedirect{background:none;border:1px solid #5d7668;border-radius:6px;color:#addec1;padding:3px 6px;cursor:pointer}
+.network-spotify-dock{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:900;background:#14221b;border:1px solid #3a6e53;box-shadow:0 12px 30px #0009;border-radius:15px;padding:11px 15px;width:min(450px,calc(100vw - 24px));display:flex;gap:5px;flex-direction:column;align-items:center;text-align:center}
+.network-spotify-dock[hidden],#spotifyConnectBtn[hidden],#spotifyDisconnectBtn[hidden]{display:none!important}
+.network-spotify-title{color:#9ce7b6;font-weight:800;font-size:12px}
+.network-spotify-song{color:#f2f7f5;font-size:11px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.network-spotify-controls{display:flex;gap:12px;margin-top:3px}
+.network-spotify-controls button{cursor:pointer;border:1px solid #42654d;background:#1d3e2b;color:#e9f9ee;border-radius:9px;padding:7px 12px}
+.network-spotify-controls button:disabled{opacity:.45;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -406,7 +424,7 @@
 </datalist>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v44 · Spotify + Instagram profiles</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v45 · Spotify Premium playback</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -624,6 +642,7 @@
   </div>
 </div>
 
+<script src="./spotify-full.js"></script>
 <script>
 const nodes=[
 {id:"uh_sar",name:"uh_sar",role:"Producer / Artist / Director",type:"core",r:34,tags:["All","God's Contraband"],hub:"Center",bio:"Central creative node: producer, artist, arranger, multi-instrumentalist, and creative director. Co-founder and executive producer of God's Contraband."},
@@ -1557,6 +1576,7 @@ function showProfile(n){
         <iframe class="spotify-embed" title="Spotify player for ${escapeAttr(n.name)}" src="${escapeAttr(spotify.embedUrl)}" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe>
         <div class="integration-actions"><a href="${escapeAttr(spotify.url)}" target="_blank" rel="noopener noreferrer">Open on Spotify ↗</a></div>
       `:""}
+      ${window.NetworkSpotify ? window.NetworkSpotify.renderCard(n,spotify) : ""}
     </div>`:""}
     <div class="section-title">Instagram · Connect</div>
     <div class="integration-card">
@@ -1619,6 +1639,7 @@ function showProfile(n){
     input.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();save()}});
   }
   if(spotify)populateSpotifyMetadata(n.id,spotify);
+  if(isArtist&&window.NetworkSpotify)window.NetworkSpotify.bindCard(n,spotify);
   const saveUntitled=document.getElementById("saveUntitledLink");
   if(saveUntitled)saveUntitled.onclick=()=>{
     const input=document.getElementById("untitledLinkInput");
@@ -2618,6 +2639,16 @@ document.getElementById("saveProfile").onclick=()=>{
 
 const APP_RELEASES=[
   {
+    version:"v45",file:null,date:"2026-09-18",title:"Spotify Connect full-song playback",
+    notes:[
+      "Spotify Developer Client ID input, explicit Premium sign-in and PKCE authentication",
+      "Web Playback SDK browser device for full songs from linked artists, albums, tracks and playlists",
+      "Persistent Spotify controls across profile changes, token refresh, and disconnect",
+      "Access tokens kept in browser session storage, no Client Secret and no Spotify credentials committed to GitHub",
+      "Retained the public embedded preview player when Spotify sign-in is not configured"
+    ]
+  },
+  {
     version:"v44",file:null,date:"2026-09-18",title:"Spotify listening + Instagram identity",
     notes:[
       "Added playable Spotify artist and release embeds inside artist and collective profiles",
@@ -3290,6 +3321,11 @@ if(typeof APP_RELEASES!=="undefined" && !APP_RELEASES.some(r=>r.version==="v15")
 }
 
 render();applyCamera();showProfile(nodes.find(n=>n.id==="diontae")||nodes.find(n=>n.id==="baws"));
+if(window.NetworkSpotify)window.NetworkSpotify.boot().catch(function(error){
+  const panel=document.getElementById("spotifyLiveStatus");
+  if(panel)panel.textContent="Spotify connection error. Please try reloading.";
+  console.error("Network HQ Spotify initialization failed",error);
+});
 
 
 
