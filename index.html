@@ -520,7 +520,7 @@
 </datalist>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v48 · song catalog search</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v49 · Zeke Spotify identity repair</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -2746,6 +2746,15 @@ document.getElementById("saveProfile").onclick=()=>{
 
 const APP_RELEASES=[
   {
+    version:"v49",file:null,date:"2026-09-18",title:"ZekeUltra Spotify identity repair",
+    notes:[
+      "Repaired ZekeUltra's canonical Spotify link to artist 1suXRSUWQuSpeC5HyTtCC9",
+      "Kept ICE9 on separate artist 66rjQYZAzWZ9n933ytcoTg",
+      "Migrated old browser-saved overrides so the mistaken ICE9 link cannot return on Zeke's profile",
+      "Preserved other profile fields, mix drafts, Spotify connection, and linked Instagram accounts"
+    ]
+  },
+  {
     version:"v48",file:null,date:"2026-09-18",title:"Spotify song search fix",
     notes:[
       "Added true Spotify catalog search for song title and artist from Mix Builder",
@@ -3173,6 +3182,20 @@ const USER_SHARED_SPOTIFY={
   zeke:"https://open.spotify.com/artist/1suXRSUWQuSpeC5HyTtCC9",
   isis:"https://open.spotify.com/artist/66rjQYZAzWZ9n933ytcoTg"
 };
+// The first demo temporarily assigned ICE9's Spotify ID to Zeke. Earlier
+// browser-local profile overrides can retain that bad assignment across releases.
+// Repair the canonical artist identity AND the saved override before rendering.
+function repairZekeSpotifyIdentity(){
+  const n=nodes.find(x=>x.id==="zeke");
+  if(!n)return false;
+  const correct=USER_SHARED_SPOTIFY.zeke;
+  if(n.links?.Spotify===correct)return false;
+  n.links=Object.assign({},n.links||{});
+  n.links.Spotify=correct;
+  persistEditedProfiles();
+  persistCustomProfileIfNeeded(n);
+  return true;
+}
 let suppressedSocial={};
 try{suppressedSocial=JSON.parse(localStorage.getItem(SOCIAL_REMOVALS_KEY)||"{}")}catch(_){}
 const VERIFIED_PUBLIC_PHOTOS={
@@ -3186,12 +3209,10 @@ nodes.forEach(n=>{
   n.links=Object.assign({},n.links||{});
   if(ig&&!n.links.Instagram&&!suppressedSocial[n.id]?.Instagram)n.links.Instagram=ig;
   if(spotify&&!n.links.Spotify&&!suppressedSocial[n.id]?.Spotify)n.links.Spotify=spotify;
-  // Correct the old seed that put ICE9's third Spotify link on Zeke's profile.
-  if(n.id==="zeke"&&n.links.Spotify==="https://open.spotify.com/artist/66rjQYZAzWZ9n933ytcoTg"
-      &&!suppressedSocial[n.id]?.Spotify)n.links.Spotify=USER_SHARED_SPOTIFY.zeke;
   const photo=VERIFIED_PUBLIC_PHOTOS[n.id];
   if(photo&&!n.photo)n.photo=photo;
 });
+repairZekeSpotifyIdentity();
 
 function executeNetworkEdit(raw){
   const q=raw.trim();
