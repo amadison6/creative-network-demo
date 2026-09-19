@@ -1362,6 +1362,15 @@ function parseInstagramProfile(value){
   if(!/^[a-zA-Z0-9._]{1,30}$/.test(handle) || handle.endsWith(".") || handle.includes(".."))return null;
   return {handle,url:"https://www.instagram.com/"+handle+"/"};
 }
+const SOCIAL_REMOVALS_KEY="creativeNetworkSuppressedSocialLinks";
+function setSocialLinkRemoved(id,platform,removed){
+  let stored={};
+  try{stored=JSON.parse(localStorage.getItem(SOCIAL_REMOVALS_KEY)||"{}")}catch(_){}
+  const byProfile=stored[id]||{};
+  if(removed)byProfile[platform]=true;else delete byProfile[platform];
+  if(Object.keys(byProfile).length)stored[id]=byProfile;else delete stored[id];
+  localStorage.setItem(SOCIAL_REMOVALS_KEY,JSON.stringify(stored));
+}
 function commitSocialLink(n,platform,value){
   const raw=String(value||"").trim();
   const parsed=raw ? (platform==="Spotify"?parseSpotifyLink(raw):parseInstagramProfile(raw)) : null;
@@ -1370,6 +1379,7 @@ function commitSocialLink(n,platform,value){
   const after=parsed?.url||"";
   n.links=Object.assign({},n.links||{});
   if(after)n.links[platform]=after;else delete n.links[platform];
+  setSocialLinkRemoved(n.id,platform,!after);
   if(before!==after){
     persistEditedProfiles();
     persistCustomProfileIfNeeded(n);
@@ -1904,6 +1914,8 @@ document.getElementById("saveProfileEdits").onclick=()=>{
   const sp=spotifyEdit?parseSpotifyLink(spotifyEdit).url:"";
   if(ig)n.links.Instagram=ig;else delete n.links.Instagram;
   if(sp)n.links.Spotify=sp;else delete n.links.Spotify;
+  setSocialLinkRemoved(n.id,"Instagram",!ig);
+  setSocialLinkRemoved(n.id,"Spotify",!sp);
   if(n.profileType==="musician"||isMusicProfile(n)||isCollectiveEntity(n)){
     if(untitledURL)n.links.Untitled=untitledURL;else delete n.links.Untitled;
   }
@@ -2976,6 +2988,14 @@ const VERIFIED_INSTAGRAMS={
   diontae:"https://www.instagram.com/diontaes1mpson/",
   isis:"https://www.instagram.com/handofisis/"
 };
+// Retain originally shared artist IDs when older browser overrides predate this release.
+const USER_SHARED_SPOTIFY={
+  free:"https://open.spotify.com/artist/4twpepGEgW66i8ZkhEg6yW",
+  zeke:"https://open.spotify.com/artist/1suXRSUWQuSpeC5HyTtCC9",
+  isis:"https://open.spotify.com/artist/66rjQYZAzWZ9n933ytcoTg"
+};
+let suppressedSocial={};
+try{suppressedSocial=JSON.parse(localStorage.getItem(SOCIAL_REMOVALS_KEY)||"{}")}catch(_){}
 const VERIFIED_PUBLIC_PHOTOS={
   balam:"https://www.radiovenice.tv/wp-content/uploads/2018/09/Balam-Garcia.jpg",
   cam:"https://media.muckrack.com/portfolio/images/10628454/1651844_never-met-a-human-3.jpg.150x0_q85_autocrop.jpg",
@@ -2983,10 +3003,13 @@ const VERIFIED_PUBLIC_PHOTOS={
 };
 nodes.forEach(n=>{
   const ig=VERIFIED_INSTAGRAMS[n.id];
-  if(ig){
-    n.links=Object.assign({},n.links||{});
-    if(!n.links.Instagram)n.links.Instagram=ig;
-  }
+  const spotify=USER_SHARED_SPOTIFY[n.id];
+  n.links=Object.assign({},n.links||{});
+  if(ig&&!n.links.Instagram&&!suppressedSocial[n.id]?.Instagram)n.links.Instagram=ig;
+  if(spotify&&!n.links.Spotify&&!suppressedSocial[n.id]?.Spotify)n.links.Spotify=spotify;
+  // Correct the old seed that put ICE9's third Spotify link on Zeke's profile.
+  if(n.id==="zeke"&&n.links.Spotify==="https://open.spotify.com/artist/66rjQYZAzWZ9n933ytcoTg"
+      &&!suppressedSocial[n.id]?.Spotify)n.links.Spotify=USER_SHARED_SPOTIFY.zeke;
   const photo=VERIFIED_PUBLIC_PHOTOS[n.id];
   if(photo&&!n.photo)n.photo=photo;
 });
