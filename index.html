@@ -520,6 +520,13 @@
 .radar-error{color:#faacb8!important}
 @media(max-width:660px){.radar-backdrop{padding:7px}.radar-dialog{max-height:97dvh}.radar-columns{grid-template-columns:minmax(0,1fr);overflow-y:auto}.radar-list-pane{max-height:38dvh;overflow:visible}.radar-form{border-left:0;border-top:1px solid #4c385b;overflow:visible}}
 
+/* v53 venue relationship inspector */
+.venue-network-list{display:grid;gap:7px}
+.venue-network-link{text-align:left;display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:10px;border:1px solid #415746;background:#1c2d22;color:#eaf8ee;cursor:pointer}
+.venue-network-link:hover{border-color:#86c998}
+.venue-network-link strong{font-size:12px}
+.venue-network-link span{font-size:11px;color:#a4bbad;line-height:1.35}
+
 </style>
 </head>
 <body>
@@ -1691,6 +1698,20 @@ function showProfile(n){
          onerror="this.outerHTML='<div class=&quot;photo-missing&quot;>Photo could not load.<br>You can add a replacement image.</div>'">`
     : `<div class="photo-missing">Photo needed<br><span style="font-size:11px;margin-top:6px">Add one when available.</span></div>`;
 
+  const slideThruRoles={
+    sean_slide_thru:"Reported founder / warm venue contact; exact ownership title unverified",
+    addae:"Warm introduction through Sean",
+    baws:"Knows Sean; helped organize a Mempho show",
+    mempho:"Performed multiple shows here (Ausar's account)",
+    sockjus:"Performed with his band; listed on official U SLID? Vol. 5 archive",
+    punchingbag:"Performed here (Ausar's account)",
+    isis:"ICE9 performed here (Ausar's account)"
+  };
+  const venueConnections=n.id==="venue_slide_thru"
+    ?Object.entries(slideThruRoles).map(([id,role])=>{
+      const person=nodes.find(p=>p.id===id);return person?{person,role}:null;
+    }).filter(Boolean):[];
+  const slideThruLabel=slideThruRoles[n.id]||"";
   const category=profileCategory(n);
   const categoryLabel={
     music:"Music profile",collective:"Band / Collective",filmmaker:"Film / Visual",manager:"Management",promoter:"Promoter / Booking",
@@ -1750,7 +1771,15 @@ function showProfile(n){
       <div class="card"><div class="k">Booking contact</div><div class="v">${n.bookingContact||'<span class="missing-value">Not added yet</span>'}</div></div>
       <div class="card" style="margin-top:10px"><div class="k">Audience / programming fit</div><div class="v">${n.audienceFit||n.genres||'<span class="missing-value">Not added yet</span>'}</div></div>
       <div class="card" style="margin-top:10px"><div class="k">Potential show notes</div><div class="v">${n.potentialShowNotes||'<span class="missing-value">No show idea saved yet</span>'}</div></div>
-      <div class="entity-rate-note">Keep rates as dated quotes / offers. Confirm terms again before locking a show.</div>`;
+      <div class="entity-rate-note">Keep rates as dated quotes / offers. Confirm terms again before locking a show.</div>
+      ${venueConnections.length?`
+        <div class="section-title">People connected to this venue</div>
+        <div class="venue-network-list">${venueConnections.map(({person,role})=>`
+          <button type="button" class="venue-network-link" data-connected-id="${escapeAttr(person.id)}">
+            <strong>${escapeAttr(person.name)}</strong>
+            <span>${escapeAttr(role)}</span>
+          </button>`).join("")}</div>
+        <div class="entity-rate-note">Sean's full identity is not yet verified. The venue website names Quick & Veli as owners; keep separate until confirmed.</div>`:""}`;
   }else if(category==="studio"){
     const studioPeople=studioMembersFor(n);
     const peopleLinks=studioPeople.length
@@ -1833,6 +1862,13 @@ function showProfile(n){
       <div class="integration-actions"><button id="savePartifulEvents" type="button">Save event links</button></div>
       <div class="integration-output" id="partifulStatus" aria-live="polite">Links are saved to this existing Network HQ profile, not a new contact. Only add event links you intend to keep here.</div>
     </div>
+    ${slideThruLabel?`
+      <div class="section-title">Venue connection · Slide Thru</div>
+      <div class="card">
+        <div class="k">Relationship to Slide Thru The Venue</div>
+        <div class="v">${escapeAttr(slideThruLabel)}</div>
+        <button class="secondary-btn" id="openSlideThruVenue" type="button" style="margin-top:9px">Open Slide Thru venue ↗</button>
+      </div>`:""}
     ${window.NetworkEvents ? window.NetworkEvents.section(n) : ""}
     <div class="section-title">Notifications</div>
     <div id="profileNotifications"></div>
@@ -1857,6 +1893,17 @@ function showProfile(n){
   `;
 
   document.getElementById("editProfileBtn").onclick=()=>openEditProfile(n);
+  document.querySelectorAll(".venue-network-link").forEach(btn=>{
+    btn.onclick=()=>{
+      const target=nodes.find(p=>p.id===btn.dataset.connectedId);
+      if(target)showProfile(target);
+    };
+  });
+  const openSlideThru=document.getElementById("openSlideThruVenue");
+  if(openSlideThru)openSlideThru.onclick=()=>{
+    const venue=nodes.find(p=>p.id==="venue_slide_thru");
+    if(venue){currentView="venues";document.querySelectorAll(".viewbtn[data-view]").forEach(btn=>btn.classList.toggle("active",btn.dataset.view==="venues"));showProfile(venue)}
+  };
   if(window.NetworkEvents)window.NetworkEvents.bindProfile(n);
   document.getElementById("savePartifulProfile").onclick=()=>{
     const input=document.getElementById("partifulProfileInput");
@@ -2955,6 +3002,16 @@ document.getElementById("saveProfile").onclick=()=>{
 })();
 
 const APP_RELEASES=[
+  {
+    version:"v53",file:null,date:"2026-09-18",title:"Slide Thru The Venue",
+    notes:[
+      "Added Slide Thru The Venue as a clickable venue with address, Instagram, official site, event archive, booking inquiry and quoted booking policies",
+      "Recorded capacity as Ausar's unverified ~200 estimate and rental rates as unknown",
+      "Connected Addae, Baw$, Mempho, Sockjus, ICE9, Punchingbag and provisional Sean identities to the venue with specific relationship context",
+      "Separated Sean from the venue's publicly listed owners Quick & Veli pending surname/title verification",
+      "Seeded the public historical dedwrite, Boston 2 LA, heatWAV and U SLID? Vol. 5 event listings in Event Radar"
+    ]
+  },
   {
     version:"v52",file:null,date:"2026-09-18",title:"Event Radar",
     notes:[
