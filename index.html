@@ -1845,9 +1845,10 @@ function showVenueProfile(n){
   const members=venueMembersFor(n);
   const eventApi=window.NetworkEvents;
   const events=typeof eventApi?.forProfile==="function"?eventApi.forProfile(n.id):[];
+  const rateBrief=String(n.rates||"").trim();
   const stats=[
     ["Capacity",n.capacity||"Not confirmed"],
-    ["Rental / show rate",n.rates||"Quote not recorded"],
+    ["Rental / show rate",rateBrief&&!/^(unknown|not quoted|tbd)/i.test(rateBrief)?rateBrief:"Quote not recorded"],
     ["Connected people",String(members.length)],
     ["Recorded events",String(events.length)]
   ];
