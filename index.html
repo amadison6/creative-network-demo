@@ -520,7 +520,7 @@
 </datalist>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v50 · Spotify profile swap</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v51 · Partiful profiles & events</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -657,6 +657,14 @@
           <label>Public link</label>
           <input id="newLink" placeholder="Instagram, website, Spotify, reel, venue page...">
         </div>
+        <div class="form-field full">
+          <label>Partiful profile / Org Profile</label>
+          <input id="newPartifulProfile" placeholder="https://partiful.com/u/...">
+        </div>
+        <div class="form-field full">
+          <label>Partiful event / invite (optional)</label>
+          <input id="newPartifulEvent" placeholder="https://partiful.com/e/...">
+        </div>
       </div>
 
       <div class="dynamic-section">
@@ -703,6 +711,8 @@
         <div class="form-field full"><label>Other tags</label><input id="editTags" placeholder="Custom tags that are not sidebar filters"></div>
         <div class="form-field full"><label>Profile / relationship context</label><textarea id="editBio"></textarea></div>
         <div class="form-field"><label>Instagram</label><input id="editInstagram" placeholder="https://instagram.com/..."></div>
+        <div class="form-field full"><label>Partiful profile / Org Profile</label><input id="editPartifulProfile" placeholder="https://partiful.com/u/..."></div>
+        <div class="form-field full"><label>Partiful event / invite links (one per line)</label><textarea id="editPartifulEvents" rows="3" placeholder="https://partiful.com/e/..."></textarea></div>
         <div class="form-field"><label>Spotify / primary music link</label><input id="editSpotify" placeholder="https://open.spotify.com/..."></div>
         <div class="form-field" id="editUntitledWrap"><label>Untitled listening link</label><input id="editUntitled" placeholder="https://untitled.stream/..."></div>
         <div class="form-field"><label>PRO</label><input id="editPRO" placeholder="ASCAP / BMI / SESAC"></div>
@@ -1481,6 +1491,35 @@ function parseInstagramProfile(value){
   if(!/^[a-zA-Z0-9._]{1,30}$/.test(handle) || handle.endsWith(".") || handle.includes(".."))return null;
   return {handle,url:"https://www.instagram.com/"+handle+"/"};
 }
+// Partiful personal and Org profiles both use /u/; invitations use /e/.
+// Only user-provided links are stored; no guest lists or RSVP data is fetched.
+function parsePartifulLink(value){
+  const raw=String(value||"").trim();
+  if(!raw)return null;
+  const candidate=/^(?:www\.)?partiful\.com\//i.test(raw)?"https://"+raw:raw;
+  try{
+    const u=new URL(candidate);
+    if(u.protocol!=="https:"||!["partiful.com","www.partiful.com"].includes(u.hostname.toLowerCase()))return null;
+    const m=/^\/(u|e)\/([a-zA-Z0-9_-]{8,64})\/?$/.exec(u.pathname);
+    if(!m)return null;
+    const kind=m[1]==="u"?"profile":"event";
+    const code=kind==="event"?u.searchParams.get("c"):null;
+    // Preserve the optional invite code for a shared event URL.
+    const suffix=code&&/^[a-zA-Z0-9_-]{1,100}$/.test(code)?"?c="+encodeURIComponent(code):"";
+    return {kind,id:m[2],url:"https://partiful.com/"+m[1]+"/"+m[2]+suffix};
+  }catch(_){return null}
+}
+function parsePartifulEventLines(text){
+  const lines=String(text||"").split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  if(lines.length>20)return {error:"Limit Partiful events to 20 links per profile."};
+  const urls=[];
+  for(const line of lines){
+    const event=parsePartifulLink(line);
+    if(!event||event.kind!=="event")return {error:"Each event must be a partiful.com/e/... invitation link."};
+    if(!urls.includes(event.url))urls.push(event.url);
+  }
+  return {urls};
+}
 const SOCIAL_REMOVALS_KEY="creativeNetworkSuppressedSocialLinks";
 function setSocialLinkRemoved(id,platform,removed){
   let stored={};
@@ -1880,7 +1919,7 @@ function updateSyncCount(){
   if(btn)btn.classList.toggle("has-changes",count>0);
 }
 function profileSnapshot(n){
-  const keys=["name","artistName","role","hub","tags","bio","links","pro","ipi","legalName","publisher","instruments","genres","collectiveType","members","founders","status","location","capacity","bookingContact","organization","market","resources","rates","access","availability","frequentPeople","history","talentBuyer","warmConnection","lastQuotedGuarantee","dealStructure","doorSplit","productionFee","audienceFit","backline","potentialShowNotes"];
+  const keys=["name","artistName","role","hub","tags","bio","links","pro","ipi","legalName","publisher","instruments","genres","collectiveType","members","founders","status","location","capacity","bookingContact","organization","market","resources","rates","access","availability","frequentPeople","history","talentBuyer","warmConnection","lastQuotedGuarantee","dealStructure","doorSplit","productionFee","audienceFit","backline","potentialShowNotes","partifulEvents"];
   const out={id:n.id};keys.forEach(k=>{if(n[k]!==undefined)out[k]=JSON.parse(JSON.stringify(n[k]))});return out;
 }
 function queueNetworkChange(entry){
@@ -1976,6 +2015,8 @@ function openEditProfile(n){
   document.getElementById("editTags").value=(n.tags||[]).filter(t=>t!=="All"&&!FILTER_CATEGORIES.includes(t)).join(", ");
   document.getElementById("editBio").value=n.bio||"";
   document.getElementById("editInstagram").value=n.links?.Instagram||"";
+  document.getElementById("editPartifulProfile").value=parsePartifulLink(n.links?.Partiful)?.kind==="profile"?parsePartifulLink(n.links.Partiful).url:"";
+  document.getElementById("editPartifulEvents").value=(n.partifulEvents||[]).join("\n");
   document.getElementById("editSpotify").value=n.links?.Spotify||"";
   document.getElementById("editUntitled").value=n.links?.Untitled||"";
   document.getElementById("editUntitledWrap").style.display=(n.profileType==="musician"||isMusicProfile(n)||isCollectiveEntity(n))?"":"none";
@@ -3135,7 +3176,7 @@ function persistEditedProfiles(){
       overrides[n.id]={
         name:n.name,role:n.role,artistName:n.artistName,pro:n.pro,ipi:n.ipi,legalName:n.legalName,
         publisher:n.publisher,instruments:n.instruments,genres:n.genres,hub:n.hub,bio:n.bio,
-        tags:n.tags,links:n.links,collectiveType:n.collectiveType,members:n.members,founders:n.founders,status:n.status,
+        tags:n.tags,links:n.links,partifulEvents:n.partifulEvents,collectiveType:n.collectiveType,members:n.members,founders:n.founders,status:n.status,
         location:n.location,capacity:n.capacity,bookingContact:n.bookingContact,organization:n.organization,market:n.market,
         resources:n.resources,rates:n.rates,photo:n.photo,access:n.access,availability:n.availability,frequentPeople:n.frequentPeople,history:n.history,
         talentBuyer:n.talentBuyer,warmConnection:n.warmConnection,lastQuotedGuarantee:n.lastQuotedGuarantee,dealStructure:n.dealStructure,doorSplit:n.doorSplit,productionFee:n.productionFee,audienceFit:n.audienceFit,backline:n.backline,potentialShowNotes:n.potentialShowNotes
