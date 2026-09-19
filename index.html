@@ -1919,8 +1919,8 @@ function navigateNearestProfile(direction){
   let candidates=all.filter(x=>x.dx>1);
   if(!candidates.length){
     // At the outer edge of the map, resume from its other side.
-    const furthest=Math.max(...all.map(x=>x.dx));
-    candidates=all.filter(x=>x.dx>=furthest-.01);
+    const farEdge=Math.min(...all.map(x=>x.dx));
+    candidates=all.filter(x=>x.dx<=farEdge+.01);
   }
   if(!candidates.length)return false;
   candidates.sort((a,b)=>{
