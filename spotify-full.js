@@ -15,6 +15,7 @@
   let refreshInFlight = null;
   let sdkLoading = null;
   let currentSong = "";
+  let playbackProfileId = "";
   let paused = true;
   let message = "";
   let listenerAttached = false;
@@ -299,7 +300,9 @@
     ready = false;
     deviceId = "";
     currentSong = "";
+    playbackProfileId = "";
     paused = true;
+    window.NetworkPlayback?.clear("spotify-sdk");
     setMessage("Disconnected Spotify account. Your artist links remain saved.");
   }
   function bindCard(n, spotify) {
@@ -322,7 +325,7 @@
       play.disabled = !spotify || !["artist", "album", "track", "playlist"].includes(spotify.kind) ||
         !authorized() || !ready;
       play.onclick = function () {
-        playContext(spotify).catch(function (error) { setMessage(errorMessage(error)); });
+        playContext(spotify,n.id).catch(function (error) { window.NetworkPlayback?.clear("spotify-sdk"); setMessage(errorMessage(error)); });
       };
     }
     refreshUI();
@@ -402,6 +405,7 @@
           player.addListener("player_state_changed", function (state) {
             if (!state) return;
             paused = !!state.paused;
+            window.NetworkPlayback?.set("spotify-sdk",playbackProfileId?[playbackProfileId]:[],!paused&&!!playbackProfileId);
             const track = state.track_window && state.track_window.current_track;
             if (track) currentSong = track.name + " · " +
               (track.artists || []).map(function (artist) { return artist.name; }).join(", ");
@@ -440,7 +444,7 @@
     });
     return sdkLoading;
   }
-  async function playContext(spotify) {
+  async function playContext(spotify,profileId) {
     if (!spotify || !["artist", "album", "track", "playlist"].includes(spotify.kind)) {
       throw new Error("Choose an artist, album, track or playlist link.");
     }
@@ -451,6 +455,8 @@
     if (typeof player.activateElement === "function") {
       try { player.activateElement(); } catch (_) {}
     }
+    window.NetworkPlayback?.clear("spotify-sdk");
+    playbackProfileId=String(profileId||"");
     setMessage("Handing playback to your Network HQ browser player…");
     await spotifyAPI("/me/player", {
       method: "PUT", body: { device_ids: [deviceId], play: false }
