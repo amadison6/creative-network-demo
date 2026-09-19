@@ -731,6 +731,19 @@
 .demo-partner small{font-size:9px}
 @media(prefers-reduced-motion:reduce){.profile-fold>summary::after,.demo-partner-photo{transition:none}}
 
+/* v67 · collaboration reference images saved on this device */
+.collab-local-thumb{cursor:zoom-in;min-height:132px;text-decoration:none;display:grid;place-items:center}
+.collab-local-thumb img{object-fit:contain;background:#171622}
+.collab-local-thumb img[hidden]{display:none!important}
+.collab-resource-title{display:block;font-size:12px;font-weight:800;line-height:1.4;color:#f5e6ff;text-decoration:none}
+.collab-resource-title:hover{text-decoration:underline}
+.collab-image-drop{position:relative;display:grid;min-height:115px;align-content:center;justify-items:center;gap:8px;padding:18px;border:2px dashed #82619a;border-radius:12px;color:#e8d6f8;text-align:center;cursor:pointer;background:#2c2039;font-weight:700;font-size:13px}
+.collab-image-drop:hover,.collab-image-drop.collab-dragover{background:#48335f;border-color:#c49be5}
+.collab-image-drop input{max-width:100%;font-size:11px;font-weight:400}
+.collab-upload-list,.collab-upload-status{font-size:11px;line-height:1.5;overflow-wrap:anywhere;color:#cdbbdf}
+.collab-upload-status{color:#b3ecc8}
+.collab-upload-list{max-height:95px;overflow:auto}
+
 </style>
 </head>
 <body>
@@ -786,7 +799,7 @@
 </datalist>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v66 · compact collapsible profiles</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v67 · save collaboration images</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -1024,7 +1037,7 @@
 <script src="./spotify-playlists.js"></script>
 <script src="./listener-tracking.js"></script>
 <script src="./event-radar.js?v=56"></script>
-<script src="./collaboration-files.js?v=59-3"></script>
+<script src="./collaboration-files.js?v=67"></script>
 <script src="./untitled-projects.js?v=65"></script>
 <script src="./demo-library.js?v=66"></script>
 <script>
@@ -3805,6 +3818,16 @@ document.getElementById("saveProfile").onclick=()=>{
 })();
 
 const APP_RELEASES=[
+  {
+    version:"v67",file:null,date:"2026-09-19",title:"Save collaboration reference images",
+    notes:[
+      "Added drag-and-drop image upload to each collaborator's existing project-grouped Collaboration Files section",
+      "Keeps original image bytes privately in this browser's IndexedDB, with previews and open/save-original controls",
+      "New images attach to the canonical collaborator ID and chosen project, without duplicating existing Drive references",
+      "Detects repeated uploads of the same image on the same project, and supports local metadata edits and removing original bytes",
+      "Existing Jordan/Unstoppable Drive gallery and canonical Collaboration Files sheet stay untouched; browser uploads are not synced to Drive"
+    ]
+  },
   {
     version:"v66",file:null,date:"2026-09-19",title:"Collapsible profile sections and compact demo avatars",
     notes:[
