@@ -2285,6 +2285,8 @@ window.addEventListener("keydown",e=>{
   const left=e.key==="ArrowLeft"||e.code==="ArrowLeft";
   if(!right&&!left)return;
   if(e.altKey||e.ctrlKey||e.metaKey||e.shiftKey)return;
+  const playlistModal=document.getElementById("networkMixModal");
+  if(playlistModal&&!playlistModal.hidden)return;
   if(e.target?.closest?.('input, textarea, select, [contenteditable="true"], [role="textbox"]'))return;
   if(["profileModal","editProfileModal","versionModal"].some(id=>{
     const el=document.getElementById(id);
