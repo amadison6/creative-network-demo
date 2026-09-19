@@ -703,6 +703,34 @@
 .network-soundcloud-embed{width:100%;height:175px;display:block;border:0;border-radius:9px;background:#16191f}
 .spotify-embed-mount{width:100%;min-height:352px}
 
+/* v66 — compact, accessible accordion on the right profile panel */
+.profile-fold{border-bottom:1px solid #303640;margin:5px 0 0;min-width:0}
+.profile-fold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;
+  padding:11px 1px;min-height:39px;color:#dce9f2;user-select:none}
+.profile-fold>summary::-webkit-details-marker{display:none}
+.profile-fold>summary::after{content:"▸";order:-1;color:#9fbed2;font-size:14px;line-height:1;
+  width:13px;flex:0 0 13px;transition:transform .16s ease}
+.profile-fold[open]>summary::after{transform:rotate(90deg)}
+.profile-fold>summary:hover,.profile-fold>summary:focus-visible{color:#fff}
+.profile-fold>summary:focus-visible{outline:2px solid #9dbed8;outline-offset:2px;border-radius:4px}
+.profile-fold>summary>.section-title{margin:0;padding:0;flex:1;font-size:12px;letter-spacing:.025em}
+.profile-fold[open]{padding-bottom:11px}
+.profile-fold>.integration-card,.profile-fold>.partiful-card,.profile-fold>.demo-library,
+.profile-fold>.collab-panel,.profile-fold>.untitled-library{margin-top:4px}
+.profile-fold .demo-library{margin-bottom:0}
+/* The producer's linked-demo shortcuts are photo circles, not little boxed cards. */
+.demo-dashboard{background:transparent;border:0;border-radius:0;padding:0;margin:0;gap:7px}
+.demo-partner-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;align-items:start}
+.demo-partner{background:transparent;border:0;border-radius:0;padding:3px 1px;
+  gap:4px;min-width:0;outline-offset:2px}
+.demo-partner:hover,.demo-partner:focus-visible{background:transparent;border:0}
+.demo-partner-photo{height:46px;width:46px;flex:0 0 46px;border-radius:50%;border:2px solid #6e99a4;
+  transition:border-color .16s,transform .16s}
+.demo-partner:hover .demo-partner-photo,.demo-partner:focus-visible .demo-partner-photo{border-color:#c9f5f1;transform:scale(1.05)}
+.demo-partner strong{font-size:9px;font-weight:700;line-height:1.2;max-width:100%}
+.demo-partner small{font-size:9px}
+@media(prefers-reduced-motion:reduce){.profile-fold>summary::after,.demo-partner-photo{transition:none}}
+
 </style>
 </head>
 <body>
@@ -758,7 +786,7 @@
 </datalist>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v65 · producer playlists & multi-source record spin</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v66 · compact collapsible profiles</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -998,7 +1026,7 @@
 <script src="./event-radar.js?v=56"></script>
 <script src="./collaboration-files.js?v=59-3"></script>
 <script src="./untitled-projects.js?v=65"></script>
-<script src="./demo-library.js?v=65"></script>
+<script src="./demo-library.js?v=66"></script>
 <script>
 const nodes=[
 {id:"uh_sar",name:"uh_sar",role:"Producer / Artist / Director",type:"core",r:34,tags:["All","God's Contraband"],hub:"Center",bio:"Central creative node: producer, artist, arranger, multi-instrumentalist, and creative director. Co-founder and executive producer of God's Contraband."},
@@ -1850,6 +1878,55 @@ function profileCategory(n){
     (n.tags||[]).includes("Visual Artists") ? (n.profileType||"filmmaker") :
     isMusicProfile(n) ? "music" : "person";
 }
+
+// Native <details> preserves the live controls/iframes inside each section.
+// The header stays visible, and each collaborator remembers their own choices.
+const PROFILE_FOLD_KEY="creativeNetworkProfileFoldsV1";
+function profileFoldPrefs(){
+  try{
+    const value=JSON.parse(localStorage.getItem(PROFILE_FOLD_KEY)||"{}");
+    return value&&typeof value==="object"&&!Array.isArray(value)?value:{};
+  }catch(_){return{}}
+}
+function foldProfileSections(profileId){
+  const panel=document.getElementById("profile");
+  const root=panel?.querySelector(".venue-profile")||panel;
+  if(!root)return;
+  const sections=[...root.children];
+  const firstHeader=sections.find(child=>child.classList?.contains("section-title"));
+  // The general Edit button should not disappear inside collapsed Public Links.
+  const editActions=[...root.children].find(child=>child.classList?.contains("profile-actions"));
+  if(editActions&&firstHeader)root.insertBefore(editActions,firstHeader);
+  const prefs=profileFoldPrefs();
+  let current=null;
+  sections.forEach(child=>{
+    if(child===editActions)return;
+    if(child.classList?.contains("section-title")){
+      const title=child.textContent.trim();
+      const key=title.replace(/\s*·\s*\d+\s*$/,"").trim().toLowerCase();
+      const identifier=profileId+"::"+key;
+      const detail=document.createElement("details");
+      detail.className="profile-fold";
+      detail.dataset.fold=identifier;
+      const summary=document.createElement("summary");
+      summary.appendChild(child);
+      detail.appendChild(summary);
+      root.appendChild(detail);
+      const defaultOpen=/^(spotify\b|demos\b)/i.test(title);
+      detail.open=Object.prototype.hasOwnProperty.call(prefs,identifier)?
+        prefs[identifier]===true:defaultOpen;
+      detail.addEventListener("toggle",()=>{
+        const saved=profileFoldPrefs();
+        saved[identifier]=detail.open;
+        try{localStorage.setItem(PROFILE_FOLD_KEY,JSON.stringify(saved))}catch(_){}
+      });
+      current=detail;
+    }else if(current){
+      current.appendChild(child);
+    }
+  });
+}
+
 function showHubProfile(hubName){
   const hubCollective=nodes.find(n=>isCollectiveEntity(n)&&n.hub===hubName);
   window.NetworkPlayback?.enter(hubCollective?.id||"hub:"+hubName);
@@ -1937,6 +2014,7 @@ function showHubProfile(hubName){
       if(target)showProfile(target);
     };
   });
+  foldProfileSections("hub::"+hubName);
   if(collective&&typeof window.NetworkUntitled?.bindProfile==="function")window.NetworkUntitled.bindProfile(collective);
   if(collective&&typeof window.NetworkDemos?.bindProfile==="function")window.NetworkDemos.bindProfile(collective);
   const openCollective=document.getElementById("openCollectiveProfile");
@@ -2199,6 +2277,7 @@ function showVenueProfile(n){
       <button type="button" class="save" id="saveVenueNotes">Save venue note locally</button>
       <div class="small" style="margin-top:8px">Changes are stored in this browser until the network backend is connected.</div>
     </div>`;
+  foldProfileSections(n.id);
   const edit=document.getElementById("venueEditBooking");
   if(edit)edit.onclick=()=>openEditProfile(n);
   const addEvent=document.getElementById("venueEventsAdd");
@@ -2511,6 +2590,7 @@ function showProfile(n){
     <div class="small" style="margin-top:8px">Prototype only: saved in this browser on this computer.</div>
   `;
 
+  foldProfileSections(n.id);
   document.getElementById("editProfileBtn").onclick=()=>openEditProfile(n);
   if(typeof window.NetworkCollab?.bindProfile==="function")window.NetworkCollab.bindProfile(n);
   if(typeof window.NetworkUntitled?.bindProfile==="function")window.NetworkUntitled.bindProfile(n);
@@ -3725,6 +3805,16 @@ document.getElementById("saveProfile").onclick=()=>{
 })();
 
 const APP_RELEASES=[
+  {
+    version:"v66",file:null,date:"2026-09-19",title:"Collapsible profile sections and compact demo avatars",
+    notes:[
+      "Right-side profile sections use keyboard-accessible disclosure arrows, with Spotify and Demos initially expanded",
+      "Section open/closed choices persist separately for each profile in this browser",
+      "Moved the Edit profile action outside collapsed Public Links so editing remains accessible",
+      "Producer collaborator shortcuts are now simple circles instead of boxed tiles",
+      "Only collaborators with at least one saved shared demo appear as a demo-circle shortcut"
+    ]
+  },
   {
     version:"v65",file:null,date:"2026-09-19",title:"Producer demo shelf and multi-source record spin",
     notes:[
