@@ -1220,6 +1220,38 @@ function render(){
     });
   }
 
+  // Venues follow Creative Hub spatial grammar: clickable rooms with orbiting contacts.
+  if(currentView==="venues"){
+    nodes.filter(n=>n.profileType==="venue"&&visibleNode(n)).forEach(venue=>{
+      const center=venueHubCenter(venue);
+      const members=venueMembersFor(venue).filter(visibleNode);
+      const radius=venueFieldRadius(venue);
+      const field=make("circle",{cx:center[0],cy:center[1],r:radius,
+        class:"venue-field"+(selectedFocusId===venue.id?" selected-venue-field":""),
+        "data-venue":venue.id,role:"button",tabindex:"0",
+        "aria-label":"Open "+venue.name+" venue details"});
+      field.addEventListener("click",()=>showProfile(venue));
+      field.addEventListener("keydown",e=>{
+        if(e.key==="Enter"||e.key===" "){e.preventDefault();showProfile(venue)}
+      });
+      viewport.appendChild(field);
+      const label=make("text",{x:center[0],y:center[1]-radius-12,
+        class:"venue-field-label","text-anchor":"middle",
+        "data-venue":venue.id,role:"button",tabindex:"0",
+        "aria-label":"Open "+venue.name+" venue details"});
+      label.textContent=venue.name;
+      label.addEventListener("click",()=>showProfile(venue));
+      label.addEventListener("keydown",e=>{
+        if(e.key==="Enter"||e.key===" "){e.preventDefault();showProfile(venue)}
+      });
+      viewport.appendChild(label);
+      const count=make("text",{x:center[0],y:center[1]-radius+3,
+        class:"venue-field-count","text-anchor":"middle"});
+      count.textContent=members.length+" "+(members.length===1?"connection":"connections");
+      viewport.appendChild(count);
+    });
+  }
+
   // Studio View uses the same spatial grammar as Creative Hubs:
   // each room is a large hub field, with its frequent users pulled into that field.
   if(currentView==="studios"){
@@ -1273,8 +1305,11 @@ function render(){
     const nodeClass=n.profileType==="studio"?"studio-node":n.profileType==="venue"?"venue-node":"";
     if(nodeClass)g.classList.add(nodeClass);
     if(currentView==="studios"&&n.profileType==="studio")g.classList.add("studio-hub");
+    if(currentView==="venues"&&n.profileType==="venue")g.classList.add("venue-hub");
     if(currentView==="relationship"&&currentFilter==="Bands & Collectives"&&isCollectiveEntity(n))g.classList.add("band-hub");
-    const rr=(currentView==="studios"&&n.profileType==="studio")?31:((currentView==="relationship"&&currentFilter==="Bands & Collectives"&&isCollectiveEntity(n))?34:n.r);
+    const rr=(currentView==="venues"&&n.profileType==="venue")?35:
+      (currentView==="studios"&&n.profileType==="studio")?31:
+      ((currentView==="relationship"&&currentFilter==="Bands & Collectives"&&isCollectiveEntity(n))?34:n.r);
     g.appendChild(make("circle",{r:rr,fill,class:n.type==="core"?"core":n.type==="bridge"?"bridge":n.type==="hubnode"?"hubnode":"person"}));
 
     const notifCount=notificationCount(n.id);
@@ -1333,6 +1368,17 @@ function startOrganicMotion(){
       let cx=500,cy=360;
       if(currentView==="hubs"){
         const hc=hubCenters[n.hub]||[500,360];cx=hc[0];cy=hc[1];
+      }else if(currentView==="venues"){
+        if(n.profileType==="venue"){
+          const vc=venueHubCenter(n);cx=vc[0];cy=vc[1];
+        }else{
+          const linked=venueConnectionsFor(n);
+          if(linked.length){
+            const centers=linked.map(venueHubCenter);
+            cx=centers.reduce((a,p)=>a+p[0],0)/centers.length;
+            cy=centers.reduce((a,p)=>a+p[1],0)/centers.length;
+          }
+        }
       }else if(currentView==="studios"){
         if(n.profileType==="studio"){
           const sc=studioHubCenters[n.id]||[bx,by];cx=sc[0];cy=sc[1];
@@ -1389,12 +1435,14 @@ function startOrganicMotion(){
         }
       }
 
-      if(currentView==="studios"&&n.profileType==="studio"){
+      if((currentView==="studios"&&n.profileType==="studio")||
+        (currentView==="venues"&&n.profileType==="venue")){
         tx=bx;ty=by;
       }
 
       // Softer spring makes the circles coast and float instead of tracking a rigid target.
-      const spring=currentView==="studios"&&n.profileType==="studio"
+      const spring=(currentView==="studios"&&n.profileType==="studio")||
+        (currentView==="venues"&&n.profileType==="venue")
         ?.018
         :(orbitMode&&currentView==="relationship"?.009:(n.id===selectedFocusId?.0068:.0052));
       s.vx+=(tx-s.x)*spring*dt;
@@ -2101,7 +2149,7 @@ document.querySelectorAll(".viewbtn").forEach(btn=>{
     }else if(currentView==="studios"){
       explainer.innerHTML="<strong>Studio View</strong><br>Each studio is a hub. People cluster around the spaces they frequent; people tied to multiple rooms sit between those hubs.";
     }else{
-      explainer.innerHTML="<strong>Venue View</strong><br>Track rooms you could play, booking relationships, capacity, audience fit, quoted rates, deal terms, and potential shows.";
+      explainer.innerHTML="<strong>Venue View</strong><br>Each room is a clickable hub with warm contacts and performers clustered around it. Select a room or its directory card to see location, costs, booking contacts and show history.";
     }
 
     Object.keys(motionState).forEach(k=>{if(motionState[k]){motionState[k].vx*=.35;motionState[k].vy*=.35}});
@@ -2523,7 +2571,7 @@ let panLast=null;
 svg.addEventListener("pointerdown",(e)=>{
   // Clickable hub/studio fields and their titles open an inspector; capturing
   // their pointer on the SVG would reroute the click and silently prevent it.
-  if(e.target.closest && e.target.closest(".node,.hub-field,.hub-label,.studio-field,.studio-field-label")) return;
+  if(e.target.closest && e.target.closest(".node,.hub-field,.hub-label,.studio-field,.studio-field-label,.venue-field,.venue-field-label")) return;
   isPanning=true;
   panLast={x:e.clientX,y:e.clientY};
   svg.setPointerCapture(e.pointerId);
