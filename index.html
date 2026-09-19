@@ -5,7 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Creative Network</title>
 <style>
-:root{--bg:#0b0c0f;--panel:#12141a;--panel2:#171a21;--line:#2a2f39;--text:#f4f5f7;--muted:#9aa3b2;--accent:#d7b56d;--blue:#7fb3ff;--green:#8fd6a8}*{box-sizing:border-box}html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{overflow:hidden}.app{display:grid;grid-template-columns:250px 1fr 360px;height:100vh}.sidebar,.profile{background:rgba(18,20,26,.97);border-color:var(--line)}.sidebar{border-right:1px solid var(--line);padding:22px 18px;overflow:auto}.profile{border-left:1px solid var(--line);padding:22px;overflow:auto}.brand{font-weight:800;letter-spacing:.02em;font-size:20px;margin-bottom:4px}.sub{color:var(--muted);font-size:12px;margin-bottom:24px}.section-title{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:22px 0 8px}.filter,.viewbtn{width:100%;text-align:left;background:transparent;border:1px solid transparent;color:#c9d0da;padding:9px 10px;border-radius:10px;cursor:pointer}.filter:hover,.viewbtn:hover{background:var(--panel2)}.filter.active,.viewbtn.active{background:#1d212a;border-color:#353b47;color:white}.toolbar{position:absolute;top:18px;left:18px;right:18px;display:flex;gap:10px;align-items:center;z-index:5}.search{flex:1;background:rgba(18,20,26,.92);border:1px solid var(--line);border-radius:12px;padding:11px 13px;color:white;outline:none}.pill{background:rgba(18,20,26,.92);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:#d7dce4;font-size:12px}.zoom-controls{display:flex;gap:6px}.zoom-btn{width:38px;height:38px;background:rgba(18,20,26,.92);border:1px solid var(--line);border-radius:10px;color:#eef1f5;font-size:18px;cursor:pointer}.zoom-btn:hover{background:#1d212a}.main{position:relative;overflow:hidden;background:radial-gradient(circle at center,rgba(215,181,109,.05),transparent 38%),linear-gradient(180deg,#0b0c0f,#0a0b0d)}svg{width:100%;height:100%;display:block}.edge{stroke:#465061;stroke-width:1.2;opacity:.42}.edge.strong{stroke:#a58d59;stroke-width:1.7;opacity:.72}.edge.future,.edge.potential{stroke-dasharray:8 7;opacity:.27;stroke-width:1.05}.edge.budding{stroke-dasharray:2 5;opacity:.44;stroke-width:1.25}.hub-label{fill:#778193;font-size:11px;letter-spacing:.08em;text-transform:uppercase}.node{cursor:pointer}.node circle.core{stroke:#f6deb0;stroke-width:2.4}.node circle.person{stroke:#303744;stroke-width:1.4}.node circle.bridge{stroke:#8bb9f0;stroke-width:2}.node circle.hubnode{stroke:#8fd6a8;stroke-width:2}.node text.name{fill:#f6f7f8;font-size:11px;font-weight:700;pointer-events:none}.node text.role{fill:#98a1af;font-size:9px;pointer-events:none}.profile-photo{width:100%;height:230px;object-fit:cover;border-radius:16px;border:1px solid #303744;background:#20242c;margin-bottom:16px;display:block}.photo-missing{width:100%;height:180px;border-radius:16px;border:1px dashed #3a4150;background:#171a21;display:flex;align-items:center;justify-content:center;color:#7f8998;font-size:13px;margin-bottom:16px;text-align:center;padding:24px}.avatar{width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;background:#252a34;border:1px solid #3a4150;margin-bottom:14px}.profile h2{margin:0;font-size:24px}.roleline{color:#b9c0cb;margin:4px 0 16px}.chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 18px}.chip{font-size:11px;padding:5px 8px;border:1px solid #353b47;border-radius:999px;color:#cbd2dc}.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.card{background:#171a21;border:1px solid #2b303b;border-radius:12px;padding:12px}.card .k{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:#7f8998}.card .v{margin-top:4px;font-size:13px}.links a{display:block;color:#a9caff;text-decoration:none;margin:7px 0;font-size:13px;word-break:break-word}textarea{width:100%;background:#111319;border:1px solid #2e3440;border-radius:10px;color:white;padding:10px;outline:none;min-height:92px;resize:vertical}.save{margin-top:8px;background:#f0d49a;color:#16130d;border:0;border-radius:9px;padding:8px 12px;font-weight:700;cursor:pointer}.empty{color:#7e8795;font-size:13px;line-height:1.5}.legend{font-size:11px;color:#8892a0;line-height:1.7}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}.gold{background:#d7b56d}.blue{background:#7fb3ff}.green{background:#8fd6a8}.small{font-size:11px;color:#7f8897}@media(max-width:1100px){.app{grid-template-columns:210px 1fr}.profile{position:absolute;right:0;top:0;bottom:0;width:340px;z-index:10;box-shadow:-10px 0 30px rgba(0,0,0,.3)}}
+:root{--bg:#0b0c0f;--panel:#12141a;--panel2:#171a21;--line:#2a2f39;--text:#f4f5f7;--muted:#9aa3b2;--accent:#d7b56d;--blue:#7fb3ff;--green:#8fd6a8}*{box-sizing:border-box}html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{overflow:hidden}.app{display:grid;grid-template-columns:250px 1fr 360px;height:100vh}.sidebar,.profile{background:rgba(18,20,26,.97);border-color:var(--line)}.sidebar{border-right:1px solid var(--line);padding:22px 18px;overflow:auto}.profile{border-left:1px solid var(--line);padding:22px;overflow:auto}.brand{font-weight:800;letter-spacing:.02em;font-size:20px;margin-bottom:4px}.sub{color:var(--muted);font-size:12px;margin-bottom:24px}.section-title{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:22px 0 8px}.filter,.viewbtn{width:100%;text-align:left;background:transparent;border:1px solid transparent;color:#c9d0da;padding:9px 10px;border-radius:10px;cursor:pointer}.filter:hover,.viewbtn:hover{background:var(--panel2)}.filter.active,.viewbtn.active{background:#1d212a;border-color:#353b47;color:white}.toolbar{position:absolute;top:18px;left:18px;right:18px;display:flex;gap:10px;align-items:center;z-index:5}.search{flex:1;background:rgba(18,20,26,.92);border:1px solid var(--line);border-radius:12px;padding:11px 13px;color:white;outline:none}.pill{background:rgba(18,20,26,.92);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:#d7dce4;font-size:12px}.zoom-controls{display:flex;gap:6px}.zoom-btn{width:38px;height:38px;background:rgba(18,20,26,.92);border:1px solid var(--line);border-radius:10px;color:#eef1f5;font-size:18px;cursor:pointer}.zoom-btn:hover{background:#1d212a}.main{position:relative;overflow:hidden;background:radial-gradient(circle at center,rgba(215,181,109,.05),transparent 38%),linear-gradient(180deg,#0b0c0f,#0a0b0d)}svg{width:100%;height:100%;display:block}.edge{stroke:#465061;stroke-width:1.2;opacity:.42}.edge.strong{stroke:#a58d59;stroke-width:1.7;opacity:.72}.edge.future,.edge.potential{stroke-dasharray:8 7;opacity:.27;stroke-width:1.05}.edge.budding{stroke-dasharray:2 5;opacity:.44;stroke-width:1.25}.hub-label{fill:#778193;font-size:11px;letter-spacing:.08em;text-transform:uppercase}.node{cursor:pointer}.node circle.core{stroke:#f6deb0;stroke-width:2.4}.node circle.person{stroke:#303744;stroke-width:1.4}.node circle.bridge{stroke:#8bb9f0;stroke-width:2}.node circle.hubnode{stroke:#8fd6a8;stroke-width:2}.node text.name{fill:#f6f7f8;font-size:11px;font-weight:700;pointer-events:none}.node text.role{fill:#98a1af;font-size:9px;pointer-events:none}
+.node-notification circle{fill:#ff453a;stroke:#fff;stroke-width:1.8}
+.node-notification text{fill:#fff;font-size:9px;font-weight:900;pointer-events:none}
+.notification-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.notification-item{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;background:#141820;border:1px solid #2b3442;border-radius:11px;padding:10px}
+.notification-copy{font-size:12px;line-height:1.45;color:#d9dee6}
+.notification-time{font-size:9px;color:#748090;margin-top:4px}
+.notification-dismiss{flex:0 0 auto;border:1px solid #37404d;background:#1a1f28;color:#cbd2dc;border-radius:8px;padding:5px 7px;cursor:pointer;font-size:10px}
+.notification-add{display:flex;gap:7px;margin-top:9px}
+.notification-add input{flex:1;background:#0d1016;border:1px solid #303745;border-radius:9px;color:#f2f4f7;padding:9px 10px;outline:none}
+.notification-add button{border:0;background:#f0d49a;color:#17130d;border-radius:9px;padding:0 11px;font-weight:800;cursor:pointer}
+.notification-empty{font-size:11px;color:#7f8997;margin-top:8px}
+.profile-photo{width:100%;height:230px;object-fit:cover;border-radius:16px;border:1px solid #303744;background:#20242c;margin-bottom:16px;display:block}.photo-missing{width:100%;height:180px;border-radius:16px;border:1px dashed #3a4150;background:#171a21;display:flex;align-items:center;justify-content:center;color:#7f8998;font-size:13px;margin-bottom:16px;text-align:center;padding:24px}.avatar{width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;background:#252a34;border:1px solid #3a4150;margin-bottom:14px}.profile h2{margin:0;font-size:24px}.roleline{color:#b9c0cb;margin:4px 0 16px}.chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 18px}.chip{font-size:11px;padding:5px 8px;border:1px solid #353b47;border-radius:999px;color:#cbd2dc}.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.card{background:#171a21;border:1px solid #2b303b;border-radius:12px;padding:12px}.card .k{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:#7f8998}.card .v{margin-top:4px;font-size:13px}.links a{display:block;color:#a9caff;text-decoration:none;margin:7px 0;font-size:13px;word-break:break-word}textarea{width:100%;background:#111319;border:1px solid #2e3440;border-radius:10px;color:white;padding:10px;outline:none;min-height:92px;resize:vertical}.save{margin-top:8px;background:#f0d49a;color:#16130d;border:0;border-radius:9px;padding:8px 12px;font-weight:700;cursor:pointer}.empty{color:#7e8795;font-size:13px;line-height:1.5}.legend{font-size:11px;color:#8892a0;line-height:1.7}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}.gold{background:#d7b56d}.blue{background:#7fb3ff}.green{background:#8fd6a8}.small{font-size:11px;color:#7f8897}@media(max-width:1100px){.app{grid-template-columns:210px 1fr}.profile{position:absolute;right:0;top:0;bottom:0;width:340px;z-index:10;box-shadow:-10px 0 30px rgba(0,0,0,.3)}}
 
 .ai-toggle{background:#f0d49a;color:#17130d;border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer;white-space:nowrap}
 .ai-panel{position:absolute;left:18px;bottom:18px;width:min(560px,calc(100% - 36px));background:rgba(15,17,22,.98);
@@ -864,6 +876,33 @@ function ensureMotionState(n){
     flow:r4*Math.PI*2
   };
 }
+const NOTIFICATION_KEY="creativeNetworkNotifications";
+function getNotificationStore(){
+  try{return JSON.parse(localStorage.getItem(NOTIFICATION_KEY)||"{}")}catch(e){return{}}
+}
+function saveNotificationStore(store){
+  localStorage.setItem(NOTIFICATION_KEY,JSON.stringify(store));
+}
+function profileNotifications(id){
+  return (getNotificationStore()[id]||[]).filter(x=>!x.dismissed);
+}
+function notificationCount(id){return profileNotifications(id).length}
+function addProfileNotification(profileId,text,source="manual"){
+  const clean=String(text||"").trim();if(!clean)return null;
+  const store=getNotificationStore(),items=store[profileId]||[];
+  const item={id:"n_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,7),text:clean,source,createdAt:new Date().toISOString(),dismissed:false};
+  items.push(item);store[profileId]=items.slice(-50);saveNotificationStore(store);
+  return item;
+}
+function dismissProfileNotification(profileId,notificationId){
+  const store=getNotificationStore(),items=store[profileId]||[];
+  const item=items.find(x=>x.id===notificationId);if(item)item.dismissed=true;
+  store[profileId]=items;saveNotificationStore(store);
+}
+function clearProfileNotifications(profileId){
+  const store=getNotificationStore(),items=store[profileId]||[];
+  items.forEach(x=>x.dismissed=true);store[profileId]=items;saveNotificationStore(store);
+}
 function render(){
   viewport.innerHTML="";
   edgeEls.length=0;
@@ -983,6 +1022,16 @@ function render(){
     if(currentView==="relationship"&&currentFilter==="Bands & Collectives"&&isCollectiveEntity(n))g.classList.add("band-hub");
     const rr=(currentView==="studios"&&n.profileType==="studio")?31:((currentView==="relationship"&&currentFilter==="Bands & Collectives"&&isCollectiveEntity(n))?34:n.r);
     g.appendChild(make("circle",{r:rr,fill,class:n.type==="core"?"core":n.type==="bridge"?"bridge":n.type==="hubnode"?"hubnode":"person"}));
+
+    const notifCount=notificationCount(n.id);
+    if(notifCount>0){
+      const badge=make("g",{class:"node-notification",transform:`translate(${(rr*.74).toFixed(1)},${(-rr*.74).toFixed(1)})`});
+      const br=notifCount>9?10:9;
+      badge.appendChild(make("circle",{r:br}));
+      const bt=make("text",{x:0,y:3.2,"text-anchor":"middle"});
+      bt.textContent=notifCount>99?"99+":String(notifCount);
+      badge.appendChild(bt);g.appendChild(badge);
+    }
 
     const initials=n.name.split(/\s+/).map(x=>x[0]).join("").slice(0,2).toUpperCase();
     const av=make("text",{x:0,y:4,"text-anchor":"middle",fill:"#dfe4ea","font-size":n.r>25?"13":"11","font-weight":"800"});
@@ -1267,6 +1316,8 @@ function showProfile(n){
       <div class="card"><div class="k">Hub</div><div class="v">${n.hub}</div></div>
           </div>
     ${specialized}
+    <div class="section-title">Notifications</div>
+    <div id="profileNotifications"></div>
     <div class="section-title">Public Links</div>
     <div class="links">${linksHtml}</div>
     <div class="profile-actions"><button class="save" id="editProfileBtn">Edit profile</button></div>
@@ -1277,6 +1328,37 @@ function showProfile(n){
   `;
 
   document.getElementById("editProfileBtn").onclick=()=>openEditProfile(n);
+
+  const renderProfileNotifications=()=>{
+    const box=document.getElementById("profileNotifications");if(!box)return;
+    const items=profileNotifications(n.id);
+    const rows=items.map(item=>{
+      const when=item.createdAt?new Date(item.createdAt).toLocaleString():"";
+      return `<div class="notification-item">
+        <div><div class="notification-copy">${escapeAttr(item.text)}</div><div class="notification-time">${escapeAttr(when)}</div></div>
+        <button class="notification-dismiss" data-notification-id="${escapeAttr(item.id)}">Done</button>
+      </div>`;
+    }).join("");
+    box.innerHTML=`
+      ${items.length?`<div class="notification-list">${rows}</div>`:'<div class="notification-empty">No active notifications for this profile.</div>'}
+      <div class="notification-add"><input id="newNotificationText" placeholder="Add a reminder or follow-up…"><button id="addNotificationBtn">Add</button></div>
+      ${items.length?'<button class="secondary-btn" id="clearNotificationsBtn" style="margin-top:8px">Clear all</button>':""}
+    `;
+    box.querySelectorAll(".notification-dismiss").forEach(btn=>btn.onclick=()=>{
+      dismissProfileNotification(n.id,btn.dataset.notificationId);
+      render();renderProfileNotifications();
+    });
+    const add=()=>{
+      const input=document.getElementById("newNotificationText"),txt=input?.value.trim();if(!txt)return;
+      addProfileNotification(n.id,txt,"manual");
+      render();renderProfileNotifications();input.value="";
+    };
+    document.getElementById("addNotificationBtn").onclick=add;
+    document.getElementById("newNotificationText").addEventListener("keydown",e=>{if(e.key==="Enter")add()});
+    const clear=document.getElementById("clearNotificationsBtn");
+    if(clear)clear.onclick=()=>{clearProfileNotifications(n.id);render();renderProfileNotifications()};
+  };
+  renderProfileNotifications();
 
   document.getElementById("saveNotes").onclick=()=>{
     const all=JSON.parse(localStorage.getItem("creativeNetworkNotes")||"{}");
@@ -2088,6 +2170,16 @@ document.getElementById("saveProfile").onclick=()=>{
 
 const APP_RELEASES=[
   {
+    version:"v40",file:null,date:"2026-09-18",title:"Profile notification badges",
+    notes:[
+      "Added Apple-style numbered notification badges directly on profile bubbles",
+      "Each profile now has a Notifications section for reminders and follow-ups",
+      "Notifications can be marked done or cleared without deleting profile data",
+      "Talk + Edit supports commands such as 'add notification to Jordan: follow up on the pitch deck'",
+      "Notification data stays local to this browser in the static prototype; future event, music, business and task sources can feed the same badge system"
+    ]
+  },
+  {
     version:"v39",file:null,date:"2026-09-18",title:"Neighborhood-level location profiles",
     notes:[
       "Location is now a first-class field on every profile, not only venues and studios",
@@ -2495,6 +2587,26 @@ function executeNetworkEdit(raw){
     n.role=m[2].trim();
     persistEditedProfiles();render();showProfile(n);
     pushConvo(`Updated ${n.name}'s role to ${n.role}.`,"change");
+    return;
+  }
+
+  // Profile notifications / follow-ups.
+  m=q.match(/^(?:add|set)\s+(?:a\s+)?notification\s+(?:for|to)\s+(.+?)\s*:\s*(.+)$/i);
+  if(m){
+    const n=findNodeByName(m[1]);
+    if(!n){pushConvo("I couldn't confidently match that profile.","system");return}
+    addProfileNotification(n.id,m[2],"talk_edit");
+    render();showProfile(n);
+    pushConvo(`Added a notification to ${n.name}.`,"change");
+    return;
+  }
+  m=q.match(/^clear\s+(.+?)(?:'s|’s)?\s+notifications?$/i);
+  if(m){
+    const n=findNodeByName(m[1]);
+    if(!n){pushConvo("I couldn't confidently match that profile.","system");return}
+    clearProfileNotifications(n.id);
+    render();showProfile(n);
+    pushConvo(`Cleared ${n.name}'s notifications.`,"change");
     return;
   }
 
