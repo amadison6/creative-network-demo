@@ -16,6 +16,12 @@
   let albumTracks = [];
   let tracksPage = 0;
   let moreTracks = false;
+  let searchTracks = [];
+  let searchText = "";
+  let searchOffset = 0;
+  let moreSearch = false;
+  let searchTimer = null;
+  let searchSerial = 0;
   let loading = false;
   let status = "";
   let statusError = false;
@@ -152,19 +158,37 @@
     const more=el("mixMoreReleases");
     if(more){more.hidden=!moreReleases;more.disabled=loading}
   }
-  function trackRow(track, index) {
+  function trackRow(track, index, origin) {
     const url=spotifyLink(track.id,"track");
     const picked=draft.some(function(item){return item.id===track.id;});
     const artist=(track.artists||[]).map(function(a){return a.name;}).join(", ")||
       profileLabel(nodes.find(function(n){return n.id===chosenProfile;})||{});
+    const onMap=(track.artists||[]).some(function(a){
+      return artistProfiles().some(function(p){return p.spotify.id===a.id;});
+    });
+    const album=track.album?.name||((origin==="search")?"":albumName(selectedAlbum));
     return '<div class="mix-track">'+
       '<span class="mix-track-index">'+(index+1)+'</span>'+
       '<div class="mix-track-text"><strong>'+safe(track.name||"Untitled track")+'</strong>'+
-      '<span>'+safe(artist)+' · '+duration(track.duration_ms)+'</span></div>'+
+      '<span>'+safe(artist)+(album?' · '+safe(album):'')+
+      ' · '+duration(track.duration_ms)+(onMap?' · <em class="mix-on-map">On your map</em>':'')+'</span></div>'+
       (url?'<a href="'+url+'" target="_blank" rel="noopener noreferrer" title="Open track on Spotify">↗</a>':"")+
-      '<button type="button" data-mix-add="'+safe(track.id)+'"'+
+      '<button type="button" '+(origin==="search"?'data-mix-search-add':'data-mix-add')+'="'+safe(track.id)+'"'+
       (picked||draft.length>=MAX_TRACKS?' disabled':'')+'>'+
       (picked?'Added':'+ Add')+'</button></div>';
+  }
+  function renderSearch() {
+    const box=el("mixSearchResults");
+    if(!box)return;
+    const query=(el("mixSongSearch")?.value||"").trim();
+    const label=el("mixSearchTitle"),more=el("mixMoreSearch");
+    if(label)label.textContent=searchText?"Song search · "+searchText:"Song search";
+    box.innerHTML=searchTracks.length?searchTracks.map(function(t,i){return trackRow(t,i,"search")}).join(""):
+      '<p class="mix-muted">'+
+      (query ? (loading?'Searching Spotify…':
+        'No matches yet. Try a track title plus artist name, or browse an artist’s releases below.') :
+        'Search Spotify by song title or artist name. Results do not require opening an album first.')+'</p>';
+    if(more){more.hidden=!moreSearch;more.disabled=loading;}
   }
   function renderTracks() {
     const box=el("mixTracks");
@@ -176,10 +200,54 @@
       return !query||[t.name,...(t.artists||[]).map(function(a){return a.name;})]
         .join(" ").toLowerCase().includes(query);
     });
-    box.innerHTML=filtered.length?filtered.map(trackRow).join(""):
-      '<p class="mix-muted">'+(selectedAlbum?'No tracks match. Try another release or search.':'Choose a release on the left to browse its tracks.')+'</p>';
+    box.innerHTML=filtered.length?filtered.map(function(t,i){return trackRow(t,i,"album")}).join(""):
+      '<p class="mix-muted">'+(selectedAlbum?
+        'No loaded tracks match this filter. Search all Spotify songs above or open another release.':
+        'Open a release below to browse tracks, or use Search Spotify songs above.')+'</p>';
     const more=el("mixMoreTracks");
     if(more){more.hidden=!moreTracks;more.disabled=loading}
+  }
+  function queueSearch() {
+    if(searchTimer)clearTimeout(searchTimer);
+    const query=(el("mixSongSearch")?.value||"").trim();
+    ++searchSerial;
+    searchText=query;
+    searchTracks=[];searchOffset=0;moreSearch=false;
+    renderSearch();
+    if(!query){notify("Search by title, artist name, or both.");return;}
+    searchTimer=setTimeout(function(){searchTimer=null;searchSongs(true);},450);
+  }
+  async function searchSongs(reset) {
+    if(searchTimer){clearTimeout(searchTimer);searchTimer=null;}
+    const query=(el("mixSongSearch")?.value||"").trim();
+    if(!query){notify("Type a track title or artist name to search Spotify.",true);return;}
+    if(!spotify()?.isConnected()){
+      renderConnection();notify("Connect Spotify to search its song catalog.",true);return;
+    }
+    // Another catalog request must finish first; maintain a visible prompt.
+    if(loading){notify("A request is finishing. Press Search again shortly.");return;}
+    const token=++searchSerial;
+    if(reset || query!==searchText){
+      searchTracks=[];searchOffset=0;moreSearch=false;searchText=query;
+    }
+    const offset=searchOffset;
+    setBusy(true);renderSearch();notify("Searching Spotify for “"+query+"”…");
+    try {
+      const data=await api("/search?q="+encodeURIComponent(query)+"&type=track&limit=10&offset="+offset);
+      if(token!==searchSerial || query!==(el("mixSongSearch")?.value||"").trim())return;
+      const tracks=data?.tracks;
+      const incoming=(tracks?.items||[]).filter(function(t){
+        return t&&/^[A-Za-z0-9]{22}$/.test(t.id)&&!t.is_local;
+      });
+      const seen=new Set(searchTracks.map(function(t){return t.id;}));
+      incoming.forEach(function(t){if(!seen.has(t.id)){searchTracks.push(t);seen.add(t.id);}});
+      searchOffset=offset+(tracks?.items||[]).length;
+      moreSearch=!!tracks?.next&&searchOffset<1000;
+      notify(searchTracks.length?searchTracks.length+" matches found. Add songs directly to your mix.":
+        "No results for that query. Try a song title plus artist name.");
+    }catch(error){
+      if(token===searchSerial)notify(error.message||"Spotify search failed. Try again.",true);
+    }finally{setBusy(false);renderSearch();}
   }
   function renderDraft() {
     const box=el("mixDraft");
@@ -222,7 +290,7 @@
       name:String(t.name||"Untitled track"),
       artist:(t.artists||[]).map(function(a){return a.name||"";}).filter(Boolean).join(", ")||
         profileLabel(nodes.find(function(n){return n.id===chosenProfile;})||{}),
-      album:albumName(selectedAlbum)
+      album:t.album?.name||albumName(selectedAlbum)
     };
   }
   async function loadReleases(reset) {
@@ -329,7 +397,7 @@
     opened=true;
     const modal=el("networkMixModal");
     modal.hidden=false;
-    renderArtists();renderConnection();renderReleases();renderTracks();renderDraft();renderResult();
+    renderArtists();renderConnection();renderReleases();renderTracks();renderSearch();renderDraft();renderResult();
     notify(status||"Choose an artist, explore releases, and collect songs across the network.");
     if(!releases.length&&spotify()?.isConnected()&&chosenProfile)loadReleases(true);
   }
@@ -363,12 +431,18 @@
             '<div class="mix-line"><label for="mixArtist">Browse artist</label>'+
               '<a id="mixArtistLink" target="_blank" rel="noopener noreferrer" href="#" hidden>Spotify ↗</a></div>'+
             '<select id="mixArtist" aria-label="Artist from your network"></select>'+
+            '<div class="mix-section-head"><strong>Search Spotify songs</strong></div>'+
+            '<div class="mix-song-search"><input id="mixSongSearch" type="search" autocomplete="off" placeholder="Song title, artist, or both…" aria-label="Search Spotify songs across the catalog">'+
+            '<button id="mixSearchBtn" type="button">Search</button></div>'+
+            '<div class="mix-muted">Search all Spotify songs, or browse a mapped artist’s releases below. The album filter farther down only filters an opened release.</div>'+
+            '<div id="mixSearchResults" class="mix-search-results"></div>'+
+            '<button type="button" id="mixMoreSearch" class="mix-more" hidden>More song results</button>'+
             '<div class="mix-section-head"><strong>Releases</strong>'+
               '<button type="button" id="mixRefresh">Refresh</button></div>'+
             '<div id="mixReleases" class="mix-release-list"></div>'+
             '<button type="button" id="mixMoreReleases" class="mix-more" hidden>Load more releases</button>'+
             '<div class="mix-section-head"><strong id="mixReleaseTitle">Tracks</strong></div>'+
-            '<input id="mixTrackSearch" placeholder="Filter loaded songs…" aria-label="Filter loaded tracks">'+
+            '<input id="mixTrackSearch" placeholder="Filter tracks in opened release…" aria-label="Filter opened album tracks">'+
             '<div id="mixTracks" class="mix-track-list"></div>'+
             '<button type="button" id="mixMoreTracks" class="mix-more" hidden>Load more tracks</button>'+
           '</div>'+
@@ -404,6 +478,12 @@
     el("mixMoreReleases").onclick=function(){loadReleases(false);};
     el("mixMoreTracks").onclick=function(){if(activeAlbum)loadTracks(activeAlbum,false);};
     el("mixTrackSearch").oninput=renderTracks;
+    el("mixSongSearch").oninput=queueSearch;
+    el("mixSongSearch").onkeydown=function(e){
+      if(e.key==="Enter"){e.preventDefault();searchSongs(true);}
+    };
+    el("mixSearchBtn").onclick=function(){searchSongs(true);};
+    el("mixMoreSearch").onclick=function(){searchSongs(false);};
     el("mixClear").onclick=function(){
       if(draft.length&&!window.confirm("Clear your locally saved mix selection?"))return;
       draft=[];persistDraft();renderDraft();renderTracks();
@@ -413,18 +493,20 @@
       const btn=event.target.closest("button");
       if(!btn||btn.disabled||loading)return;
       const album=btn.dataset.mixAlbum;
-      const track=btn.dataset.mixAdd;
+      const searched=btn.dataset.mixSearchAdd;
+      const track=searched||btn.dataset.mixAdd;
       const up=btn.dataset.mixUp,down=btn.dataset.mixDown,remove=btn.dataset.mixRemove;
       if(album){loadTracks(album,true);return;}
       if(track){
-        const item=albumTracks.find(function(t){return t.id===track;});
+        const source=searched?searchTracks:albumTracks;
+        const item=source.find(function(t){return t.id===track;});
         const normalized=normalizeTrack(item);
         if(!normalized)return;
         if(draft.some(function(t){return t.id===normalized.id;})){
           notify("That exact recording is already in your mix.");return;
         }
         if(draft.length>=MAX_TRACKS){notify("This mix is at its 500-track limit.",true);return;}
-        draft.push(normalized);persistDraft();renderDraft();renderTracks();
+        draft.push(normalized);persistDraft();renderDraft();renderTracks();renderSearch();
         notify("Added “"+normalized.name+"” to your mix.");
         return;
       }
@@ -437,9 +519,9 @@
         if(target<0||target>=draft.length)return;
         const t=draft[index];draft[index]=draft[target];draft[target]=t;
       }
-      persistDraft();renderDraft();renderTracks();
+      persistDraft();renderDraft();renderTracks();renderSearch();
     });
-    renderArtists();renderDraft();renderConnection();
+    renderArtists();renderDraft();renderConnection();renderSearch();
     updateCounts();
   }
   function onAuthReady() {
