@@ -91,7 +91,8 @@ function bindProfile(n){
   if(!p?.embed||!spot)return;
   const frame=document.createElement("iframe");
   frame.src=p.embed;frame.title="Untitled player · "+p.title;
-  frame.loading="lazy";frame.allow="autoplay; encrypted-media; clipboard-write";
+  frame.loading="lazy";frame.allow="autoplay; encrypted-media; clipboard-write; picture-in-picture";
+  frame.allowFullscreen=true;
   frame.referrerPolicy="no-referrer";frame.className="untitled-frame";
   spot.replaceChildren(frame);btn.textContent="Player loaded";
  });
