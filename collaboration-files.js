@@ -82,8 +82,9 @@ function hydrateImages(panel){
    const fallback=img.closest(".collab-thumb")?.querySelector(".collab-thumb-fallback");
    if(!file?.blob){if(fallback)fallback.textContent="Image not saved in this browser — restore the original file";return}
    const url=imageUrl(file.blob);
+   img.onload=()=>{if(fallback)fallback.remove()};
+   img.onerror=()=>{img.hidden=true;if(fallback)fallback.textContent="Preview unavailable · use original file"};
    img.src=url;img.hidden=false;
-   if(fallback)fallback.remove();
    panel.querySelectorAll("[data-collab-view-image]").forEach(a=>{
     if(a.dataset.collabViewImage===id){a.href=url;a.target="_blank";a.rel="noopener noreferrer"}
    });
