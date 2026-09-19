@@ -113,6 +113,7 @@
     const btn=el("radarAddForProfile");
     if(btn)btn.onclick=()=>openRadar(n.id);
     document.querySelectorAll("#profile [data-radar-profile-open]").forEach(b=>b.onclick=()=>openRadar(n.id));
+    document.querySelectorAll("#profile [data-radar-seen]").forEach(b=>b.onclick=()=>modify(b.dataset.radarSeen,"seen"));
   }
   function render(){
     const modal=el("networkEventRadarModal");if(!modal||modal.hidden)return;
@@ -270,6 +271,6 @@
     document.addEventListener("keydown",e=>{if(e.key==="Escape"&&open){e.preventDefault();close()}});
     synced();
   }
-  window.NetworkEvents={boot,sync:synced,count,section,bindProfile,open:openRadar,close,refreshMap:()=>{if(typeof render==="function")render();},
+  window.NetworkEvents={boot,sync:synced,count,section,bindProfile,open:openRadar,close,refreshMap:()=>{if(typeof window.render==="function")window.render();},
     _test:{dateOK,urlInfo,upcoming,keyOf,labelDate}};
 })();
