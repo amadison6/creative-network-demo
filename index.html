@@ -1067,6 +1067,7 @@ function naturalHubFor(n){
   });
   if((n.tags||[]).includes("God's Contraband"))score("God's Contraband",3);
   if((n.tags||[]).includes("Visual Artists")||n.profileType==="filmmaker")score("Visual / Management",2.5);
+  if(/visual\s*art|film\s*scene/i.test(String(n.hub||"")))score("Visual / Management",12);
   if((n.tags||[]).includes("Rising Artists"))score("Baw$ / Sockjus Orbit",.7);
   if((n.tags||[]).includes("Singer-Songwriters"))score("R&B Writing Orbit",.8);
   const ordered=[...scores].sort((a,b)=>b[1]-a[1]);
