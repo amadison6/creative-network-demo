@@ -799,7 +799,7 @@
 </datalist>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v67 · save collaboration images</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v68 · Danny B manager profile</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -1043,6 +1043,7 @@
 <script>
 const nodes=[
 {id:"uh_sar",name:"uh_sar",role:"Producer / Artist / Director",type:"core",r:34,tags:["All","God's Contraband"],hub:"Center",bio:"Central creative node: producer, artist, arranger, multi-instrumentalist, and creative director. Co-founder and executive producer of God's Contraband."},
+{id:"danny_b",name:"Danny B",role:"Artist & Producer Manager",profileType:"manager",organization:"Independent artist / producer management; company and roster not yet recorded",market:"Atlanta roots · Howard University network · Los Angeles social connections",type:"bridge",r:22,tags:["All","Artist Management","Industry"],hub:"Visual / Management",hubAnchor:"Visual / Management",periphery:true,bio:"Ausar knows Danny socially through many parties, but they have not yet worked together musically. Danny is from Atlanta and attended Howard University; he knows Camille and several of Ausar's other friends. Danny knows Ausar produces and has asked him to send loops. Ausar reports one of Danny's producers recently landed a Coi Leray placement; the producer, song and credits are not yet confirmed. Next opening: follow up on Danny's invitation, ask what kind of loops he needs, and learn more about his artist/producer roster and management ecosystem.",links:{Instagram:"https://www.instagram.com/dannyboutte/"}},
 {id:"addae",name:"Addae",role:"Manager / Visuals",profileType:"manager",organization:"Independent / artist support",type:"core",r:25,tags:["All","Visual Artists","Artist Management"],hub:"Visual / Management",bio:"Brother, unofficial manager, visual collaborator, connector, and production support."},
 {id:"jordan",name:"Jordan Betine",profileType:"filmmaker",visualRoles:"Director / filmmaker",photo:"https://static.wixstatic.com/media/63aeba_5e50224cec7146ba8471d90fe49218d7~mv2.jpg/v1/fill/w_321%2Ch_343%2Cal_c%2Cq_80%2Cusm_0.66_1.00_0.01%2Cenc_avif%2Cquality_auto/63aeba_5e50224cec7146ba8471d90fe49218d7~mv2.jpg",role:"Director / Film",type:"person",r:19,tags:["All","Visual Artists"],hub:"Visual / Management",bio:"Friend and filmmaker. Current visual collaborator on Unstoppable."},
 {id:"cam",name:"Cam",role:"Singer / Multi-inst.",profileType:"musician",instruments:"Drums, percussion, bass, multi-instrumentalist",genres:"Singer-songwriter / contemporary R&B adjacent",type:"bridge",r:28,tags:["All","Musicians","Singer-Songwriters","Writing Camps","God's Contraband"],hub:"Professor What Trio",bio:"Elite drummer and multi-instrumentalist with strong musical instincts. Singer-songwriter with significant unreleased material."},
@@ -1122,7 +1123,7 @@ for(let i=nodes.length-1;i>=0;i--){
   if(isCollectiveEntity(n))n.profileType="collective";
 }
 
-const edges=[["uh_sar","addae","strong"],["addae","jordan","strong"],["addae","sockjus","strong"],["addae","baws","strong"],["uh_sar","cam","strong"],["uh_sar","balam","strong"],["uh_sar","free","strong"],["uh_sar","camille","strong"],["uh_sar","sockjus","strong"],["uh_sar","dante","strong"],["uh_sar","chris","strong"],["uh_sar","jonah","strong"],["uh_sar","joel","strong"],["cam","balam","strong"],["cam","drew","strong"],["balam","drew","strong"],["free","zeke","strong"],["camille","brit","strong"],["brit","okay","future"],["camille","okay","future"],["sockjus","john","strong"],["sockjus","baws","strong"],["baws","john","strong"],["baws","mempho","strong"],["baws","nick","strong"],["mempho","nick","strong"],["sockjus","mempho","strong"],["uh_sar","mempho",""],["uh_sar","john",""],["uh_sar","baws",""],["uh_sar","diontae",""],["uh_sar","solomon",""],["free","cam","future"],["free","balam","future"],["mempho","camille","future"],["mempho","free","future"],["uh_sar","isis","budding"],["free","isis","strong"],["zeke","isis","budding"],["venue_gold_diggers","brit","strong"],["venue_gold_diggers","okay","strong"],["venue_slide_thru","sean_slide_thru","strong"],["sean_slide_thru","addae","strong"],["sean_slide_thru","baws","strong"],["venue_slide_thru","mempho","strong"],["venue_slide_thru","sockjus","strong"],["venue_slide_thru","punchingbag","strong"],["venue_slide_thru","isis","strong"],["venue_slide_thru","baws","strong"],["venue_slide_thru","addae","strong"],["gods_contraband_group","uh_sar","strong"],["gods_contraband_group","dante","strong"],["professor_what_group","cam","strong"],["professor_what_group","balam","strong"],["professor_what_group","drew","strong"],
+const edges=[["uh_sar","addae","strong"],["addae","jordan","strong"],["addae","sockjus","strong"],["addae","baws","strong"],["uh_sar","cam","strong"],["uh_sar","balam","strong"],["uh_sar","free","strong"],["uh_sar","camille","strong"],["uh_sar","danny_b","budding"],["camille","danny_b","budding"],["uh_sar","sockjus","strong"],["uh_sar","dante","strong"],["uh_sar","chris","strong"],["uh_sar","jonah","strong"],["uh_sar","joel","strong"],["cam","balam","strong"],["cam","drew","strong"],["balam","drew","strong"],["free","zeke","strong"],["camille","brit","strong"],["brit","okay","future"],["camille","okay","future"],["sockjus","john","strong"],["sockjus","baws","strong"],["baws","john","strong"],["baws","mempho","strong"],["baws","nick","strong"],["mempho","nick","strong"],["sockjus","mempho","strong"],["uh_sar","mempho",""],["uh_sar","john",""],["uh_sar","baws",""],["uh_sar","diontae",""],["uh_sar","solomon",""],["free","cam","future"],["free","balam","future"],["mempho","camille","future"],["mempho","free","future"],["uh_sar","isis","budding"],["free","isis","strong"],["zeke","isis","budding"],["venue_gold_diggers","brit","strong"],["venue_gold_diggers","okay","strong"],["venue_slide_thru","sean_slide_thru","strong"],["sean_slide_thru","addae","strong"],["sean_slide_thru","baws","strong"],["venue_slide_thru","mempho","strong"],["venue_slide_thru","sockjus","strong"],["venue_slide_thru","punchingbag","strong"],["venue_slide_thru","isis","strong"],["venue_slide_thru","baws","strong"],["venue_slide_thru","addae","strong"],["gods_contraband_group","uh_sar","strong"],["gods_contraband_group","dante","strong"],["professor_what_group","cam","strong"],["professor_what_group","balam","strong"],["professor_what_group","drew","strong"],
 ["studio_downtown_rehearsals","balam","strong"],["studio_downtown_rehearsals","uh_sar","strong"],["studio_downtown_rehearsals","dante","strong"],["studio_downtown_rehearsals","drew","budding"],
 ["studio_the_school","uh_sar","strong"],["studio_the_school","free","strong"],["studio_the_school","solomon","budding"],
 ["studio_drew_hollywood","drew","strong"],["studio_drew_hollywood","cam","strong"],["studio_drew_hollywood","balam","strong"],
@@ -1133,7 +1134,7 @@ nodes.filter(isCollectiveEntity).forEach(c=>{
     if(!edges.some(([a,b])=>(a===c.id&&b===m.id)||(a===m.id&&b===c.id)))edges.push([c.id,m.id,"membership"]);
   });
 });
-const relationshipPos={uh_sar:[500,360],addae:[330,215],jordan:[200,145],cam:[590,185],balam:[690,220],drew:[790,150],free:[650,355],zeke:[820,335],camille:[360,505],brit:[215,570],okay:[120,650],sockjus:[710,545],john:[820,565],baws:[860,470],mempho:[760,455],nick:[925,585],jonah:[535,600],joel:[430,650],chris:[475,155],dante:[390,165],diontae:[285,315],solomon:[600,290],gods_contraband_group:[455,95],professor_what_group:[755,95],studio_downtown_rehearsals:[295,245],studio_the_school:[690,500],studio_drew_hollywood:[355,555],studio_jonah:[775,245],studio_diontae_inglewood:[735,155],isis:[865,390],venue_gold_diggers:[500,330],venue_slide_thru:[495,405],sean_slide_thru:[570,440],punchingbag:[840,620]};
+const relationshipPos={uh_sar:[500,360],danny_b:[280,430],addae:[330,215],jordan:[200,145],cam:[590,185],balam:[690,220],drew:[790,150],free:[650,355],zeke:[820,335],camille:[360,505],brit:[215,570],okay:[120,650],sockjus:[710,545],john:[820,565],baws:[860,470],mempho:[760,455],nick:[925,585],jonah:[535,600],joel:[430,650],chris:[475,155],dante:[390,165],diontae:[285,315],solomon:[600,290],gods_contraband_group:[455,95],professor_what_group:[755,95],studio_downtown_rehearsals:[295,245],studio_the_school:[690,500],studio_drew_hollywood:[355,555],studio_jonah:[775,245],studio_diontae_inglewood:[735,155],isis:[865,390],venue_gold_diggers:[500,330],venue_slide_thru:[495,405],sean_slide_thru:[570,440],punchingbag:[840,620]};
 localProfiles.forEach((p,i)=>{
   if(!relationshipPos[p.id]){
     const a=(i*1.7)+.8,rad=150+(i%3)*35;
@@ -3818,6 +3819,16 @@ document.getElementById("saveProfile").onclick=()=>{
 })();
 
 const APP_RELEASES=[
+  {
+    version:"v68",file:null,date:"2026-09-20",title:"Danny B · artist and producer manager",
+    notes:[
+      "Added Danny B under Artist Management with Instagram @dannyboutte and his Atlanta / Howard background",
+      "Mapped Ausar and Camille as existing social connections without claiming completed music collaborations",
+      "Captured Danny's invitation to send loops and Ausar's goal of learning his management ecosystem",
+      "Recorded the reported Coi Leray placement as unverified until producer and track credits are known",
+      "Placed Danny on the periphery of Visual / Management to reflect a warm social relationship not yet developed creatively"
+    ]
+  },
   {
     version:"v67",file:null,date:"2026-09-19",title:"Save collaboration reference images",
     notes:[
