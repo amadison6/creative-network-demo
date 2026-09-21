@@ -2864,7 +2864,8 @@ function updateSyncCount(){
   if(btn)btn.classList.toggle("has-changes",count>0);
 }
 function profileSnapshot(n){
-  const keys=["name","artistName","role","hub","tags","bio","links","pro","ipi","legalName","publisher","instruments","genres","collectiveType","members","founders","status","location","capacity","bookingContact","organization","market","resources","rates","access","availability","frequentPeople","history","talentBuyer","warmConnection","lastQuotedGuarantee","dealStructure","doorSplit","productionFee","audienceFit","backline","potentialShowNotes","partifulEvents"];
+  const keys=["name","artistName","role","hub","tags","bio","links","pro","ipi","legalName","publisher","instruments","genres","collectiveType","members","founders","status","location","capacity","bookingContact","organization","market","resources","rates","access","availability","frequentPeople","history","talentBuyer","warmConnection","lastQuotedGuarantee","dealStructure","doorSplit","productionFee","audienceFit","backline","potentialShowNotes","partifulEvents",
+    "roster","managementFocus","managementServices","businessEmail","managementNotes","djFormat","djEquipment","djResidencies","djEventTypes","djAffiliation","djHighlights"];
   const out={id:n.id};keys.forEach(k=>{if(n[k]!==undefined)out[k]=JSON.parse(JSON.stringify(n[k]))});return out;
 }
 function queueNetworkChange(entry){
@@ -3093,8 +3094,24 @@ document.getElementById("saveProfileEdits").onclick=()=>{
       }
     }
   }
+  let djMixcloud="";
+  if(n.profileType==="dj"){
+    const input=document.getElementById("editDJMixcloud"),raw=input?.value.trim()||"";
+    if(raw){
+      try{
+        const u=new URL(raw);
+        if(u.protocol!=="https:"||!["mixcloud.com","www.mixcloud.com"].includes(u.hostname.toLowerCase()))throw Error("URL");
+        djMixcloud=u.href;
+      }catch(_){
+        input.setCustomValidity("Use a full https://www.mixcloud.com/ link.");
+        input.reportValidity();
+        input.addEventListener("input",()=>input.setCustomValidity(""),{once:true});
+        return;
+      }
+    }
+  }
   n.name=document.getElementById("editName").value.trim()||n.name;
-  if(n.profileType!=="venue")n.artistName=document.getElementById("editArtistName").value.trim();
+  if(!["venue","manager"].includes(n.profileType))n.artistName=document.getElementById("editArtistName").value.trim();
   n.role=document.getElementById("editRole").value.trim()||n.role;
   n.hub=document.getElementById("editHub").value.trim()||n.hub;
   n.location=document.getElementById("editLocation").value.trim();
@@ -3107,9 +3124,12 @@ document.getElementById("saveProfileEdits").onclick=()=>{
   const sp=spotifyEdit?parseSpotifyLink(spotifyEdit).url:"";
   const sc=soundCloudEdit?window.NetworkPlayback?.safeSoundCloud(soundCloudEdit):"";
   if(ig)n.links.Instagram=ig;else delete n.links.Instagram;
-  if(n.profileType!=="venue"){
+  if(!["venue","manager"].includes(n.profileType)){
     if(sp)n.links.Spotify=sp;else delete n.links.Spotify;
     if(sc)n.links.SoundCloud=sc;else delete n.links.SoundCloud;
+  }
+  if(n.profileType==="dj"){
+    if(djMixcloud)n.links.Mixcloud=djMixcloud;else delete n.links.Mixcloud;
   }
   if(n.profileType==="venue"){
     for(const [key,url] of Object.entries(venueUrls)){
@@ -3117,13 +3137,13 @@ document.getElementById("saveProfileEdits").onclick=()=>{
     }
   }
   setSocialLinkRemoved(n.id,"Instagram",!ig);
-  if(n.profileType!=="venue")setSocialLinkRemoved(n.id,"Spotify",!sp);
+  if(!["venue","manager"].includes(n.profileType))setSocialLinkRemoved(n.id,"Spotify",!sp);
   if(partifulProfileEdit?.kind==="profile")n.links.Partiful=partifulProfileEdit.url;else delete n.links.Partiful;
   n.partifulEvents=partifulEventEdit.urls;
   if(n.profileType==="musician"||isMusicProfile(n)||isCollectiveEntity(n)){
     if(untitledURL)n.links.Untitled=untitledURL;else delete n.links.Untitled;
   }
-  if(n.profileType!=="venue"){
+  if(!["venue","manager","dj"].includes(n.profileType)){
     n.pro=document.getElementById("editPRO").value.trim();
     n.ipi=document.getElementById("editIPI").value.trim();
     n.legalName=document.getElementById("editLegalName").value.trim();
@@ -3133,6 +3153,17 @@ document.getElementById("saveProfileEdits").onclick=()=>{
   const v=id=>document.getElementById(id)?.value?.trim()??"";
   if(n.profileType==="venue")Object.assign(n,{capacity:v("editCapacity"),bookingContact:v("editBookingContact"),talentBuyer:v("editTalentBuyer"),warmConnection:v("editWarmConnection"),rates:v("editRates"),lastQuotedGuarantee:v("editQuotedGuarantee"),dealStructure:v("editDealStructure"),doorSplit:v("editDoorSplit"),productionFee:v("editProductionFee"),audienceFit:v("editAudienceFit"),backline:v("editBackline"),resources:v("editResources"),history:v("editHistory"),potentialShowNotes:v("editPotentialShowNotes")});
   if(n.profileType==="studio")Object.assign(n,{capacity:v("editCapacity"),access:v("editAccess"),availability:v("editAvailability"),frequentPeople:v("editFrequentPeople"),rates:v("editRates"),resources:v("editResources"),history:v("editHistory")});
+  if(n.profileType==="manager")Object.assign(n,{
+    organization:v("editOrganization"),roster:v("editRoster"),managementFocus:v("editManagementFocus"),
+    managementServices:v("editManagementServices"),market:v("editMarket"),businessEmail:v("editBusinessEmail"),
+    warmConnection:v("editManagerWarmConnection"),managementNotes:v("editManagementNotes")
+  });
+  if(n.profileType==="dj")Object.assign(n,{
+    genres:v("editDJGenres"),djFormat:v("editDJFormat"),djEquipment:v("editDJEquipment"),
+    djResidencies:v("editDJResidencies"),djEventTypes:v("editDJEventTypes"),
+    djAffiliation:v("editDJAffiliation"),djHighlights:v("editDJHighlights"),
+    rates:v("editDJRates"),bookingContact:v("editDJBookingContact"),market:v("editDJMarket")
+  });
 
   if(pendingEditPhotoData!==null){if(pendingEditPhotoData)n.photo=pendingEditPhotoData;else delete n.photo}
   persistEditedProfiles();persistCustomProfileIfNeeded(n);
@@ -4498,7 +4529,9 @@ function persistEditedProfiles(){
         tags:n.tags,links:n.links,partifulEvents:n.partifulEvents,collectiveType:n.collectiveType,members:n.members,founders:n.founders,status:n.status,
         location:n.location,capacity:n.capacity,bookingContact:n.bookingContact,organization:n.organization,market:n.market,
         resources:n.resources,rates:n.rates,photo:n.photo,access:n.access,availability:n.availability,frequentPeople:n.frequentPeople,history:n.history,
-        talentBuyer:n.talentBuyer,warmConnection:n.warmConnection,lastQuotedGuarantee:n.lastQuotedGuarantee,dealStructure:n.dealStructure,doorSplit:n.doorSplit,productionFee:n.productionFee,audienceFit:n.audienceFit,backline:n.backline,potentialShowNotes:n.potentialShowNotes
+        talentBuyer:n.talentBuyer,warmConnection:n.warmConnection,lastQuotedGuarantee:n.lastQuotedGuarantee,dealStructure:n.dealStructure,doorSplit:n.doorSplit,productionFee:n.productionFee,audienceFit:n.audienceFit,backline:n.backline,potentialShowNotes:n.potentialShowNotes,
+        roster:n.roster,managementFocus:n.managementFocus,managementServices:n.managementServices,businessEmail:n.businessEmail,managementNotes:n.managementNotes,
+        djFormat:n.djFormat,djEquipment:n.djEquipment,djResidencies:n.djResidencies,djEventTypes:n.djEventTypes,djAffiliation:n.djAffiliation,djHighlights:n.djHighlights
       };
     }
   });
