@@ -998,10 +998,10 @@
         <div class="form-field music-profile-only"><label>Spotify / primary music link</label><input id="editSpotify" placeholder="https://open.spotify.com/..."></div>
         <div class="form-field music-profile-only"><label>SoundCloud track / playlist link</label><input id="editSoundCloud" placeholder="https://soundcloud.com/..."></div>
         <div class="form-field music-profile-only" id="editUntitledWrap"><label>Untitled listening link</label><input id="editUntitled" placeholder="https://untitled.stream/..."></div>
-        <div class="form-field music-profile-only"><label>PRO</label><input id="editPRO" placeholder="ASCAP / BMI / SESAC"></div>
-        <div class="form-field music-profile-only"><label>IPI / CAE</label><input id="editIPI"></div>
-        <div class="form-field music-profile-only"><label>Legal writer name</label><input id="editLegalName"></div>
-        <div class="form-field music-profile-only"><label>Publisher / admin</label><input id="editPublisher"></div>
+        <div class="form-field music-profile-only writer-profile-only"><label>PRO</label><input id="editPRO" placeholder="ASCAP / BMI / SESAC"></div>
+        <div class="form-field music-profile-only writer-profile-only"><label>IPI / CAE</label><input id="editIPI"></div>
+        <div class="form-field music-profile-only writer-profile-only"><label>Legal writer name</label><input id="editLegalName"></div>
+        <div class="form-field music-profile-only writer-profile-only"><label>Publisher / admin</label><input id="editPublisher"></div>
       </div>
       <div class="dynamic-section hidden" id="editEntitySection">
         <div class="dynamic-title" id="editEntityTitle">Entity details</div>
@@ -2900,6 +2900,31 @@ function renderEditEntityFields(n){
       editField("editResources","Resources / production setup",n.resources)+
       editField("editHistory","Past shows / production history",n.history)+
       editField("editPotentialShowNotes","Potential show notes",n.potentialShowNotes);
+  }else if(n.profileType==="manager"){
+    sec.classList.remove("hidden");title.textContent="Management / representation details";
+    wrap.innerHTML=
+      editField("editOrganization","Company / organization",n.organization)+
+      editField("editRoster","Artist / producer roster (confirmed only)",n.roster)+
+      editField("editManagementFocus","Management specialties",n.managementFocus||n.genres)+
+      editField("editManagementServices","Services / opportunities",n.managementServices)+
+      editField("editMarket","Territories / markets",n.market)+
+      editField("editBusinessEmail","Business contact",n.businessEmail)+
+      editField("editManagerWarmConnection","Warm introduction",n.warmConnection)+
+      editField("editManagementNotes","Potential next steps",n.managementNotes);
+  }else if(n.profileType==="dj"){
+    sec.classList.remove("hidden");title.textContent="DJ / performance details";
+    wrap.innerHTML=
+      editField("editDJGenres","Sound / genres",n.genres)+
+      editField("editDJFormat","Set format / style",n.djFormat)+
+      editField("editDJEquipment","Setup / technical needs",n.djEquipment)+
+      editField("editDJResidencies","Residencies / regular rooms",n.djResidencies)+
+      editField("editDJEventTypes","Event / crowd fit",n.djEventTypes)+
+      editField("editDJAffiliation","Crew / affiliation",n.djAffiliation)+
+      editField("editDJHighlights","Set / mix highlights",n.djHighlights)+
+      editField("editDJRates","Booking rates / dated quotes",n.rates)+
+      editField("editDJBookingContact","Booking contact",n.bookingContact)+
+      editField("editDJMarket","Travel / territory",n.market)+
+      editField("editDJMixcloud","Mixcloud URL",n.links?.Mixcloud,"https://www.mixcloud.com/...");
   }else if(n.profileType==="studio"){
     sec.classList.remove("hidden");title.textContent="Studio / space details";
     wrap.innerHTML=
@@ -2953,12 +2978,16 @@ function renderEditCategories(n){
     </label>`).join("");
 }
 function openEditProfile(n){
-  const isVenue=n.profileType==="venue";
+  const isVenue=n.profileType==="venue",isManager=n.profileType==="manager",isDJ=n.profileType==="dj";
   editProfileModal.classList.toggle("venue-editor",isVenue);
-  document.getElementById("editProfileHeading").textContent=isVenue?"Edit venue / booking details":"Edit profile";
+  editProfileModal.classList.toggle("manager-editor",isManager);
+  editProfileModal.classList.toggle("dj-editor",isDJ);
+  document.getElementById("editProfileHeading").textContent=isVenue?"Edit venue / booking details":
+    isManager?"Edit manager / representation":isDJ?"Edit DJ / performance":"Edit profile";
   document.getElementById("editPhotoUploadLabel").textContent=isVenue?"Upload venue photo":"Upload profile picture";
-  document.getElementById("editNameLabel").textContent=isVenue?"Venue name":"Name";
-  document.getElementById("editRoleLabel").textContent=isVenue?"Venue type / programming":"Primary role";
+  document.getElementById("editNameLabel").textContent=isVenue?"Venue name":isDJ?"Name / DJ name":"Name";
+  document.getElementById("editRoleLabel").textContent=isVenue?"Venue type / programming":
+    isManager?"Management role":isDJ?"DJ / performance role":"Primary role";
   document.getElementById("editHubLabel").textContent=isVenue?"Area / neighborhood":"Hub / scene";
   document.getElementById("editLocationLabel").textContent=isVenue?"Full street address":"Location / neighborhood";
   document.getElementById("editBioLabel").textContent=isVenue?"About the room / programming":"Profile / relationship context";
