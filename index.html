@@ -6,13 +6,19 @@
 <title>Creative Network</title>
 <style>
 :root{--bg:#0b0c0f;--panel:#12141a;--panel2:#171a21;--line:#2a2f39;--text:#f4f5f7;--muted:#9aa3b2;--accent:#d7b56d;--blue:#7fb3ff;--green:#8fd6a8}*{box-sizing:border-box}html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{overflow:hidden}.app{display:grid;grid-template-columns:250px 1fr 360px;height:100vh}.sidebar,.profile{background:rgba(18,20,26,.97);border-color:var(--line)}.sidebar{border-right:1px solid var(--line);padding:22px 18px;overflow:auto}.profile{border-left:1px solid var(--line);padding:22px;overflow:auto}.brand{font-weight:800;letter-spacing:.02em;font-size:20px;margin-bottom:4px}.sub{color:var(--muted);font-size:12px;margin-bottom:24px}.section-title{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:22px 0 8px}.filter,.viewbtn{width:100%;text-align:left;background:transparent;border:1px solid transparent;color:#c9d0da;padding:9px 10px;border-radius:10px;cursor:pointer}.filter:hover,.viewbtn:hover{background:var(--panel2)}.filter.active,.viewbtn.active{background:#1d212a;border-color:#353b47;color:white}.toolbar{position:absolute;top:18px;left:18px;right:18px;display:flex;gap:10px;align-items:center;z-index:5}.search{flex:1;background:rgba(18,20,26,.92);border:1px solid var(--line);border-radius:12px;padding:11px 13px;color:white;outline:none}.pill{background:rgba(18,20,26,.92);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:#d7dce4;font-size:12px}.zoom-controls{display:flex;gap:6px}.zoom-btn{width:38px;height:38px;background:rgba(18,20,26,.92);border:1px solid var(--line);border-radius:10px;color:#eef1f5;font-size:18px;cursor:pointer}.zoom-btn:hover{background:#1d212a}.main{position:relative;overflow:hidden;background:radial-gradient(circle at center,rgba(215,181,109,.05),transparent 38%),linear-gradient(180deg,#0b0c0f,#0a0b0d)}svg{width:100%;height:100%;display:block}.edge{stroke:#465061;stroke-width:1.2;opacity:.42}.edge.strong{stroke:#a58d59;stroke-width:1.7;opacity:.72}.edge.future,.edge.potential{stroke-dasharray:8 7;opacity:.27;stroke-width:1.05}.edge.budding{stroke-dasharray:2 5;opacity:.44;stroke-width:1.25}.hub-label{fill:#778193;font-size:11px;letter-spacing:.08em;text-transform:uppercase}.node{cursor:pointer}.node circle.core{stroke:#f6deb0;stroke-width:2.4}.node circle.person{stroke:#303744;stroke-width:1.4}.node circle.bridge{stroke:#8bb9f0;stroke-width:2}.node circle.hubnode{stroke:#8fd6a8;stroke-width:2}.node text.name{fill:#f6f7f8;font-size:11px;font-weight:700;pointer-events:none}.node text.role{fill:#98a1af;font-size:9px;pointer-events:none}
-.node-notification circle{fill:#ff453a;stroke:#fff;stroke-width:1.8}
+.node-notification circle{fill:#ff3b30;stroke:none;stroke-width:0}
 .node-notification text{fill:#fff;font-size:9px;font-weight:900;pointer-events:none}
 .notification-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
 .notification-item{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;background:#141820;border:1px solid #2b3442;border-radius:11px;padding:10px}
 .notification-copy{font-size:12px;line-height:1.45;color:#d9dee6}
 .notification-time{font-size:9px;color:#748090;margin-top:4px}
 .notification-dismiss{flex:0 0 auto;border:1px solid #37404d;background:#1a1f28;color:#cbd2dc;border-radius:8px;padding:5px 7px;cursor:pointer;font-size:10px}
+.notification-item.notification-task{width:100%;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.notification-task:focus-visible{outline:2px solid #34c759;outline-offset:2px}
+.notification-task:hover{background:#1b2b24;border-color:#34c759}
+.notification-task-copy{flex:1;min-width:0;display:block}
+.notification-complete-affordance{flex:0 0 auto;border:1px solid #3b7d51;color:#b5f1c7;background:#203c2a;border-radius:999px;padding:5px 8px;white-space:nowrap;font-size:10px;font-weight:800}
+.notification-task:hover .notification-complete-affordance{background:#34c759;color:#0a2514;border-color:#34c759}
 .notification-add{display:flex;gap:7px;margin-top:9px}
 .notification-add input{flex:1;background:#0d1016;border:1px solid #303745;border-radius:9px;color:#f2f4f7;padding:9px 10px;outline:none}
 .notification-add button{border:0;background:#f0d49a;color:#17130d;border-radius:9px;padding:0 11px;font-weight:800;cursor:pointer}
@@ -806,7 +812,7 @@
 </datalist>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v69 · manager & DJ archetypes</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v70 · task badges & completion</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -1451,7 +1457,7 @@ function saveNotificationStore(store){
   localStorage.setItem(NOTIFICATION_KEY,JSON.stringify(store));
 }
 function profileNotifications(id){
-  return (getNotificationStore()[id]||[]).filter(x=>!x.dismissed);
+  return (getNotificationStore()[id]||[]).filter(x=>!x.dismissed&&!x.done);
 }
 function notificationCount(id){return profileNotifications(id).length}
 function addProfileNotification(profileId,text,source="manual"){
@@ -1465,6 +1471,17 @@ function dismissProfileNotification(profileId,notificationId){
   const store=getNotificationStore(),items=store[profileId]||[];
   const item=items.find(x=>x.id===notificationId);if(item)item.dismissed=true;
   store[profileId]=items;saveNotificationStore(store);
+}
+// Completing a task preserves its record for a future completed-task history.
+function completeProfileNotification(profileId,notificationId){
+  const store=getNotificationStore(),items=store[profileId]||[];
+  const item=items.find(x=>x.id===notificationId);
+  if(!item||item.done)return false;
+  item.done=true;
+  item.completedAt=new Date().toISOString();
+  item.dismissed=true;
+  store[profileId]=items;saveNotificationStore(store);
+  return true;
 }
 function clearProfileNotifications(profileId){
   const store=getNotificationStore(),items=store[profileId]||[];
@@ -1675,7 +1692,7 @@ function render(){
     if(window.NetworkDemos)g.appendChild(make("circle",{r:rr+4,class:"demo-play-ring"}));
     const notifCount=notificationCount(n.id);
     if(notifCount>0){
-      const badge=make("g",{class:"node-notification",transform:`translate(${(rr*.74).toFixed(1)},${(-rr*.74).toFixed(1)})`});
+      const badge=make("g",{class:"node-notification",transform:`translate(${(rr*.88).toFixed(1)},${(-rr*.88).toFixed(1)})`});
       const br=notifCount>9?10:9;
       badge.appendChild(make("circle",{r:br}));
       const bt=make("text",{x:0,y:3.2,"text-anchor":"middle"});
@@ -2319,19 +2336,20 @@ function showVenueProfile(n){
     const box=document.getElementById("venueNotifications");if(!box)return;
     const items=profileNotifications(n.id);
     box.innerHTML=`${items.map(item=>`
-      <div class="notification-item">
-        <div><div class="notification-copy">${safe(item.text)}</div>
-        <div class="notification-time">${safe(item.createdAt?new Date(item.createdAt).toLocaleString():"")}</div></div>
-        <button type="button" class="notification-dismiss" data-notification-id="${safe(item.id)}">Done</button>
-      </div>`).join("")||'<div class="notification-empty">No open venue follow-ups.</div>'}
+      <button type="button" class="notification-item notification-task" data-notification-id="${safe(item.id)}" aria-label="Mark task done: ${safe(item.text)}">
+        <span class="notification-task-copy"><span class="notification-copy">${safe(item.text)}</span>
+        <span class="notification-time">${safe(item.createdAt?new Date(item.createdAt).toLocaleString():"")}</span></span>
+        <span class="notification-complete-affordance" aria-hidden="true">✓ Done</span>
+      </button>`).join("")||'<div class="notification-empty">No open venue follow-ups.</div>'}
       <div class="notification-add">
         <input id="newVenueNotification" placeholder="Ask for rates, confirm capacity, follow up…">
         <button type="button" id="addVenueNotification">Add</button>
       </div>`;
-    box.querySelectorAll(".notification-dismiss").forEach(btn=>{
+    box.querySelectorAll(".notification-task").forEach(btn=>{
       btn.onclick=()=>{
-        dismissProfileNotification(n.id,btn.dataset.notificationId);
-        render();renderVenueNotifications();
+        if(completeProfileNotification(n.id,btn.dataset.notificationId)){
+          render();renderVenueNotifications();
+        }
       };
     });
     const add=()=>{
@@ -2770,19 +2788,20 @@ function showProfile(n){
     const items=profileNotifications(n.id);
     const rows=items.map(item=>{
       const when=item.createdAt?new Date(item.createdAt).toLocaleString():"";
-      return `<div class="notification-item">
-        <div><div class="notification-copy">${escapeAttr(item.text)}</div><div class="notification-time">${escapeAttr(when)}</div></div>
-        <button class="notification-dismiss" data-notification-id="${escapeAttr(item.id)}">Done</button>
-      </div>`;
+      return `<button type="button" class="notification-item notification-task" data-notification-id="${escapeAttr(item.id)}" aria-label="Mark task done: ${escapeAttr(item.text)}">
+        <span class="notification-task-copy"><span class="notification-copy">${escapeAttr(item.text)}</span><span class="notification-time">${escapeAttr(when)}</span></span>
+        <span class="notification-complete-affordance" aria-hidden="true">✓ Done</span>
+      </button>`;
     }).join("");
     box.innerHTML=`
       ${items.length?`<div class="notification-list">${rows}</div>`:'<div class="notification-empty">No active notifications for this profile.</div>'}
       <div class="notification-add"><input id="newNotificationText" placeholder="Add a reminder or follow-up…"><button id="addNotificationBtn">Add</button></div>
       ${items.length?'<button class="secondary-btn" id="clearNotificationsBtn" style="margin-top:8px">Clear all</button>':""}
     `;
-    box.querySelectorAll(".notification-dismiss").forEach(btn=>btn.onclick=()=>{
-      dismissProfileNotification(n.id,btn.dataset.notificationId);
-      render();renderProfileNotifications();
+    box.querySelectorAll(".notification-task").forEach(btn=>btn.onclick=()=>{
+      if(completeProfileNotification(n.id,btn.dataset.notificationId)){
+        render();renderProfileNotifications();
+      }
     });
     const add=()=>{
       const input=document.getElementById("newNotificationText"),txt=input?.value.trim();if(!txt)return;
@@ -3984,6 +4003,15 @@ document.getElementById("saveProfile").onclick=()=>{
 })();
 
 const APP_RELEASES=[
+  {
+    version:"v70",file:null,date:"2026-09-20",title:"Apple-style task badges and one-click completion",
+    notes:[
+      "Moved the task-count notification to the top-right outside each profile circle",
+      "Replaced the white-outlined notification with a solid red badge",
+      "The entire follow-up/task row is clickable to mark it done on people and venues",
+      "Completed task records retain a completion timestamp in local storage while disappearing from open lists and map counts"
+    ]
+  },
   {
     version:"v69",file:null,date:"2026-09-20",title:"Manager & DJ profile archetypes",
     notes:[
