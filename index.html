@@ -799,7 +799,7 @@
 </datalist>
 <div class="app">
 <aside class="sidebar">
-<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v68 · Danny B manager profile</div>
+<div class="brand">Creative Network</div><div class="sub">Creative Network Demo · v69 · manager & DJ archetypes</div>
 <button class="sidebar-add" id="sidebarAddProfile">＋ Add Profile</button><div class="fullmap-hint">Profiles can be people, managers, promoters, venues, studios, and more.</div><div class="section-title">Views</div>
 <button class="viewbtn active" data-view="relationship">Relationship View</button>
 <button class="viewbtn" data-view="hubs">Creative Hubs</button>
@@ -814,7 +814,7 @@
 </div>
 <div id="venueDirectory" class="venue-directory" hidden></div>
 <div class="fullmap-hint" title="Left and right arrow keys move to the closest profile in that direction.">← → Nearest profile · opens details</div>
-<div class="section-title">Filters</div><button class="filter active" data-filter="All">All</button><button class="filter" data-filter="Bands & Collectives">Bands / Collectives</button><button class="filter" data-filter="God's Contraband">God's Contraband</button><button class="filter" data-filter="Writing Camps">Writing Camps</button><button class="filter" data-filter="Singer-Songwriters">Singer-Songwriters</button><button class="filter" data-filter="Musicians">Musicians</button><button class="filter" data-filter="Producers">Producers</button><button class="filter" data-filter="Visual Artists">Visual Artists</button><button class="filter" data-filter="Artist Management">Artist Management</button><button class="filter" data-filter="Rising Artists">Rising Artists</button><button class="filter" data-filter="Industry">Industry / Business</button><button class="filter" data-filter="Places">Venues / Places</button>
+<div class="section-title">Filters</div><button class="filter active" data-filter="All">All</button><button class="filter" data-filter="Bands & Collectives">Bands / Collectives</button><button class="filter" data-filter="God's Contraband">God's Contraband</button><button class="filter" data-filter="Writing Camps">Writing Camps</button><button class="filter" data-filter="Singer-Songwriters">Singer-Songwriters</button><button class="filter" data-filter="Musicians">Musicians</button><button class="filter" data-filter="DJs">DJs</button><button class="filter" data-filter="Producers">Producers</button><button class="filter" data-filter="Visual Artists">Visual Artists</button><button class="filter" data-filter="Artist Management">Artist Management</button><button class="filter" data-filter="Rising Artists">Rising Artists</button><button class="filter" data-filter="Industry">Industry / Business</button><button class="filter" data-filter="Places">Venues / Places</button>
 <div class="section-title">Legend</div><div class="legend"><div><span class="dot gold"></span>Core/direct relationship</div><div><span class="dot blue"></span>Bridge / connector</div><div><span class="dot green"></span>Hub / infrastructure</div><div style="margin-top:7px"><span class="line-key strong"></span>Established / strong</div><div><span class="line-key budding"></span>Budding connection</div><div><span class="line-key potential"></span>Potential connection</div></div>
 <div class="section-title">Weekly Review</div><div class="small">Use your Tuesday check-in to refresh social links, photos, releases, sessions, and map relationships.</div>
 </aside>
@@ -904,6 +904,7 @@
           <label>Profile type</label>
           <select id="newProfileType">
             <option value="musician">Artist / Musician</option>
+            <option value="dj">DJ / Selector</option>
             <option value="collective">Band / Collective</option>
             <option value="filmmaker">Filmmaker / Visual</option>
             <option value="manager">Manager / Agent</option>
@@ -1084,7 +1085,7 @@ const localProfiles=JSON.parse(localStorage.getItem("creativeNetworkCustomProfil
 localProfiles.forEach(p=>{ if(!nodes.some(n=>n.id===p.id)) nodes.push(p); });
 
 const FILTER_CATEGORIES=[
-  "God's Contraband","Writing Camps","Singer-Songwriters","Musicians","Producers",
+  "God's Contraband","Writing Camps","Singer-Songwriters","Musicians","DJs","Producers",
   "Visual Artists","Artist Management","Rising Artists","Industry"
 ];
 function migrateProfileCategories(n){
@@ -1883,6 +1884,9 @@ function startOrganicMotion(){
 }
 
 function isMusicProfile(n){
+  // Primary professional archetypes take precedence over overlapping role words
+  // like "Artist Manager" or "DJ / Producer". Do not display songwriter rights by inference.
+  if(["manager","promoter","venue","studio","dj"].includes(n.profileType))return false;
   const hay=[n.role,...(n.tags||[])].join(" ").toLowerCase();
   return /musician|producer|singer|songwriter|rapper|artist|drum|guitar|bass|keys|horn|vocal/.test(hay);
 }
@@ -2356,7 +2360,8 @@ function showProfile(n){
   const saved=JSON.parse(localStorage.getItem("creativeNetworkNotes")||"{}");
   const note=saved[n.id]||"";
   const links=n.links||{};
-  const isArtist=n.profileType==="musician"||isMusicProfile(n)||isCollectiveEntity(n)||!!links.Spotify;
+  const isArtist=n.profileType==="musician"||n.profileType==="dj"||isMusicProfile(n)||isCollectiveEntity(n)||
+    (n.profileType!=="manager"&&n.profileType!=="promoter"&&!!links.Spotify);
   const spotify=parseSpotifyLink(links.Spotify);
   const instagram=parseInstagramProfile(links.Instagram);
   const partifulProfile=parsePartifulLink(links.Partiful);
@@ -2392,7 +2397,7 @@ function showProfile(n){
   const slideThruLabel=slideThruRoles[n.id]||"";
   const category=profileCategory(n);
   const categoryLabel={
-    music:"Music profile",collective:"Band / Collective",filmmaker:"Film / Visual",manager:"Management",promoter:"Promoter / Booking",
+    music:"Music profile",dj:"DJ / Selector",collective:"Band / Collective",filmmaker:"Film / Visual",manager:"Management / Representation",promoter:"Promoter / Booking",
     venue:"Venue / Place",studio:"Studio / Resource",industry:"Industry",person:"Profile"  }[category] || category;
 
   let specialized="";
@@ -2405,6 +2410,41 @@ function showProfile(n){
       </div>
       <div class="card"><div class="k">Members / roster</div><div class="v">${n.members||'<span class="missing-value">Roster not mapped yet</span>'}</div></div>
       ${n.founders?`<div class="card" style="margin-top:10px"><div class="k">Founders</div><div class="v">${n.founders}</div></div>`:""}`;
+  }else if(category==="manager"){
+    const empty='<span class="missing-value">Not recorded yet</span>';
+    const item=(label,value)=>`<div class="card"><div class="k">${escapeAttr(label)}</div><div class="v">${value?escapeAttr(value):empty}</div></div>`;
+    specialized=`
+      <div class="section-title">Management / representation</div>
+      <div class="profile-grid">
+        ${item("Company / organization",n.organization)}
+        ${item("Territory / markets",n.market)}
+      </div>
+      ${item("Artist / producer roster or focus",n.roster)}
+      ${item("Management specialties",n.managementFocus||n.genres)}
+      ${item("Services / opportunities",n.managementServices)}
+      ${item("Business contact",n.businessEmail)}
+      ${item("Relationship / warm introduction",n.warmConnection)}
+      ${item("Potential next steps",n.managementNotes)}
+      <div class="entity-rate-note">Representation relationships are recorded only when confirmed; a warm contact does not imply they represent an artist.</div>`;
+  }else if(category==="dj"){
+    const empty='<span class="missing-value">Not recorded yet</span>';
+    const item=(label,value)=>`<div class="card"><div class="k">${escapeAttr(label)}</div><div class="v">${value?escapeAttr(value):empty}</div></div>`;
+    specialized=`
+      <div class="section-title">DJ / live-set profile</div>
+      <div class="profile-grid">
+        ${item("Stage / DJ name",n.artistName||n.name)}
+        ${item("Sound / genres",n.genres)}
+        ${item("Set format / style",n.djFormat)}
+        ${item("Equipment / setup",n.djEquipment)}
+      </div>
+      ${item("Residencies / regular rooms",n.djResidencies)}
+      ${item("Events / crowd fit",n.djEventTypes)}
+      ${item("Booking area / travel",n.market||n.location)}
+      ${item("Booking rate / dated quote",n.rates)}
+      ${item("Booking contact",n.bookingContact||n.businessEmail)}
+      ${item("Crew / affiliation",n.djAffiliation)}
+      ${item("Set / mix highlights",n.djHighlights)}
+      <div class="entity-rate-note">DJ sets, performance bookings and mixes are tracked separately from songwriter/publishing details.</div>`;
   }else if(isMusicProfile(n)){
     specialized=`
       <div class="section-title">Rights / Publishing</div>
@@ -2427,7 +2467,7 @@ function showProfile(n){
         <div class="card"><div class="k">Style / specialties</div><div class="v">${n.visualStyle||'<span class="missing-value">Not added yet</span>'}</div></div>
       </div>
       <div class="card"><div class="k">Reel / Portfolio</div><div class="v">${n.reel||'<span class="missing-value">Not added yet</span>'}</div></div>`;
-  }else if(["manager","promoter","industry"].includes(category)){
+  }else if(["promoter","industry"].includes(category)){
     specialized=`
       <div class="section-title">Industry Profile</div>
       <div class="profile-grid">
