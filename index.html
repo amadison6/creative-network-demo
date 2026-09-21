@@ -3565,12 +3565,36 @@ const schemas={
     ]
   },
   manager:{
-    title:"Management profile",
+    title:"Manager / representation profile",
     fields:[
-      ["newOrganization","Company / Organization","Company or independent"],
-      ["newMarket","Market / Territory","LA, touring, digital..."],
-      ["newRoster","Roster / Focus","Artists or focus area"],
-      ["newBusinessEmail","Business contact","Email"]
+      ["newOrganization","Company / organization","Company or independent"],
+      ["newRoster","Roster / focus","Represented artists and producers, if confirmed"],
+      ["newManagementFocus","Specialties","Artist development, producer management, sync..."],
+      ["newManagementServices","Services / opportunities","Strategy, partnerships, placements, releases..."],
+      ["newMarket","Territories / markets","LA, Atlanta, nationwide, international..."],
+      ["newBusinessEmail","Business email","Email"],
+      ["newWarmConnection","Warm introduction","How could Ausar contact them?"],
+      ["newManagementNotes","Potential next steps","Follow up on loops, request intro, learn roster..."]
+    ]
+  },
+  dj:{
+    title:"DJ / selector profile",
+    fields:[
+      ["newArtistName","DJ / stage name","DJ alias if different"],
+      ["newGenres","Sound / genres","Open format, hip-hop, house, R&B, jazz..."],
+      ["newDJFormat","Set format / style","Open-format, vinyl-only, live remixing..."],
+      ["newDJEquipment","Setup / technical needs","CDJs, turntables, laptop, mixer..."],
+      ["newDJResidencies","Residencies / regular rooms","Venue or party names, if confirmed"],
+      ["newDJEventTypes","Event and crowd fit","Clubs, opening sets, listening events, festivals..."],
+      ["newDJAffiliation","Crew / affiliation","Collective, radio, promoter"],
+      ["newDJHighlights","Mix / set highlights","Recent mixes, notable sets"],
+      ["newRates","Booking rate / quote","Ask; include date for any quote"],
+      ["newBookingContact","Booking contact","Email / agent / direct"],
+      ["newMarket","Territory / travel","LA / tour regions"],
+      ["newSpotify","Spotify / mix profile","https://open.spotify.com/..."],
+      ["newSoundCloud","SoundCloud mix / playlist","https://soundcloud.com/..."],
+      ["newMixcloud","Mixcloud profile / mix","https://www.mixcloud.com/..."],
+      ["newInstagram","DJ Instagram","@handle"]
     ]
   },
   promoter:{
@@ -3629,13 +3653,14 @@ function renderDynamicFields(){
   const schema=schemas[typeSelect.value];
   dynamicTitle.textContent=schema.title;
   const isVenue=typeSelect.value==="venue";
-  document.getElementById("newRoleLabel").textContent=isVenue?"Venue type / programming":"Primary role";
-  document.getElementById("newHubLabel").textContent=isVenue?"Area / neighborhood":"Hub / Scene";
+  const isDJ=typeSelect.value==="dj",isManager=typeSelect.value==="manager";
+  document.getElementById("newRoleLabel").textContent=isVenue?"Venue type / programming":isDJ?"DJ role / performance focus":isManager?"Management role":"Primary role";
+  document.getElementById("newHubLabel").textContent=isVenue?"Area / neighborhood":isManager?"Professional network / scene":"Hub / Scene";
   document.getElementById("newLocationLabel").textContent=isVenue?"Full street address":"Location / neighborhood";
   document.getElementById("newRelationshipLabel").textContent=isVenue?"About the venue / your connection":"How are you connected?";
   document.getElementById("newLinkLabel").textContent=isVenue?"Additional public link":"Public link";
   document.getElementById("newLocation").placeholder=isVenue?"Street address, city, state and ZIP":"e.g. Leimert Park, Los Angeles, CA";
-  document.getElementById("newRole").placeholder=isVenue?"Underground show venue / gallery / DIY room":"e.g. Drummer / Producer";
+  document.getElementById("newRole").placeholder=isVenue?"Underground show venue / gallery / DIY room":isDJ?"DJ / Selector":isManager?"Artist / Producer Manager":"e.g. Drummer / Producer";
   dynamicFields.innerHTML=schema.fields.map(([id,label,placeholder])=>`
     <div class="form-field">
       <label>${label}</label>
@@ -3714,6 +3739,7 @@ document.getElementById("saveProfile").onclick=()=>{
 
   const tags=["All"];
   if(kind==="musician") tags.push("Musicians");
+  if(kind==="dj") tags.push("DJs");
   if(kind==="collective") tags.push("Bands & Collectives");
   if(kind==="filmmaker") tags.push("Visual Artists");
   if(kind==="manager") tags.push("Artist Management");
@@ -3754,12 +3780,37 @@ document.getElementById("saveProfile").onclick=()=>{
   const val=id=>document.getElementById(id)?.value?.trim()||"";
   if(kind==="musician"){
     Object.assign(p,{artistName:val("newArtistName"),instruments:val("newInstruments"),genres:val("newGenres"),pro:val("newPRO"),ipi:val("newIPI"),legalName:val("newLegalName"),publisher:val("newPublisher")});
+  }else if(kind==="dj"){
+    Object.assign(p,{artistName:val("newArtistName"),genres:val("newGenres"),djFormat:val("newDJFormat"),
+      djEquipment:val("newDJEquipment"),djResidencies:val("newDJResidencies"),djEventTypes:val("newDJEventTypes"),
+      djAffiliation:val("newDJAffiliation"),djHighlights:val("newDJHighlights"),rates:val("newRates"),
+      bookingContact:val("newBookingContact"),market:val("newMarket")});
+    const mixcloud=val("newMixcloud");
+    if(mixcloud){
+      try{
+        const url=new URL(mixcloud);
+        if(url.protocol!=="https:"||!["mixcloud.com","www.mixcloud.com"].includes(url.hostname.toLowerCase()))throw Error("URL");
+        p.links.Mixcloud=url.href;
+      }catch(_){
+        const input=document.getElementById("newMixcloud");
+        input.setCustomValidity("Use a full https://www.mixcloud.com/ URL.");
+        input.reportValidity();
+        input.addEventListener("input",()=>input.setCustomValidity(""),{once:true});
+        return;
+      }
+    }
   }else if(kind==="collective"){
     Object.assign(p,{collectiveType:val("newCollectiveType"),members:val("newMembers"),status:val("newStatus"),founders:val("newFounders"),genres:val("newGenres"),businessEmail:val("newBusinessEmail")});
   }else if(kind==="filmmaker"){
     Object.assign(p,{visualRoles:val("newVisualRoles"),visualStyle:val("newVisualStyle"),reel:val("newReel"),resources:val("newGear")});
-  }else if(["manager","promoter"].includes(kind)){
-    Object.assign(p,{organization:val("newOrganization"),market:val("newMarket"),genres:val("newGenres"),businessEmail:val("newBusinessEmail")});
+  }else if(kind==="manager"){
+    Object.assign(p,{organization:val("newOrganization"),market:val("newMarket"),roster:val("newRoster"),
+      managementFocus:val("newManagementFocus"),managementServices:val("newManagementServices"),
+      businessEmail:val("newBusinessEmail"),warmConnection:val("newWarmConnection"),
+      managementNotes:val("newManagementNotes")});
+  }else if(kind==="promoter"){
+    Object.assign(p,{organization:val("newOrganization"),market:val("newMarket"),
+      genres:val("newGenres"),businessEmail:val("newBusinessEmail")});
   }else if(kind==="venue"){
     Object.assign(p,{capacity:val("newCapacity"),genres:val("newGenres"),audienceFit:val("newGenres"),bookingContact:val("newBookingContact"),talentBuyer:val("newTalentBuyer"),warmConnection:val("newWarmConnection"),rates:val("newRates"),lastQuotedGuarantee:val("newQuotedGuarantee"),productionFee:val("newProductionFee"),dealStructure:val("newDealStructure"),doorSplit:val("newDoorSplit"),backline:val("newBackline"),resources:val("newResources"),history:val("newHistory"),potentialShowNotes:val("newPotentialShowNotes")});
   }else if(kind==="studio"){
