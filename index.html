@@ -731,6 +731,13 @@
 .demo-partner small{font-size:9px}
 @media(prefers-reduced-motion:reduce){.profile-fold>summary::after,.demo-partner-photo{transition:none}}
 
+/* v69 — archetype-specific profile editors */
+#editProfileModal.manager-editor .music-profile-only,
+#editProfileModal.dj-editor .writer-profile-only{display:none!important}
+#editProfileModal.manager-editor #editEntitySection,
+#editProfileModal.dj-editor #editEntitySection{border-color:#415778}
+#editProfileModal.manager-editor #editEntityTitle{color:#c2d8ff}
+#editProfileModal.dj-editor #editEntityTitle{color:#dcbbff}
 /* v67 · collaboration reference images saved on this device */
 .collab-local-thumb{cursor:zoom-in;min-height:132px;text-decoration:none;display:grid;place-items:center}
 .collab-local-thumb img{object-fit:contain;background:#171622}
@@ -953,7 +960,7 @@
         <div class="dynamic-title" id="dynamicTitle">Music profile</div>
         <div class="form-grid" id="dynamicFields"></div>
       </div>
-      <div class="type-help">This is a prototype onboarding flow. Different profile types ask different questions instead of forcing everyone into the same form.</div>
+      <div class="type-help" id="profileArchetypeHelp">Choose a profile type to see the information relevant to that work. Personal identity and relationship details are shared across types.</div>
 
       <div class="modal-actions">
         <button class="secondary-btn" id="cancelProfile">Cancel</button>
@@ -3714,6 +3721,13 @@ function renderDynamicFields(){
   dynamicTitle.textContent=schema.title;
   const isVenue=typeSelect.value==="venue";
   const isDJ=typeSelect.value==="dj",isManager=typeSelect.value==="manager";
+  document.getElementById("profileArchetypeHelp").textContent=isVenue?
+    "A venue is a bookable location: save capacity, address, show costs, production resources and the booking path.":
+    isManager?
+    "A manager is a relationship and representation node: record confirmed roster, specialties, market, contact and opportunities. No artist publishing fields are required.":
+    isDJ?
+    "A DJ is a live-performance profile: record mixes, genres, setup, residencies, show fit and booking terms. Songwriter registration is not required.":
+    "Shared identity and network relationship details, plus questions specific to this professional type. Only enter details you know.";
   document.getElementById("newRoleLabel").textContent=isVenue?"Venue type / programming":isDJ?"DJ role / performance focus":isManager?"Management role":"Primary role";
   document.getElementById("newHubLabel").textContent=isVenue?"Area / neighborhood":isManager?"Professional network / scene":"Hub / Scene";
   document.getElementById("newLocationLabel").textContent=isVenue?"Full street address":"Location / neighborhood";
@@ -3970,6 +3984,16 @@ document.getElementById("saveProfile").onclick=()=>{
 })();
 
 const APP_RELEASES=[
+  {
+    version:"v69",file:null,date:"2026-09-20",title:"Manager & DJ profile archetypes",
+    notes:[
+      "Added a dedicated DJ / Selector profile type and DJs filter, with sets/mixes, musical style, setup, residencies, performance fit, rates and booking contact",
+      "Managers now show their confirmed roster, representation focus, services, territories, business contact and relationship opportunities ahead of generic artist fields",
+      "Added distinct manager and DJ onboarding/edit forms, mix links and local field persistence",
+      "Protected hidden artist publishing fields for managers and DJs, while leaving DJ Spotify/SoundCloud playback available",
+      "Kept the reversible Photos / Initials map-circle switch and existing saved profiles untouched"
+    ]
+  },
   {
     version:"v68",file:null,date:"2026-09-20",title:"Danny B · artist and producer manager",
     notes:[
