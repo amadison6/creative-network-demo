@@ -2,6 +2,9 @@ import { get, put } from '@vercel/blob';
 import { gunzipSync } from 'node:zlib';
 
 const STATE_PATH = 'master-task-ledger/state.json';
+const PROFILE_ALIASES = Object.freeze({
+  julio: 'julio_hansen'
+});
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -17,8 +20,13 @@ function normalizeStatus(status = 'Open') {
   if (value === 'backlog') return 'Backlog';
   return 'Open';
 }
+function normalizeProfileIds(value) {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.map(String).map(id => PROFILE_ALIASES[id] || id).filter(Boolean))].slice(0, 40);
+}
 function cleanTask(task) {
   const now = new Date().toISOString();
+  const profileIds = normalizeProfileIds(task.profileIds || task.people || []);
   return {
     id: String(task.id || `A-${Date.now()}`), title: String(task.title || 'Untitled task').slice(0, 500),
     area: String(task.area || 'Inbox').slice(0, 120), projectId: task.projectId ? String(task.projectId) : null,
@@ -27,10 +35,35 @@ function cleanTask(task) {
     dueText: task.dueText ? String(task.dueText).slice(0, 250) : '', dueDate: task.dueDate || null,
     nextAction: task.nextAction ? String(task.nextAction).slice(0, 1000) : '', waitingOn: task.waitingOn ? String(task.waitingOn).slice(0, 500) : '',
     notes: task.notes ? String(task.notes).slice(0, 5000) : '', source: task.source ? String(task.source).slice(0, 250) : 'Task Manager',
-    people: Array.isArray(task.people) ? task.people.map(String).slice(0, 30) : [], resources: Array.isArray(task.resources) ? task.resources.slice(0, 30) : [],
+    profileIds, people: profileIds,
+    resources: Array.isArray(task.resources) ? task.resources.slice(0, 30) : [],
     dependsOn: Array.isArray(task.dependsOn) ? task.dependsOn.map(String).slice(0, 30) : [], todayRank: Number.isFinite(Number(task.todayRank)) ? Number(task.todayRank) : null,
-    effort: task.effort ? String(task.effort).slice(0, 80) : '', createdAt: task.createdAt || now, updatedAt: now, completedAt: task.completedAt || null
+    effort: task.effort ? String(task.effort).slice(0, 80) : '', createdAt: task.createdAt || now, updatedAt: task.updatedAt || now, completedAt: task.completedAt || null
   };
+}
+function normalizeState(state) {
+  let changed = false;
+  const tasks = (state.tasks || []).map(task => {
+    const profileIds = normalizeProfileIds(task.profileIds || task.people || []);
+    const before = JSON.stringify(task.profileIds || task.people || []);
+    const after = JSON.stringify(profileIds);
+    if (before !== after || !Array.isArray(task.profileIds)) changed = true;
+    return { ...task, profileIds, people: profileIds };
+  });
+  const next = {
+    ...state,
+    tasks,
+    integration: {
+      ...(state.integration || {}),
+      networkHq: {
+        ...((state.integration || {}).networkHq || {}),
+        canonicalProfileLinks: true,
+        sourceOfTruth: 'pending-d1-cutover'
+      }
+    }
+  };
+  if (!state.integration?.networkHq?.canonicalProfileLinks) changed = true;
+  return { state: next, changed };
 }
 async function readBlobState() {
   try {
@@ -57,7 +90,13 @@ async function writeState(state) {
   await put(STATE_PATH, JSON.stringify(state), { access: 'private', allowOverwrite: true, addRandomSuffix: false, contentType: 'application/json; charset=utf-8', cacheControlMaxAge: 0 });
   return state;
 }
-async function loadState() { const existing = await readBlobState(); if (existing) return existing; return writeState(seedState()); }
+async function loadState() {
+  const existing = await readBlobState();
+  const base = existing || seedState();
+  const normalized = normalizeState(base);
+  if (!existing || normalized.changed) return writeState(normalized.state);
+  return normalized.state;
+}
 function nextTaskId(tasks) { const nums = tasks.map(t => /^A-(\d+)$/.exec(t.id)?.[1]).filter(Boolean).map(Number); return `A-${String((nums.length ? Math.max(...nums) : 0) + 1).padStart(3, '0')}`; }
 function nextProjectId(projects, title) { const base=String(title||'project').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,48)||'project';let id=base,n=2;const ids=new Set(projects.map(p=>p.id));while(ids.has(id))id=`${base}-${n++}`;return id; }
 
@@ -72,7 +111,11 @@ export default async function handler(req, res) {
     }
     if (action === 'updateTask') {
       const idx=(state.tasks||[]).findIndex(t=>t.id===body.taskId); if(idx<0)return json(res,404,{error:'Task not found'}); const original=state.tasks[idx];
-      state.tasks[idx]=cleanTask({...original,...(body.patch||{}),id:original.id,createdAt:original.createdAt,completedAt:original.completedAt}); state=await writeState(state); return json(res,200,{state,task:state.tasks[idx]});
+      state.tasks[idx]=cleanTask({...original,...(body.patch||{}),id:original.id,createdAt:original.createdAt,completedAt:original.completedAt,updatedAt:new Date().toISOString()}); state=await writeState(state); return json(res,200,{state,task:state.tasks[idx]});
+    }
+    if (action === 'linkTaskProfiles') {
+      const idx=(state.tasks||[]).findIndex(t=>t.id===body.taskId); if(idx<0)return json(res,404,{error:'Task not found'});
+      const profileIds=normalizeProfileIds(body.profileIds||[]); state.tasks[idx]={...state.tasks[idx],profileIds,people:profileIds,updatedAt:new Date().toISOString()}; state=await writeState(state); return json(res,200,{state,task:state.tasks[idx]});
     }
     if (action === 'completeTask' || action === 'reopenTask') {
       const idx=(state.tasks||[]).findIndex(t=>t.id===body.taskId); if(idx<0)return json(res,404,{error:'Task not found'}); const done=action==='completeTask';
@@ -86,7 +129,7 @@ export default async function handler(req, res) {
     if (action === 'updateProject') {
       const idx=(state.projects||[]).findIndex(p=>p.id===body.projectId);if(idx<0)return json(res,404,{error:'Project not found'});state.projects[idx]={...state.projects[idx],...(body.patch||{}),id:state.projects[idx].id};state=await writeState(state);return json(res,200,{state,project:state.projects[idx]});
     }
-    if (action === 'resetFromSeed') { state=await writeState(seedState()); return json(res,200,{state}); }
+    if (action === 'resetFromSeed') { const normalized=normalizeState(seedState()).state; state=await writeState(normalized); return json(res,200,{state}); }
     return json(res,400,{error:'Unknown action'});
   } catch (error) { console.error(error); return json(res,500,{error:'Task state operation failed',detail:String(error?.message||error)}); }
 }
