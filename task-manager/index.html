@@ -4,32 +4,43 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>Master Task</title>
+  <title>Master Task Ledger</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <div class="shell">
+  <div class="app-shell">
     <aside class="sidebar">
-      <div class="brand"><span class="brand-mark">M</span><span><strong>Master Task</strong><small>Command center</small></span></div>
-      <nav id="nav" class="nav">
-        <button class="nav-btn active" data-view="today"><span>◉</span>Today</button>
-        <button class="nav-btn" data-view="projects"><span>◇</span>Projects</button>
-        <button class="nav-btn" data-view="upcoming"><span>◷</span>Upcoming</button>
-        <button class="nav-btn" data-view="waiting"><span>◌</span>Waiting</button>
-        <button class="nav-btn" data-view="completed"><span>✓</span>Completed</button>
-      </nav>
-      <div class="side-block">
-        <div class="side-label">Projects</div>
-        <div id="sidebarProjects" class="side-projects"></div>
+      <div class="brand">
+        <span class="brand-mark">M</span>
+        <span class="brand-copy"><strong>Master Task</strong><small>Ledger</small></span>
       </div>
-      <div class="side-foot"><span class="avatar">AM</span><span><strong>Ausar</strong><small>Private workspace</small></span></div>
+
+      <nav id="nav" class="nav">
+        <button class="nav-btn active" data-view="today"><span>⌂</span><b>Home</b></button>
+        <button class="nav-btn" data-view="inbox"><span>▱</span><b>Inbox</b><em id="inboxBadge" class="nav-badge" hidden></em></button>
+        <button class="nav-btn" data-view="today"><span>☼</span><b>Today</b></button>
+        <button class="nav-btn" data-view="projects"><span>◇</span><b>Projects</b></button>
+        <button class="nav-btn" data-view="calendar"><span>▣</span><b>Calendar</b></button>
+        <button class="nav-btn" data-view="people"><span>♧</span><b>People</b></button>
+        <button class="nav-btn" data-view="files"><span>□</span><b>Files</b></button>
+        <button class="nav-btn" data-view="reports"><span>▥</span><b>Reports</b></button>
+      </nav>
+
+      <div class="side-divider"></div>
+      <div class="side-label">PROJECTS</div>
+      <div id="sidebarProjects" class="side-projects"></div>
+
+      <div class="side-foot">
+        <span class="avatar">AM</span>
+        <span><strong>Ausar Madison</strong><small>Private workspace</small></span>
+      </div>
     </aside>
 
     <main class="main">
       <header class="topbar">
-        <div class="mobile-brand">Master Task</div>
-        <label class="search"><span>⌕</span><input id="searchInput" autocomplete="off" placeholder="Search tasks and projects"></label>
-        <button id="quickAddBtn" class="btn primary">+ Add task</button>
+        <label class="search"><span>⌕</span><input id="searchInput" autocomplete="off" placeholder="Search tasks, projects, people…"></label>
+        <div class="top-sync" id="syncPill">Private workspace</div>
+        <button id="quickAddBtn" class="btn primary">＋ Add task</button>
       </header>
 
       <div id="syncBanner" class="sync-banner" hidden></div>
@@ -52,14 +63,19 @@
       <label>Waiting on<input id="taskWaitingInput" placeholder="Person, document, reply…"></label>
       <label>Notes<textarea id="taskNotesInput" rows="4"></textarea></label>
       <div id="taskContext" class="task-context"></div>
-      <div class="dialog-actions"><button type="button" id="taskToggleDone" class="btn secondary"></button><button value="cancel" class="btn ghost">Cancel</button><button type="button" id="saveTaskBtn" class="btn primary">Save changes</button></div>
+      <div class="dialog-actions">
+        <button type="button" id="taskToggleDone" class="btn secondary"></button>
+        <button value="cancel" class="btn ghost">Cancel</button>
+        <button type="button" id="saveTaskBtn" class="btn primary">Save changes</button>
+      </div>
     </form>
   </dialog>
 
   <dialog id="newTaskDialog" class="dialog">
     <form id="newTaskForm" class="dialog-card">
       <button type="button" class="close" id="newTaskClose">×</button>
-      <div class="eyebrow">NEW TASK</div><h2>Add something to the system</h2>
+      <div class="eyebrow">QUICK CAPTURE</div>
+      <h2>Add something to the system</h2>
       <label>Task title<input id="newTitle" required autofocus placeholder="What needs to happen?"></label>
       <div class="form-grid">
         <label>Project<select id="newProject"></select></label>
