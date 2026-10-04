@@ -1,4 +1,5 @@
 import { get, put } from '@vercel/blob';
+import { gunzipSync } from 'node:zlib';
 
 const STATE_PATH = 'master-task-ledger/state.json';
 
@@ -40,8 +41,14 @@ async function readBlobState() {
   } catch { return null; }
 }
 function seedState() {
+  const compressed = process.env.TASK_SEED_GZIP_B64;
+  if (compressed) {
+    const text = gunzipSync(Buffer.from(compressed, 'base64')).toString('utf8');
+    const parsed = JSON.parse(text);
+    return { revision: Number(parsed.revision || 1), updatedAt: new Date().toISOString(), ...parsed };
+  }
   const raw = process.env.TASK_SEED_JSON;
-  if (!raw) throw new Error('TASK_SEED_JSON is not configured');
+  if (!raw) throw new Error('TASK_SEED_GZIP_B64 or TASK_SEED_JSON is not configured');
   const parsed = JSON.parse(raw);
   return { revision: Number(parsed.revision || 1), updatedAt: new Date().toISOString(), ...parsed };
 }
