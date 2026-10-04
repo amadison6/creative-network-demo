@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Master Task</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">M</span><span><strong>Master Task</strong><small>Command center</small></span></div>
+      <nav id="nav" class="nav">
+        <button class="nav-btn active" data-view="today"><span>◉</span>Today</button>
+        <button class="nav-btn" data-view="projects"><span>◇</span>Projects</button>
+        <button class="nav-btn" data-view="upcoming"><span>◷</span>Upcoming</button>
+        <button class="nav-btn" data-view="waiting"><span>◌</span>Waiting</button>
+        <button class="nav-btn" data-view="completed"><span>✓</span>Completed</button>
+      </nav>
+      <div class="side-block">
+        <div class="side-label">Projects</div>
+        <div id="sidebarProjects" class="side-projects"></div>
+      </div>
+      <div class="side-foot"><span class="avatar">AM</span><span><strong>Ausar</strong><small>Private workspace</small></span></div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="mobile-brand">Master Task</div>
+        <label class="search"><span>⌕</span><input id="searchInput" autocomplete="off" placeholder="Search tasks and projects"></label>
+        <button id="quickAddBtn" class="btn primary">+ Add task</button>
+      </header>
+
+      <div id="syncBanner" class="sync-banner" hidden></div>
+      <section id="viewRoot"></section>
+    </main>
+  </div>
+
+  <dialog id="taskDialog" class="dialog">
+    <form method="dialog" class="dialog-card" id="taskForm">
+      <button class="close" value="cancel" aria-label="Close">×</button>
+      <div class="eyebrow" id="taskDialogEyebrow">TASK</div>
+      <input id="taskTitleInput" class="dialog-title-input" required>
+      <div class="form-grid">
+        <label>Project<select id="taskProjectInput"></select></label>
+        <label>Priority<select id="taskPriorityInput"><option value="1">High</option><option value="2">Medium</option><option value="3">Low</option></select></label>
+        <label>Status<select id="taskStatusInput"><option>Open</option><option>In Progress</option><option>Waiting</option><option>Backlog</option><option>Done</option></select></label>
+        <label>Timing<input id="taskDueInput" placeholder="Today / Friday / ongoing"></label>
+      </div>
+      <label>Next action<textarea id="taskNextInput" rows="2"></textarea></label>
+      <label>Waiting on<input id="taskWaitingInput" placeholder="Person, document, reply…"></label>
+      <label>Notes<textarea id="taskNotesInput" rows="4"></textarea></label>
+      <div id="taskContext" class="task-context"></div>
+      <div class="dialog-actions"><button type="button" id="taskToggleDone" class="btn secondary"></button><button value="cancel" class="btn ghost">Cancel</button><button type="button" id="saveTaskBtn" class="btn primary">Save changes</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="newTaskDialog" class="dialog">
+    <form id="newTaskForm" class="dialog-card">
+      <button type="button" class="close" id="newTaskClose">×</button>
+      <div class="eyebrow">NEW TASK</div><h2>Add something to the system</h2>
+      <label>Task title<input id="newTitle" required autofocus placeholder="What needs to happen?"></label>
+      <div class="form-grid">
+        <label>Project<select id="newProject"></select></label>
+        <label>Priority<select id="newPriority"><option value="1">High</option><option value="2" selected>Medium</option><option value="3">Low</option></select></label>
+      </div>
+      <label>Next action<textarea id="newNext" rows="2" placeholder="The very next physical action"></textarea></label>
+      <div class="dialog-actions"><button type="button" id="newTaskCancel" class="btn ghost">Cancel</button><button class="btn primary">Create task</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="projectDialog" class="dialog wide">
+    <form method="dialog" class="dialog-card">
+      <button class="close" value="cancel">×</button>
+      <div class="project-head"><div><div class="eyebrow" id="projectArea"></div><h2 id="projectTitle"></h2><p id="projectSummary"></p></div><div id="projectProgress" class="progress-orb"></div></div>
+      <div class="view-switch"><button type="button" class="switch active" data-project-mode="priority">Most pressing</button><button type="button" class="switch" data-project-mode="sequence">Order of operations</button><button type="button" class="switch" data-project-mode="board">Board</button></div>
+      <div id="projectBody"></div>
+    </form>
+  </dialog>
+
+  <script src="/app.js" type="module"></script>
+</body>
+</html>
