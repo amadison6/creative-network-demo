@@ -4,7 +4,7 @@ let refreshQueued = false;
 
 const q = (s, r = document) => r.querySelector(s);
 const qa = (s, r = document) => [...r.querySelectorAll(s)];
-const esc = (v = '') => String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[c]));
+const esc = (v = '') => String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 
 async function taskApi(action, payload = {}) {
   const opts = action
