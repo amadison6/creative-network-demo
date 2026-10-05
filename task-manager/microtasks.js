@@ -4,7 +4,7 @@ let refreshQueued = false;
 
 const q = (s, r = document) => r.querySelector(s);
 const qa = (s, r = document) => [...r.querySelectorAll(s)];
-const esc = (v = '') => String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+const esc = (v = '') => String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[c]));
 
 async function taskApi(action, payload = {}) {
   const opts = action
@@ -23,6 +23,10 @@ function microProgress(parentId){
   const list = microtasksFor(parentId);
   const done = list.filter(t => t.microDone).length;
   return { list, done, total: list.length, percent: list.length ? Math.round(done / list.length * 100) : 0 };
+}
+function foldSignature(parentId){
+  const { done, total } = microProgress(parentId);
+  return `${done}:${total}:${expandedParents.has(parentId) ? 1 : 0}`;
 }
 
 async function refreshState(){
@@ -59,7 +63,7 @@ function renderFold(parentId, color){
   const { list, done, total, percent } = microProgress(parentId);
   if (!total) return '';
   const open = expandedParents.has(parentId);
-  return `<div class="microtask-fold microtask-ui ${open ? 'open' : ''}" data-microtask-fold="${esc(parentId)}" style="--micro-color:${esc(color || '#62d6ff')}">
+  return `<div class="microtask-fold microtask-ui ${open ? 'open' : ''}" data-microtask-fold="${esc(parentId)}" data-microtask-signature="${esc(foldSignature(parentId))}" style="--micro-color:${esc(color || '#62d6ff')}">
     <button class="microtask-toggle" type="button" data-microtask-toggle="${esc(parentId)}">
       <span class="micro-chevron">›</span><strong>Microtasks</strong>
       <span>${done}/${total} complete</span>
@@ -81,11 +85,14 @@ function decorateTaskCards(){
     const parentId = taskButton?.dataset.task;
     if (!parentId || isMicrotask(parentId)) return;
     const { total } = microProgress(parentId);
-    const existing = document.querySelector(`[data-microtask-fold="${CSS.escape(parentId)}"]`);
+    const selector = `[data-microtask-fold="${CSS.escape(parentId)}"]`;
+    const existing = card.nextElementSibling?.matches?.(selector) ? card.nextElementSibling : document.querySelector(selector);
     if (!total) {
       existing?.remove();
       return;
     }
+    const signature = foldSignature(parentId);
+    if (existing?.dataset.microtaskSignature === signature) return;
     const color = getComputedStyle(card).getPropertyValue('--color').trim() || '#62d6ff';
     const shell = document.createElement('div');
     shell.innerHTML = renderFold(parentId, color);
@@ -102,8 +109,9 @@ function decorateProjectRows(){
     const { done, total } = microProgress(id);
     const old = q('.microtask-progress-pill', el);
     if (!total) { old?.remove(); return; }
-    if (old) old.textContent = `${done}/${total} micro`;
-    else el.insertAdjacentHTML('beforeend', `<span class="microtask-progress-pill microtask-ui">${done}/${total} micro</span>`);
+    const label = `${done}/${total} micro`;
+    if (old && old.textContent !== label) old.textContent = label;
+    else if (!old) el.insertAdjacentHTML('beforeend', `<span class="microtask-progress-pill microtask-ui">${label}</span>`);
   });
 }
 
@@ -246,9 +254,19 @@ function renderOpenDialogManager(){
   });
 }
 
+function mutationNeedsRefresh(mutations){
+  return mutations.some(mutation => {
+    const changedNodes = [...mutation.addedNodes, ...mutation.removedNodes].filter(node => node.nodeType === 1);
+    if (!changedNodes.length) return false;
+    return changedNodes.some(node => !node.classList?.contains('microtask-ui') && !node.closest?.('.microtask-ui'));
+  });
+}
+
 function observeApp(){
   const root = q('#viewRoot');
-  if (root) new MutationObserver(() => queueRefresh()).observe(root, { childList: true, subtree: true });
+  if (root) new MutationObserver(mutations => {
+    if (mutationNeedsRefresh(mutations)) queueRefresh();
+  }).observe(root, { childList: true, subtree: true });
   const dialog = q('#taskDialog');
   if (dialog) new MutationObserver(() => {
     if (dialog.open) queueRefresh();
