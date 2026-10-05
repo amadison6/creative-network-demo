@@ -2,8 +2,48 @@ import { get, put } from '@vercel/blob';
 import { gunzipSync } from 'node:zlib';
 
 const STATE_PATH = 'master-task-ledger/state.json';
-const PROFILE_ALIASES = Object.freeze({
-  julio: 'julio_hansen'
+const PROFILE_ALIASES = Object.freeze({ julio: 'julio_hansen' });
+
+const FLOW_DEFAULTS = Object.freeze({
+  'T-004': { designation:'major', proposedDesignation:'outcome', classificationStatus:'proposed', classificationConfidence:'high', flowPhase:'now', flowOrder:1, durationEstimate:'Ongoing', timingType:'target', timingNote:'Top-level album outcome; review whether it should remain a visible task or become the project outcome.' },
+  'T-009': { designation:'major', proposedDesignation:'outcome', classificationStatus:'proposed', classificationConfidence:'medium', flowPhase:'next', flowOrder:1, durationEstimate:'30–60 min', timingType:'dependency', timingNote:'Broad loan-access umbrella; specific accounts live underneath as independent waiting tasks.' },
+  'T-011': { designation:'major', proposedDesignation:'outcome', classificationStatus:'proposed', classificationConfidence:'high', flowPhase:'now', flowOrder:1, durationEstimate:'Ongoing', timingType:'target', timingNote:'Remote-income goal/workstream; application actions should carry the day-to-day work.' },
+  'T-019': { designation:'major', proposedDesignation:'outcome', classificationStatus:'proposed', classificationConfidence:'high', flowPhase:'now', flowOrder:1, durationEstimate:'Ongoing', timingType:'dependency', timingNote:'Broad refinance/P&L workstream; the September close chain carries the actual sequence.' },
+  'T-005': { designation:'major', proposedDesignation:'outcome', classificationStatus:'proposed', classificationConfidence:'medium', flowPhase:'later', flowOrder:1, durationEstimate:'Multi-session', timingType:'target' },
+  'T-008': { designation:'major', proposedDesignation:'outcome', classificationStatus:'proposed', classificationConfidence:'medium', flowPhase:'later', flowOrder:1, durationEstimate:'Ongoing', timingType:'flexible' },
+
+  'A-001': { designation:'major', classificationStatus:'verified', flowPhase:'now', flowOrder:1, durationEstimate:'1–2 hrs', timingType:'target', timingNote:'Complete prep before scheduling the strategy follow-up.' },
+  'A-002': { designation:'major', classificationStatus:'verified', flowPhase:'next', flowOrder:2, durationEstimate:'1–2 hrs', timingType:'target' },
+  'A-003': { designation:'major', proposedDesignation:'micro', proposedParentTaskId:'A-001', classificationStatus:'proposed', classificationConfidence:'high', flowPhase:'now', flowOrder:11, durationEstimate:'10 min', timingType:'dependency' },
+  'A-004': { designation:'major', proposedDesignation:'micro', proposedParentTaskId:'A-001', classificationStatus:'proposed', classificationConfidence:'medium', flowPhase:'now', flowOrder:12, durationEstimate:'20–30 min', timingType:'dependency' },
+  'A-005': { designation:'major', classificationStatus:'verified', flowPhase:'next', flowOrder:3, durationEstimate:'15–30 min', timingType:'dependency', timingNote:'Schedule only after the prep packet is ready.' },
+  'A-006': { designation:'major', proposedDesignation:'micro', proposedParentTaskId:'A-001', classificationStatus:'proposed', classificationConfidence:'high', flowPhase:'now', flowOrder:13, durationEstimate:'20–30 min', timingType:'dependency' },
+  'A-007': { designation:'major', proposedDesignation:'micro', proposedParentTaskId:'A-001', classificationStatus:'proposed', classificationConfidence:'high', flowPhase:'now', flowOrder:14, durationEstimate:'15–20 min', timingType:'dependency' },
+  'A-008': { designation:'major', proposedDesignation:'micro', proposedParentTaskId:'A-001', classificationStatus:'proposed', classificationConfidence:'high', flowPhase:'now', flowOrder:15, durationEstimate:'15–20 min', timingType:'dependency' },
+  'A-009': { designation:'major', proposedDesignation:'micro', proposedParentTaskId:'A-001', classificationStatus:'proposed', classificationConfidence:'high', flowPhase:'now', flowOrder:16, durationEstimate:'20 min', timingType:'dependency' },
+  'A-010': { designation:'major', proposedDesignation:'micro', proposedParentTaskId:'A-001', classificationStatus:'proposed', classificationConfidence:'high', flowPhase:'now', flowOrder:17, durationEstimate:'20–30 min', timingType:'dependency' },
+
+  'T-023': { designation:'major', classificationStatus:'verified', flowPhase:'now', flowOrder:1, durationEstimate:'60–90 min', timingType:'target', timingNote:'Current CLA bottleneck.' },
+  'T-031': { designation:'major', classificationStatus:'verified', flowPhase:'next', flowOrder:2, durationEstimate:'60–90 min', timingType:'dependency', earliestStart:'After September transaction review' },
+  'T-032': { designation:'major', classificationStatus:'verified', flowPhase:'next', flowOrder:3, durationEstimate:'60–90 min', timingType:'dependency', earliestStart:'After September P&L is final' },
+  'T-033': { designation:'major', classificationStatus:'verified', flowPhase:'later', flowOrder:4, durationEstimate:'1–2 hrs', timingType:'dependency', earliestStart:'After YTD financials are updated' },
+  'T-034': { designation:'major', classificationStatus:'verified', flowPhase:'later', flowOrder:5, durationEstimate:'30–60 min', timingType:'dependency', earliestStart:'After tax package is complete' },
+  'T-016': { designation:'major', classificationStatus:'verified', flowPhase:'waiting', flowOrder:1, durationEstimate:'15–30 min once access arrives', timingType:'dependency' },
+  'T-017': { designation:'major', classificationStatus:'verified', flowPhase:'waiting', flowOrder:1, durationEstimate:'15–30 min once access arrives', timingType:'dependency' },
+  'T-018': { designation:'major', classificationStatus:'verified', flowPhase:'later', flowOrder:1, durationEstimate:'2–4 hrs research', timingType:'flexible' },
+
+  'T-024': { designation:'major', classificationStatus:'verified', flowPhase:'now', flowOrder:1, durationEstimate:'30–45 min', timingType:'target', timingNote:'Translate the rooftop scout into concrete shot decisions.' },
+  'T-027': { designation:'major', classificationStatus:'verified', flowPhase:'next', flowOrder:2, durationEstimate:'1–2 days', timingType:'dependency', earliestStart:'After scout notes are organized' },
+  'T-028': { designation:'major', classificationStatus:'verified', flowPhase:'later', flowOrder:3, durationEstimate:'1 shoot day', timingType:'dependency', earliestStart:'After shoot plan and date are locked' },
+  'T-029': { designation:'major', classificationStatus:'verified', flowPhase:'later', flowOrder:4, durationEstimate:'5–7 days', timingType:'dependency', earliestStart:'After the shoot' },
+  'T-030': { designation:'major', classificationStatus:'verified', flowPhase:'later', flowOrder:5, durationEstimate:'Release day', timingType:'dependency', earliestStart:'After final edit approval' },
+  'T-025': { designation:'major', classificationStatus:'verified', flowPhase:'later', flowOrder:1, durationEstimate:'10 min', timingType:'target' },
+  'T-026': { designation:'major', classificationStatus:'verified', flowPhase:'now', flowOrder:1, durationEstimate:'30–45 min', timingType:'target' },
+  'T-012': { designation:'major', classificationStatus:'verified', flowPhase:'later', flowOrder:1, durationEstimate:'1–2 hrs', timingType:'target' },
+  'T-001': { designation:'major', classificationStatus:'verified', flowPhase:'later', flowOrder:1, durationEstimate:'10–15 min', timingType:'flexible' },
+  'T-007': { designation:'major', classificationStatus:'verified', flowPhase:'later', flowOrder:1, durationEstimate:'10–15 min', timingType:'flexible' },
+  'T-015': { designation:'major', classificationStatus:'verified', flowPhase:'later', flowOrder:2, durationEstimate:'30–60 min', timingType:'flexible' },
+  'T-013': { designation:'major', classificationStatus:'verified', flowPhase:'now', flowOrder:1, durationEstimate:'Build session', timingType:'target' }
 });
 
 function json(res, status, body) {
@@ -24,15 +64,39 @@ function normalizeProfileIds(value) {
   if (!Array.isArray(value)) return [];
   return [...new Set(value.map(String).map(id => PROFILE_ALIASES[id] || id).filter(Boolean))].slice(0, 40);
 }
+function normalizePhase(value, status) {
+  const v = String(value || '').toLowerCase();
+  if (status === 'Waiting') return 'waiting';
+  if (['now','next','later','waiting'].includes(v)) return v;
+  return 'later';
+}
+function normalizeDesignation(value, parentTaskId) {
+  if (parentTaskId) return 'micro';
+  return ['major','outcome','micro'].includes(value) ? value : 'major';
+}
 function cleanTask(task) {
   const now = new Date().toISOString();
   const profileIds = normalizeProfileIds(task.profileIds || task.people || []);
+  const parentTaskId = task.parentTaskId ? String(task.parentTaskId) : null;
+  const status = normalizeStatus(task.status);
   return {
     id: String(task.id || `A-${Date.now()}`), title: String(task.title || 'Untitled task').slice(0, 500),
     area: String(task.area || 'Inbox').slice(0, 120), projectId: task.projectId ? String(task.projectId) : null,
     milestoneId: task.milestoneId ? String(task.milestoneId) : null, goalId: task.goalId ? String(task.goalId) : null,
-    parentTaskId: task.parentTaskId ? String(task.parentTaskId) : null, microDone: Boolean(task.microDone),
-    priority: Math.max(1, Math.min(3, Number(task.priority || 2))), status: normalizeStatus(task.status),
+    parentTaskId, microDone: Boolean(task.microDone),
+    designation: normalizeDesignation(task.designation, parentTaskId),
+    proposedDesignation: task.proposedDesignation ? String(task.proposedDesignation).slice(0, 30) : null,
+    proposedParentTaskId: task.proposedParentTaskId ? String(task.proposedParentTaskId) : null,
+    classificationStatus: task.classificationStatus === 'proposed' ? 'proposed' : 'verified',
+    classificationConfidence: ['high','medium','low'].includes(task.classificationConfidence) ? task.classificationConfidence : null,
+    flowPhase: normalizePhase(task.flowPhase, status),
+    flowOrder: Number.isFinite(Number(task.flowOrder)) ? Number(task.flowOrder) : 999,
+    durationEstimate: task.durationEstimate ? String(task.durationEstimate).slice(0, 120) : (task.effort ? String(task.effort).slice(0,120) : ''),
+    timingType: ['hard','target','dependency','flexible'].includes(task.timingType) ? task.timingType : 'flexible',
+    earliestStart: task.earliestStart ? String(task.earliestStart).slice(0, 250) : '',
+    targetDate: task.targetDate ? String(task.targetDate).slice(0, 40) : '',
+    timingNote: task.timingNote ? String(task.timingNote).slice(0, 800) : '',
+    priority: Math.max(1, Math.min(3, Number(task.priority || 2))), status,
     dueText: task.dueText ? String(task.dueText).slice(0, 250) : '', dueDate: task.dueDate || null,
     nextAction: task.nextAction ? String(task.nextAction).slice(0, 1000) : '', waitingOn: task.waitingOn ? String(task.waitingOn).slice(0, 500) : '',
     notes: task.notes ? String(task.notes).slice(0, 5000) : '', source: task.source ? String(task.source).slice(0, 250) : 'Task Manager',
@@ -42,21 +106,23 @@ function cleanTask(task) {
     effort: task.effort ? String(task.effort).slice(0, 80) : '', createdAt: task.createdAt || now, updatedAt: task.updatedAt || now, completedAt: task.completedAt || null
   };
 }
+function withFlowDefaults(task) {
+  const defaults = FLOW_DEFAULTS[task.id] || {};
+  const merged = { ...defaults, ...task };
+  if (task.parentTaskId) {
+    merged.designation = 'micro';
+    merged.classificationStatus = 'verified';
+    merged.proposedDesignation = null;
+    merged.proposedParentTaskId = null;
+  }
+  return cleanTask(merged);
+}
 function normalizeState(state) {
   let changed = false;
   const tasks = (state.tasks || []).map(task => {
-    const profileIds = normalizeProfileIds(task.profileIds || task.people || []);
-    const parentTaskId = task.parentTaskId ? String(task.parentTaskId) : null;
-    const microDone = Boolean(task.microDone);
-    const beforeProfiles = JSON.stringify(task.profileIds || task.people || []);
-    const afterProfiles = JSON.stringify(profileIds);
-    if (
-      beforeProfiles !== afterProfiles ||
-      !Array.isArray(task.profileIds) ||
-      task.parentTaskId !== parentTaskId ||
-      task.microDone !== microDone
-    ) changed = true;
-    return { ...task, profileIds, people: profileIds, parentTaskId, microDone };
+    const normalized = withFlowDefaults(task);
+    if (JSON.stringify(task) !== JSON.stringify(normalized)) changed = true;
+    return normalized;
   });
   const next = {
     ...state,
@@ -126,6 +192,21 @@ export default async function handler(req, res) {
     if (action === 'updateTask') {
       const idx=(state.tasks||[]).findIndex(t=>t.id===body.taskId); if(idx<0)return json(res,404,{error:'Task not found'}); const original=state.tasks[idx];
       state.tasks[idx]=cleanTask({...original,...(body.patch||{}),id:original.id,createdAt:original.createdAt,completedAt:original.completedAt,updatedAt:new Date().toISOString()}); state=await writeState(state); return json(res,200,{state,task:state.tasks[idx]});
+    }
+    if (action === 'verifyClassification') {
+      const idx=(state.tasks||[]).findIndex(t=>t.id===body.taskId); if(idx<0)return json(res,404,{error:'Task not found'});
+      const task=state.tasks[idx]; const accept=Boolean(body.accept);
+      if (!task.proposedDesignation) return json(res,400,{error:'No proposed classification'});
+      if (accept && task.proposedDesignation === 'micro') {
+        const parentId=task.proposedParentTaskId; const parent=(state.tasks||[]).find(t=>t.id===parentId);
+        if(!parent || parent.parentTaskId)return json(res,400,{error:'Proposed parent is invalid'});
+        state.tasks[idx]=cleanTask({...task,parentTaskId:parentId,designation:'micro',classificationStatus:'verified',proposedDesignation:null,proposedParentTaskId:null,status:'Backlog',updatedAt:new Date().toISOString()});
+      } else if (accept) {
+        state.tasks[idx]=cleanTask({...task,designation:task.proposedDesignation,classificationStatus:'verified',proposedDesignation:null,proposedParentTaskId:null,updatedAt:new Date().toISOString()});
+      } else {
+        state.tasks[idx]=cleanTask({...task,designation:'major',classificationStatus:'verified',proposedDesignation:null,proposedParentTaskId:null,updatedAt:new Date().toISOString()});
+      }
+      state=await writeState(state); return json(res,200,{state,task:state.tasks[idx]});
     }
     if (action === 'linkTaskProfiles') {
       const idx=(state.tasks||[]).findIndex(t=>t.id===body.taskId); if(idx<0)return json(res,404,{error:'Task not found'});
