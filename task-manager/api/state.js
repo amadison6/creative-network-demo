@@ -31,6 +31,7 @@ function cleanTask(task) {
     id: String(task.id || `A-${Date.now()}`), title: String(task.title || 'Untitled task').slice(0, 500),
     area: String(task.area || 'Inbox').slice(0, 120), projectId: task.projectId ? String(task.projectId) : null,
     milestoneId: task.milestoneId ? String(task.milestoneId) : null, goalId: task.goalId ? String(task.goalId) : null,
+    parentTaskId: task.parentTaskId ? String(task.parentTaskId) : null, microDone: Boolean(task.microDone),
     priority: Math.max(1, Math.min(3, Number(task.priority || 2))), status: normalizeStatus(task.status),
     dueText: task.dueText ? String(task.dueText).slice(0, 250) : '', dueDate: task.dueDate || null,
     nextAction: task.nextAction ? String(task.nextAction).slice(0, 1000) : '', waitingOn: task.waitingOn ? String(task.waitingOn).slice(0, 500) : '',
@@ -45,10 +46,17 @@ function normalizeState(state) {
   let changed = false;
   const tasks = (state.tasks || []).map(task => {
     const profileIds = normalizeProfileIds(task.profileIds || task.people || []);
-    const before = JSON.stringify(task.profileIds || task.people || []);
-    const after = JSON.stringify(profileIds);
-    if (before !== after || !Array.isArray(task.profileIds)) changed = true;
-    return { ...task, profileIds, people: profileIds };
+    const parentTaskId = task.parentTaskId ? String(task.parentTaskId) : null;
+    const microDone = Boolean(task.microDone);
+    const beforeProfiles = JSON.stringify(task.profileIds || task.people || []);
+    const afterProfiles = JSON.stringify(profileIds);
+    if (
+      beforeProfiles !== afterProfiles ||
+      !Array.isArray(task.profileIds) ||
+      task.parentTaskId !== parentTaskId ||
+      task.microDone !== microDone
+    ) changed = true;
+    return { ...task, profileIds, people: profileIds, parentTaskId, microDone };
   });
   const next = {
     ...state,
@@ -107,6 +115,12 @@ export default async function handler(req, res) {
     if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed' });
     const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {}); const action = body.action;
     if (action === 'createTask') {
+      const requestedParentId = body.task?.parentTaskId ? String(body.task.parentTaskId) : null;
+      if (requestedParentId) {
+        const parent = (state.tasks || []).find(t => t.id === requestedParentId);
+        if (!parent) return json(res, 400, { error: 'Parent task not found' });
+        if (parent.parentTaskId) return json(res, 400, { error: 'Microtasks support one nested level only' });
+      }
       const task = cleanTask({ ...body.task, id: nextTaskId(state.tasks || []) }); state.tasks = [task, ...(state.tasks || [])]; state = await writeState(state); return json(res, 200, { state, task });
     }
     if (action === 'updateTask') {
@@ -116,6 +130,16 @@ export default async function handler(req, res) {
     if (action === 'linkTaskProfiles') {
       const idx=(state.tasks||[]).findIndex(t=>t.id===body.taskId); if(idx<0)return json(res,404,{error:'Task not found'});
       const profileIds=normalizeProfileIds(body.profileIds||[]); state.tasks[idx]={...state.tasks[idx],profileIds,people:profileIds,updatedAt:new Date().toISOString()}; state=await writeState(state); return json(res,200,{state,task:state.tasks[idx]});
+    }
+    if (action === 'setMicrotaskDone') {
+      const idx=(state.tasks||[]).findIndex(t=>t.id===body.taskId); if(idx<0)return json(res,404,{error:'Task not found'});
+      if(!state.tasks[idx].parentTaskId)return json(res,400,{error:'Task is not a microtask'});
+      state.tasks[idx]={...state.tasks[idx],microDone:Boolean(body.done),status:'Backlog',updatedAt:new Date().toISOString()}; state=await writeState(state); return json(res,200,{state,task:state.tasks[idx]});
+    }
+    if (action === 'deleteMicrotask') {
+      const idx=(state.tasks||[]).findIndex(t=>t.id===body.taskId); if(idx<0)return json(res,404,{error:'Task not found'});
+      if(!state.tasks[idx].parentTaskId)return json(res,400,{error:'Only microtasks can be removed this way'});
+      const [task]=state.tasks.splice(idx,1); state=await writeState(state); return json(res,200,{state,task});
     }
     if (action === 'completeTask' || action === 'reopenTask') {
       const idx=(state.tasks||[]).findIndex(t=>t.id===body.taskId); if(idx<0)return json(res,404,{error:'Task not found'}); const done=action==='completeTask';
