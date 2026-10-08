@@ -8,6 +8,7 @@ Check out phase2/shared-work-editing from amadison6/creative-network-demo. Node 
 
 ```sh
 node shared-backend/tests/phase2.mjs
+node shared-backend/tests/bridge-extension.mjs
 ```
 
 All databases are in-memory, fixture data is synthetic, no remote DB/Calendar credentials are used. The JSON results file records the last run but rerunning the command is authoritative.
@@ -104,7 +105,11 @@ Primary specifications consulted: Google [incremental sync](https://developers.g
 
 ## Next safe integration task
 
-Obtain the exact existing Apps Script bridge source/manifest through owner-authorized access. Review its secret validation and Google scopes. Add the three work_calendar_* actions after its existing authentication check; preserve all current Drive/Calendar handlers. The helper requires ownerAuthorized=true from that existing check plus server-side WORK_CALENDAR_TEST_ENABLED and WORK_CALENDAR_TEST_ID Script Properties. Verify the owner-granted test calendar before writing. This extension alone does not activate Work or authorize production Calendar changes.
+Confirm the exact deployed Apps Script source/version and OAuth manifest through owner-authorized access. The saved Library reference Creative_Network_Google_Drive_Connector.gs v2 (modified 2026-10-03) has been read: requireSecret_(payload.secret) precedes dispatch, Calendar handlers use CalendarApp, and the original six action handlers are preserved by the prepared google-calendar-bridge-dispatch.patch. The private saved source contains an installation secret; do not copy the full source to GitHub. The public patch/tests contain no private source configuration or secret values.
+
+Apply the small dispatcher patch only after matching the deployed source, and add the extension helper alongside it. The helper requires ownerAuthorized=true from the existing secret check plus server-side WORK_CALENDAR_TEST_ENABLED and WORK_CALENDAR_TEST_ID Script Properties. Verify Google scopes and the owner-granted test calendar before writing. This extension alone does not activate Work or authorize production Calendar changes.
+
+Legacy CalendarApp event.getId() returns an iCalendar UID, whereas REST events.id is a different identifier. The new provider expects the REST ID. Preserve and explicitly match legacy event aliases before linking; never derive identity by stripping a suffix or by title/time alone. Ambiguous or recurring matches need review. This legacy-ID reconciliation is a remaining integration gate.
 
 Open the existing Sites source project appgprj_6ab0c1e933608191b1e667e5e9c4147a, verify the latest live version against source 5620cd09d303417d64042847ddf47a02d1a37b2e, and preserve DB/BUCKET declarations. Use the current owner request check in app/lib/ledger.ts for any browser proxy. Preserve /api/work Phase 1 routes and legacy API consumers. For Task Manager, retain /api/state Blob behavior until separately approved cutover; develop behind a verified owner-authenticated test boundary.
 

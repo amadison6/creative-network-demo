@@ -1,0 +1,13 @@
+--- a/Creative_Network_Google_Drive_Connector.gs
++++ b/Creative_Network_Google_Drive_Connector.gs
+@@ -31,6 +31,9 @@
+     );
+     requireSecret_(payload.secret);
+ 
++    if (/^work_calendar_(get|delta|patch)$/.test(payload.action)) {
++      return json_(handleWorkCalendarAction(payload, true));
++    }
+     if (payload.action === "list") {
+       return json_(listNetworkSnapshot_());
+     }
+
