@@ -1,0 +1,11 @@
+{
+  "pass": true,
+  "checks": 102,
+  "isolatedSqlite": true,
+  "liveWrites": 0,
+  "liveCalendarCalls": 0,
+  "twoDevelopmentViewAdapters": true,
+  "legacyDataUnchanged": true,
+  "productionCutover": false,
+  "scope": "shared editing + calendar contract/transport tests; not deployed or live OAuth verified"
+}

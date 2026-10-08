@@ -50,3 +50,17 @@ Each meaningful milestone must append its date, purpose, approval scope, changed
 A new developer should obtain owner-granted access to GitHub, the existing Sites source/runtime, Vercel Task Manager and the existing Google connector. Document secret names and provisioning locations, never values. Before a deployment, check whether production data or code has changed since the last checkpoint.
 
 Emergency recovery: first export/preserve newer Blob/D1/Calendar state and queued changes, then restore pre-merger production behavior. Keep the staged database, backups and history. A code rollback alone does not undo writes safely.
+
+## 2026-10-08 — Phase 2 isolated development milestone
+
+Approval: Phase 2 development/testing, no cutover. Branch phase2/shared-work-editing is based on the Phase 1 documentation checkpoint 8400bff8b669090a9e3e818fe60cd39d42b1785b; operational Phase 2 code is kept out of PR #4.
+
+Built shared editing/validation/revisions/history, two development view adapters, Calendar event linkage/mirror/outbox/cursors/conditional patches/conflict review, unbound server cycle runner, server-only provider/bridge contract and checksummed exports. 102 isolated assertions and Worker dry-run bundling passed. Live Phase 1 shadow parity was rechecked against the verified backup: 69 tasks, zero differences; verified-not-active remains intact.
+
+No Phase 2 production deployment/schema migration or live Calendar call occurred. Actual app screen integration, exact deployed Google bridge source/manifest review, real authorization/sync checks, recurring/new-event design and live recovery remain open. Phase 2 is not complete. Existing Task Manager /api/state Blob routing remains unchanged.
+
+- [Detailed checkpoint and remaining gates](https://github.com/amadison6/creative-network-demo/blob/phase2/shared-work-editing/docs/PHASE-2-DEVELOPMENT-CHECKPOINT-2026-10-08.md)
+- [Developer setup, API contract and architecture](https://github.com/amadison6/creative-network-demo/blob/phase2/shared-work-editing/docs/PHASE-2-DEVELOPER-HANDOFF.md)
+
+Next safe task: obtain/review the current Apps Script bridge source and OAuth manifest, then integrate an explicitly isolated owner-authenticated test path. Preserve the verified Work copy and existing Google connection.
+
