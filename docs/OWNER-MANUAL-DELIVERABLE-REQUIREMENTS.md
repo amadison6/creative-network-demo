@@ -10,7 +10,7 @@ Phase 1 parity, a staged D1 copy, PR #4 merging, or a code deployment alone does
 
 The final evidence must cover the agreed shared D1 data model and app reads/writes, Google Calendar bidirectional propagation (including edits made directly in Google Calendar), Google Drive file references with files remaining in Drive, the agreed final interface, and a tested recovery procedure that preserves newer data. Any deferred scope must have explicit owner acceptance and be labeled as deferred in the guide.
 
-Current checkpoint: Phase 1 verified staging only; Task Manager production remains Blob. PR #4 is draft/unmerged and no Phase 2/cutover authorization is granted by this documentation request.
+Current checkpoint: Phase 1 verified staging only; Task Manager production remains Blob. PR #4 is draft/unmerged. On 2026-10-08 the owner explicitly approved Phase 2 development and testing while keeping Task Manager production on Blob. Production cutover remains separately approval-gated.
 
 ## Deliverable
 
@@ -26,3 +26,11 @@ Include:
 - A rollback explanation that preserves newer tasks/data and backups before restoring earlier working behavior.
 
 Ground diagrams and instructions in the final implementation and verified behavior. Clearly label any planned or deferred feature. Do not include credentials, secret values, or private task contents. Do not activate, merge, deploy, cut over, or mutate production data merely to produce this document.
+
+## Phase history and developer handoff
+
+Explain each merger phase, its purpose in everyday language, what changed, how it was checked, whether it is planned/tested/live, and the approval needed for the next phase. Present the actual sequence; future phase names are planning labels until implementation decisions are recorded.
+
+Maintain a development paper trail throughout the work, rather than waiting for the final manual. Use docs/MERGER-DEVELOPMENT-RECORD.md as the index. Link dated checkpoints, commits, pull requests, deployment versions, schema changes, test evidence, decisions and reasons, approvals, known limitations, unresolved issues, and recovery instructions. Record where code and services are hosted and how a new developer obtains access without publishing secret values. Include reproducible setup/check commands and the next safe task.
+
+The final manual should have two reading levels: a plain-language owner guide and a developer handoff appendix. Preserve historical records; append corrections and clearly identify superseded facts.
