@@ -64,3 +64,5 @@ No Phase 2 production deployment/schema migration or live Calendar call occurred
 
 Next safe task: obtain/review the current Apps Script bridge source and OAuth manifest, then integrate an explicitly isolated owner-authenticated test path. Preserve the verified Work copy and existing Google connection.
 
+Follow-up in the same session: the saved Library connector source v2 was located and read after Drive discovery did not establish it. A small additive auth-preserving dispatcher patch was prepared; 20 more isolated bridge checks passed (122 total). Saved source is not proof of the currently deployed version, and its private secret was excluded from GitHub. Remaining gate: match deployed source/manifest, reconcile legacy iCalendar UIDs to REST event IDs explicitly, then validate real app/provider behavior. Phase 2 draft PR: https://github.com/amadison6/creative-network-demo/pull/6 (unmerged).
+
