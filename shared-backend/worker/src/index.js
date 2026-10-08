@@ -1,3 +1,4 @@
+import { compareWorkState } from '../../work-parity-core.mjs';
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' };
 
 function reply(body, status = 200) {
@@ -76,11 +77,28 @@ async function relationalChecks(db, expectedTaskCount = null) {
   return checks;
 }
 
+async function payloadChecks(db, payload) {
+  if (!payload || payload.schemaVersion !== 1 || !payload.batchId || !payload.checksum) throw new Error('Invalid migration identity');
+  if (!Array.isArray(payload.tasks) || payload.tasks.length > 500 || payload.expectedTaskCount !== payload.tasks.length) throw new Error('Invalid task count');
+  for (const key of ['hubs','projects','taskPeople','dependencies','resources','sourceAliases']) if (!Array.isArray(payload[key])) throw new Error('Missing payload section: ' + key);
+  const profiles = await db.prepare('SELECT id FROM profiles WHERE archived_at IS NULL').all();
+  const checks = compareWorkState(payload, payload, (profiles.results || []).map(p => p.id));
+  if (!checks.summary.pass) throw new Error('Invalid migration relationships: ' + JSON.stringify(checks.failures));
+  const core = {};
+  for (const key of ['schemaVersion','sourceRevision','generatedAt','hubs','projects','tasks','taskPeople','dependencies','resources','sourceAliases']) core[key] = payload[key];
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(core)));
+  const checksum = Array.from(new Uint8Array(digest), x => x.toString(16).padStart(2,'0')).join('');
+  if (checksum !== payload.checksum) throw new Error('Payload checksum mismatch');
+  return checks;
+}
+
 async function stageMigration(env, payload) {
   if (!payload || !payload.batchId || !payload.checksum) return reply({ error: 'Missing batchId/checksum' }, 400);
   if (!Array.isArray(payload.hubs) || !Array.isArray(payload.projects) || !Array.isArray(payload.tasks)) {
     return reply({ error: 'Invalid migration payload' }, 400);
   }
+
+  await payloadChecks(env.DB, payload);
 
   const active = await env.DB.prepare(`SELECT COUNT(*) AS n FROM work_migration_batches WHERE status='active'`).first();
   if (Number(active?.n || 0) > 0) {
@@ -92,8 +110,21 @@ async function stageMigration(env, payload) {
     return reply({ error: 'Batch ID already exists with a different checksum' }, 409);
   }
 
+  if (existingBatch) {
+    if (!['staged','verified'].includes(existingBatch.status)) return reply({error:'Existing migration requires review'},409);
+    const state = await (await getState(env)).json();
+    const parity = compareWorkState(payload, state);
+    return reply({ok:parity.summary.pass,stage:existingBatch.status === 'verified'?'verified-not-active':'staged-not-active',alreadyStaged:true,batchId:payload.batchId,parity},parity.summary.pass?200:409);
+  }
+  const occupied = await env.DB.prepare('SELECT COUNT(*) AS n FROM work_migration_batches').first();
+  const taskRows = await env.DB.prepare('SELECT COUNT(*) AS n FROM work_tasks').first();
+  if (Number(occupied?.n || 0) || Number(taskRows?.n || 0)) return reply({error:'Work staging is not empty; preserve existing data and review before another import'},409);
+
   const createdAt = text(payload.generatedAt, new Date().toISOString());
   const statements = [];
+  // A unique singleton, inside the same transaction, prevents concurrent first imports.
+  statements.push(q(env.DB, 'INSERT INTO work_schema_meta (key,value,updated_at) VALUES (?,?,?)', 'phase1_batch_id', payload.batchId, createdAt));
+  statements.push(q(env.DB, 'INSERT OR IGNORE INTO work_schema_meta (key,value,updated_at) VALUES (?,?,?)', 'work_schema_version', '1', createdAt));
   statements.push(q(env.DB, `INSERT INTO work_migration_batches
     (batch_id,source_name,source_revision,status,expected_task_count,imported_task_count,checksum,notes,created_at)
     VALUES (?,?,?,?,?,?,?,?,?)
@@ -185,6 +216,14 @@ async function stageMigration(env, payload) {
       nullable(alias.sourceTitleHash), text(alias.lastSeenAt,createdAt)));
   }
 
+  for (const [entityType, records] of [['hub',payload.hubs],['project',payload.projects],['task',payload.tasks]]) {
+    for (const record of records) statements.push(q(env.DB, `INSERT INTO work_changes
+      (id,entity_type,entity_id,action,before_json,after_json,source_app,source_revision,entity_revision,idempotency_key,created_at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+      `${payload.batchId}:${entityType}:${record.id}`,entityType,record.id,'stage',null,JSON.stringify(record),
+      'task-manager-phase1-import',payload.sourceRevision,number(record.revision,1),`${payload.batchId}:${entityType}:${record.id}`,createdAt));
+  }
+
   statements.push(q(env.DB, `UPDATE work_migration_batches SET imported_task_count=?, status='staged' WHERE batch_id=?`, payload.tasks.length, payload.batchId));
   await env.DB.batch(statements);
 
@@ -216,14 +255,21 @@ async function getState(env) {
   });
 }
 
-async function verifyBatch(env, batchId) {
+async function verifyBatch(env, batchId, payload) {
   const batch = await env.DB.prepare('SELECT * FROM work_migration_batches WHERE batch_id=?').bind(batchId).first();
   if (!batch) return reply({ error: 'Migration batch not found' }, 404);
+  if (!['staged','verified'].includes(batch.status)) return reply({error:'Batch state is not eligible for Phase 1 verification'},409);
+  await payloadChecks(env.DB, payload);
+  if (payload.batchId !== batchId || payload.checksum !== batch.checksum) return reply({error:'Verification source does not match staged batch'},409);
+  const state = await (await getState(env)).json();
+  const parity = compareWorkState(payload, state);
   const checks = await relationalChecks(env.DB, batch.expected_task_count);
-  if (!checks.pass) return reply({ ok: false, batchId, checks }, 409);
-  await env.DB.prepare(`UPDATE work_migration_batches SET status='verified', verified_at=? WHERE batch_id=?`)
+  const history = await env.DB.prepare('SELECT COUNT(*) AS n FROM work_changes WHERE id LIKE ?').bind(batchId + ':%').first();
+  const historyMatches = Number(history?.n || 0) === payload.hubs.length + payload.projects.length + payload.tasks.length;
+  if (!checks.pass || !parity.summary.pass || !historyMatches) return reply({ ok:false,batchId,checks,parity,historyMatches },409);
+  await env.DB.prepare(`UPDATE work_migration_batches SET status='verified', verified_at=? WHERE batch_id=? AND status IN ('staged','verified')`)
     .bind(new Date().toISOString(), batchId).run();
-  return reply({ ok: true, stage: 'verified-not-active', batchId, checksum: batch.checksum, checks });
+  return reply({ok:true,stage:'verified-not-active',productionSourceChanged:false,batchId,checksum:batch.checksum,checks,parity,historyMatches});
 }
 
 export default {
@@ -241,10 +287,11 @@ export default {
         return await stageMigration(env, payload);
       }
       const verifyMatch = /^\/v1\/work\/migrations\/([^/]+)\/verify$/.exec(path);
-      if (request.method === 'POST' && verifyMatch) return await verifyBatch(env, decodeURIComponent(verifyMatch[1]));
+      if (request.method === 'POST' && verifyMatch) return await verifyBatch(env, decodeURIComponent(verifyMatch[1]), await bodyJson(request));
       return reply({ error: 'Not found' }, 404);
     } catch (error) {
-      return reply({ error: 'Work API error', message: String(error?.message || error) }, 500);
+      console.error('Phase 1 Work API rejected request', String(error?.message || error));
+      return reply({ error: 'Work API request failed; no cutover performed' }, 500);
     }
   }
 };

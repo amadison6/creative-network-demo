@@ -101,7 +101,7 @@ const tasks = (state.tasks || []).map(task => {
     waitingOn: String(task.waitingOn || ''),
     notes: String(task.notes || ''),
     source: String(task.source || 'Task Manager'),
-    todayRank: Number.isFinite(Number(task.todayRank)) ? Number(task.todayRank) : null,
+    todayRank: task.todayRank != null && Number.isFinite(Number(task.todayRank)) ? Number(task.todayRank) : null,
     effort: String(task.effort || ''),
     revision: Number(task.revision || 1),
     lastChangeSource: 'task-manager-phase1-import',

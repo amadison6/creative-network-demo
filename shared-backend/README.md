@@ -70,4 +70,9 @@ Captured before D1 write cutover:
 - Preserved status differences: 6.
 - Existing Network HQ D1 task rows: 22.
 
-The next gate is a generic authenticated Network HQ D1 work/task write API. The currently available owner connector can list tasks and complete tasks, but it does not yet expose generic create/update/move/reparent/dependency operations. Do not declare the D1 import complete until that write surface exists and the import is actually verified.
+The existing Network HQ D1 is managed by ChatGPT Sites using this Site's `DB`
+binding. Phase 1 staging is prepared in unpublished Site version 71; see
+[Sites Phase 1 deployment](SITES-PHASE-1-DEPLOYMENT.md). Live D1 schema, import,
+parity and read-only shadow comparison are still pending. Full operational
+create/update/move/reparent/dependency APIs remain a separate Phase 2 prerequisite.
+Do not declare the D1 import complete from isolated local tests.

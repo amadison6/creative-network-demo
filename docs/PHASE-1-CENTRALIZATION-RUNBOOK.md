@@ -55,14 +55,19 @@ Phase 1 is complete only when the canonical work records are staged in D1 and pa
 
 Apply `shared-backend/schema/001_work_layer.sql` to the same D1 database used by Network HQ.
 
+For the Sites-managed target, deploy the equivalent additive Drizzle migration
+through the existing Site. See `shared-backend/SITES-PHASE-1-DEPLOYMENT.md`.
+Do not execute both schema paths against the same database.
+
 Requirements:
-- only `CREATE TABLE IF NOT EXISTS`, indexes, and metadata inserts;
+- only additive `CREATE TABLE`, indexes, and work-schema metadata inserts;
 - no destructive migration against existing Network HQ tables;
 - new tables are not read by production UI yet.
 
 ### Gate 2 — authenticated staging write surface
 
-Before copying canonical records, deploy the Phase 1 staging worker in `shared-backend/worker/` with:
+Before copying canonical records, deploy the Phase 1 staging worker in
+`shared-backend/worker/`, hosted by the existing Network HQ Site, with:
 
 - a server-side binding to the **existing Network HQ D1 database**;
 - `WORK_API_TOKEN` stored as a Worker secret;
@@ -104,6 +109,10 @@ Export the staged D1 Work state and compare it with the private canonical migrat
 
 `node shared-backend/verify-work-parity.mjs source.json target.json`
 
+The authenticated `/verify` operation requires that same full source payload as
+its JSON body, and verifies the payload checksum plus audit-history count before
+marking the batch `verified-not-active`. A task-count-only check is insufficient.
+
 Required results:
 - identical canonical task identity set;
 - no missing or extra canonical task;
@@ -143,12 +152,29 @@ Because Task Manager remains on Blob during Phase 1, rollback should be simple:
 4. Leave existing Network HQ tables and integrations unchanged.
 5. If code changes affected production, restore the saved pre-merger checkpoint using the emergency rollback instructions in the merger safety plan.
 
-## Current execution status
+## Current execution status (2026-10-08)
 
-- Gate 0: **PASS** — live Task Manager revision 68, reconciliation, Network HQ task rows, migration health, and rollback branch verified.
-- Gate 1 schema definition: **PREPARED ON `phase1/d1-centralization`**.
-- Gate 2 staging API code: **PREPARED ON `phase1/d1-centralization`**.
-- Gate 2 deployment/binding: **WAITING FOR A SECURE DEPLOYMENT PATH TO THE EXISTING NETWORK HQ D1 BINDING**. The current owner connector can list D1 tasks and complete a task, but it does not expose D1 schema execution or a generic database/Worker deployment action.
-- Gates 3–5: not started; intentionally waiting on the secure D1 binding rather than creating a second database or touching production.
+- Gate 0: **PASS** — Task Manager revision 68 / 69 canonical tasks; source coverage
+  23 Sheet / 22 Network HQ; conflicts 0; preserved status differences 6;
+  cutoverReady false. All 12 referenced profile IDs exist in live Network HQ.
+- Existing infrastructure: **IDENTIFIED THROUGH CHATGPT SITES** — Creative Network
+  Map, project `appgprj_6ab0c1e933608191b1e667e5e9c4147a`, existing `DB` binding,
+  published Site Worker/API/MCP. No new permanent database is needed.
+- Physical D1 database name/UUID: **NOT EXPOSED** by available Sites tools. The
+  user's required name/ID identity check needs explicit acceptance of the verified
+  existing Site + DB binding before live schema/data writes.
+- Gate 1 schema and Gate 2 API: **PREPARED AND SAVED, NOT DEPLOYED** — Site version
+  71, source `5620cd09d303417d64042847ddf47a02d1a37b2e`.
+  Live production remains version 70 and still has no work_* tables.
+- Gate 3 private payload: **BUILT LOCALLY** — 6 hubs, 21 projects, 69 tasks,
+  34 people links, 8 dependencies, 1 resource reference, 114 source aliases.
+- Local isolated SQLite parity: **PASS** — full exported-field comparison,
+  96 history rows, idempotent retry, 12 negative corruption checks, distinct
+  historical T-023 identities, existing non-work schemas/rows unchanged.
+- Production build: **PASS**. Full typecheck has one pre-existing optional DB
+  error in `app/api/schedule/route.ts`; no new Work type errors.
+- Gates 1–5 live execution/parity/shadow comparison: **INCOMPLETE**.
+- PR #4 remains draft and unmerged. Task Manager remains on private Blob.
 
-This is a safety stop, not a failed migration. Production Task Manager behavior remains unchanged.
+See `shared-backend/SITES-PHASE-1-DEPLOYMENT.md` for the concrete saved version,
+remaining live steps and rollback behavior. No cutover is authorized.
