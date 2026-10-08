@@ -26,7 +26,7 @@ Phase 1 is complete only when the canonical work records are staged in D1 and pa
 ## What Phase 1 may change
 
 - Add new `work_*` D1 tables from `shared-backend/schema/001_work_layer.sql`.
-- Add authenticated server-side work/task operations.
+- Add an authenticated server-side **staging** API for the new Work tables.
 - Stage canonical Hub / Project / Task / link records in the new tables.
 - Create migration-batch, source-alias, revision, and change-history records.
 - Run read-only parity checks.
@@ -39,6 +39,7 @@ Phase 1 is complete only when the canonical work records are staged in D1 and pa
 - Do not retire Google Drive or Google Calendar integrations.
 - Do not enable two-way Calendar mutation yet.
 - Do not treat old `T-###` / `A-###` identifiers as canonical database identity.
+- Do not activate operational Task Manager writes against D1 yet.
 
 ## Execution order
 
@@ -59,32 +60,37 @@ Requirements:
 - no destructive migration against existing Network HQ tables;
 - new tables are not read by production UI yet.
 
-### Gate 2 — authenticated write surface
+### Gate 2 — authenticated staging write surface
 
-Before copying canonical records, expose an authenticated server-side Work API that supports:
+Before copying canonical records, deploy the Phase 1 staging worker in `shared-backend/worker/` with:
 
-- batch staging;
-- Hub / Project / Task create and update;
-- move/reparent;
-- complete/reopen/archive;
-- people links;
-- dependencies;
-- resources;
-- expected-revision checks;
-- idempotency keys;
-- read-only export/parity status.
+- a server-side binding to the **existing Network HQ D1 database**;
+- `WORK_API_TOKEN` stored as a Worker secret;
+- no D1 token or database credential exposed to either browser app.
 
-If this write surface does not exist, **stop here**. Do not fake the D1 import or switch the source of truth.
+The Phase 1 staging API supports:
+- authenticated batch staging;
+- read-only Work-state export;
+- relational verification of task count and Hub / Project / parent / dependency integrity;
+- explicit `staged-not-active` and `verified-not-active` states.
 
-### Gate 3 — staged import
+Full operational create/edit/move/reparent/complete/reopen APIs are required **before Phase 2 cutover**, but they do not need to be activated merely to make the Phase 1 shadow copy.
 
-Create a migration batch with status `staged`.
+If the staging worker cannot be bound securely to the existing D1 database, **stop here**. Do not fake the D1 import or create a second permanent Work database.
 
-Import in this dependency-safe order:
+### Gate 3 — private payload + staged import
+
+Build the private canonical import payload with:
+
+`node shared-backend/build-phase1-payload.mjs state.json reconciliation.json phase1-private.json`
+
+Never commit the three private JSON files.
+
+Create a migration batch with status `staged` and import in dependency-safe order:
 1. Hubs
 2. Projects
-3. Major tasks / outcomes
-4. Microtasks
+3. Parent Major tasks / outcomes
+4. Microtasks / proposed-parent tasks
 5. People links
 6. Dependencies
 7. Resources
@@ -125,7 +131,7 @@ Immediately halt Phase 1 if any of these occur:
 - a newer status would be overwritten by an older external source;
 - Network HQ runtime errors appear after additive schema/API changes;
 - the only available D1 access would require exposing a database credential to the browser;
-- the generic authenticated work/task write surface is unavailable.
+- the staging worker cannot be securely bound to the existing Network HQ D1 database.
 
 ## Rollback during Phase 1
 
@@ -139,9 +145,10 @@ Because Task Manager remains on Blob during Phase 1, rollback should be simple:
 
 ## Current execution status
 
-- Gate 0: **PASS** — baseline read and reconciliation verified.
-- Gate 1 schema definition: **PREPARED ON PHASE-1 BRANCH**.
-- Gate 2: **BLOCKED UNTIL GENERIC AUTHENTICATED D1 WORK/TASK WRITES ARE EXPOSED**. The current owner connector can list tasks and complete a task, but does not expose generic create/update/move/reparent/dependency writes.
-- Gates 3–5: not started; intentionally blocked by Gate 2.
+- Gate 0: **PASS** — live Task Manager revision 68, reconciliation, Network HQ task rows, migration health, and rollback branch verified.
+- Gate 1 schema definition: **PREPARED ON `phase1/d1-centralization`**.
+- Gate 2 staging API code: **PREPARED ON `phase1/d1-centralization`**.
+- Gate 2 deployment/binding: **WAITING FOR A SECURE DEPLOYMENT PATH TO THE EXISTING NETWORK HQ D1 BINDING**. The current owner connector can list D1 tasks and complete a task, but it does not expose D1 schema execution or a generic database/Worker deployment action.
+- Gates 3–5: not started; intentionally waiting on the secure D1 binding rather than creating a second database or touching production.
 
 This is a safety stop, not a failed migration. Production Task Manager behavior remains unchanged.
