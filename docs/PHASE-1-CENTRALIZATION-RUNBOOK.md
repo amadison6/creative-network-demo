@@ -152,29 +152,46 @@ Because Task Manager remains on Blob during Phase 1, rollback should be simple:
 4. Leave existing Network HQ tables and integrations unchanged.
 5. If code changes affected production, restore the saved pre-merger checkpoint using the emergency rollback instructions in the merger safety plan.
 
-## Current execution status (2026-10-08)
+## Current execution status
 
-- Gate 0: **PASS** — Task Manager revision 68 / 69 canonical tasks; source coverage
-  23 Sheet / 22 Network HQ; conflicts 0; preserved status differences 6;
-  cutoverReady false. All 12 referenced profile IDs exist in live Network HQ.
-- Existing infrastructure: **IDENTIFIED THROUGH CHATGPT SITES** — Creative Network
-  Map, project `appgprj_6ab0c1e933608191b1e667e5e9c4147a`, existing `DB` binding,
-  published Site Worker/API/MCP. No new permanent database is needed.
-- Physical D1 database name/UUID: **NOT EXPOSED** by available Sites tools. The
-  user's required name/ID identity check needs explicit acceptance of the verified
-  existing Site + DB binding before live schema/data writes.
-- Gate 1 schema and Gate 2 API: **PREPARED AND SAVED, NOT DEPLOYED** — Site version
-  71, source `5620cd09d303417d64042847ddf47a02d1a37b2e`.
-  Live production remains version 70 and still has no work_* tables.
-- Gate 3 private payload: **BUILT LOCALLY** — 6 hubs, 21 projects, 69 tasks,
-  34 people links, 8 dependencies, 1 resource reference, 114 source aliases.
-- Local isolated SQLite parity: **PASS** — full exported-field comparison,
-  96 history rows, idempotent retry, 12 negative corruption checks, distinct
-  historical T-023 identities, existing non-work schemas/rows unchanged.
-- Production build: **PASS**. Full typecheck has one pre-existing optional DB
-  error in `app/api/schedule/route.ts`; no new Work type errors.
-- Gates 1–5 live execution/parity/shadow comparison: **INCOMPLETE**.
-- PR #4 remains draft and unmerged. Task Manager remains on private Blob.
 
-See `shared-backend/SITES-PHASE-1-DEPLOYMENT.md` for the concrete saved version,
-remaining live steps and rollback behavior. No cutover is authorized.
+## Live checkpoint — 2026-10-08T08:14:30.336Z
+
+The user explicitly authorized proceeding using the verified existing Sites DB
+binding instead of its hidden physical Cloudflare name/UUID.
+
+- Existing Site version 71 deployed successfully at
+  https://creative-network-map.ausarmadison.chatgpt.site.
+- Source commit: `5620cd09d303417d64042847ddf47a02d1a37b2e`.
+- Deployment: `appgdep_6ac74e02f164819192d132fa406e1e36`.
+- Runtime environment revision: 5; WORK_API_TOKEN is a Sites secret. Other keys
+  were preserved. No credential was written to source or browser code.
+- Native overview confirms all 38 existing tables plus exactly 11 work_* tables.
+- Work tasks, hubs, projects, migration batches and history are empty: **the live
+  import has NOT run and live parity has NOT passed**.
+- Native before/after projections match for 19 protected legacy tables.
+  There are 8 truncated values in profiles and 1 in tasks; this verifies the
+  returned projections, not the hidden portions of those large fields.
+- Owner-authenticated migration and schedule tools still respond successfully;
+  migration health has no unresolved issues and baseline counts are unchanged.
+- Task Manager full /api/state is unchanged: revision 68, 69 tasks on private Blob.
+- PR #4 remains draft and unmerged; no source-of-truth cutover is authorized.
+
+### Remaining tooling gate
+
+The deployed Site contains owner-authenticated Phase 1 state/stage/verify tools,
+but this conversation still exposes only the prior plugin tool list. Refresh or
+reconnect the existing Creative Network Map plugin to load the new tools.
+The local execution service and cloud browser reported the workspace offline.
+
+Automatic approval review rejected a temporary Vercel Sandbox fallback because
+it would transfer the Work bearer token and existing Sites authentication token
+to another execution service without explicit authorization. The sandbox was
+not created and the import was not attempted. Do not retry that path without
+explicit approval of that credential transfer. Prefer the native Site plugin.
+
+After tool availability is restored: re-read the Blob/reconciliation baseline,
+build the private payload using the branch builder, stage 69 canonical records,
+export D1 Work state, run full field/identity/link/dependency/alias parity and
+verify the batch, then expose the read-only shadow comparison and STOP.
+Preserve all new tables/data during any behavior rollback to Site version 70.
