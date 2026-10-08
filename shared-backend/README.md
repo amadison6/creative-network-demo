@@ -70,9 +70,10 @@ Captured before D1 write cutover:
 - Preserved status differences: 6.
 - Existing Network HQ D1 task rows: 22.
 
-The existing Network HQ D1 is managed by ChatGPT Sites using this Site's `DB`
-binding. Phase 1 staging is prepared in unpublished Site version 71; see
-[Sites Phase 1 deployment](SITES-PHASE-1-DEPLOYMENT.md). Live D1 schema, import,
-parity and read-only shadow comparison are still pending. Full operational
-create/update/move/reparent/dependency APIs remain a separate Phase 2 prerequisite.
-Do not declare the D1 import complete from isolated local tests.
+The existing Network HQ D1 is managed by ChatGPT Sites using its existing DB
+binding. Phase 1's 69 canonical tasks have now passed full live parity in batch
+`phase1_68_f2ab6e322ba4`, with `verified-not-active` status. Read-only shadow data is
+available through the native owner plugin; Task Manager production remains on
+private Blob. See [the verified checkpoint](../docs/PHASE-1-VERIFIED-2026-10-08.md).
+Full operational APIs and Calendar synchronization remain later cutover work;
+no activation or merge of PR #4 is authorized here.

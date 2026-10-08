@@ -1,4 +1,4 @@
-# Phase 1 in the existing Network HQ Site — verified
+# Phase 1 verified checkpoint — 2026-10-08
 
 ## Current execution status (2026-10-08T13:30:52.265Z)
 
@@ -46,46 +46,49 @@ See `docs/PHASE-1-VERIFIED-2026-10-08.md` for the verification checkpoint.
 A later cutover requires explicit user approval and its own operational/calendar
 sync validation. Preserve newer data before restoring pre-merger behavior.
 
-## Deployment provenance and access
+## Counts and parity
 
-Network HQ runs on ChatGPT Sites as Creative Network Map at
-https://creative-network-map.ausarmadison.chatgpt.site.
-Sites manages its physical Cloudflare resources privately. Do not invent a D1
-UUID or deploy the standalone example against its placeholder identifiers.
-The user explicitly accepted the existing Site + DB binding identity.
+| Entity | Source | Actual D1 export |
+| --- | ---: | ---: |
+| hubs | 6 | 6 |
+| projects | 21 | 21 |
+| tasks | 69 | 69 |
+| taskPeople | 34 | 34 |
+| dependencies | 8 | 8 |
+| resources | 1 | 1 |
+| sourceAliases | 114 | 114 |
 
-- Existing production baseline: Site version 70, source
-  `390d23bf0809173879a5d999906da8fdbd06498d`.
-- Current additive deployment: Site version 71, deployment
-  `appgdep_6ac74e02f164819192d132fa406e1e36`, environment revision 5.
-- The existing DB / BUCKET manifest bindings and owner-only access were preserved.
-- Only 11 new work_* tables/indexes were applied. Existing migration SQL and
-  snapshots were preserved. No legacy ALTER/DROP/data rewrite was included.
-- Work REST requests require WORK_API_TOKEN. The native MCP owner authentication
-  passes that secret internally after its existing owner check; no token is
-  returned to clients. No credential is committed to source or browser code.
-- There is no operational task-write or activation/cutover endpoint.
+All migrated fields were compared, including status, hierarchy, task text,
+timing, revisions, canonical people links, dependencies, resources and aliases.
+All canonical identity sets match. Missing/extra/duplicate identities, orphan
+links, invalid parents and dependency cycles: 0. Import history: 96 rows with
+matching expected IDs, source revision 68, and stage action.
 
-## Source and audit patch
+## Protected legacy data
 
-`sites-integration.patch` records the additive runtime, migration and test changes
-against version 70. The full generated Drizzle snapshot is in the saved Site
-source; it is omitted from the audit patch to avoid copying every unrelated
-existing table definition into this PR. Restore the exact saved Site source for
-deployment rather than applying the audit patch alone.
+| Table | Rows checked | Projection unchanged | Truncated values |
+| --- | ---: | --- | ---: |
+| assets | 54 | Yes | 0 |
+| availability_entries | 14 | Yes | 0 |
+| demos | 7 | Yes | 0 |
+| event_profiles | 30 | Yes | 0 |
+| events | 16 | Yes | 0 |
+| hub_memberships | 37 | Yes | 0 |
+| hubs | 24 | Yes | 0 |
+| links | 202 | Yes | 0 |
+| location_relationships | 3 | Yes | 0 |
+| notes | 1 | Yes | 0 |
+| profiles | 50 | Yes | 8 |
+| relationships | 90 | Yes | 0 |
+| resources | 14 | Yes | 0 |
+| schedule_entries | 8 | Yes | 0 |
+| schedule_participants | 24 | Yes | 0 |
+| shoot_locations | 1 | Yes | 0 |
+| task_profiles | 15 | Yes | 0 |
+| tasks | 22 | Yes | 1 |
+| untitled_projects | 0 | Yes | 0 |
 
-The isolated SQLite test and production build passed before deployment. Full
-TypeScript checking still has one pre-existing optional-DB error in
-app/api/schedule/route.ts; the Work files introduced no type error. Live native
-owner calls and complete source/export parity subsequently passed.
-
-## Safe stop and rollback
-
-Task Manager still uses private Blob; Network HQ still uses its existing D1.
-Google Calendar and Drive integrations were neither severed nor activated for
-new two-way Work mutation. Drive remains the actual file/document store.
-
-Do not merge PR #4, activate the batch, switch Task Manager reads/writes, or begin
-Phase 2 without explicit approval. On a behavior rollback, preserve staged data
-and newer backups first, then restore Site version 70 and/or the pre-merger GitHub
-checkpoint as appropriate. Do not delete the work_* data to roll back behavior.
+The 9 truncated legacy values were not byte-compared; their returned record
+projections, IDs, revisions and timestamps were unchanged. No staging SQL writes
+legacy tables. The exact private payload/export archive is separately saved;
+no private source records or API tokens are committed in this checkpoint.

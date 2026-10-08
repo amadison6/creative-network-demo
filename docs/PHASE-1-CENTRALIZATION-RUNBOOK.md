@@ -152,46 +152,48 @@ Because Task Manager remains on Blob during Phase 1, rollback should be simple:
 4. Leave existing Network HQ tables and integrations unchanged.
 5. If code changes affected production, restore the saved pre-merger checkpoint using the emergency rollback instructions in the merger safety plan.
 
-## Current execution status
+## Current execution status (2026-10-08T13:30:52.265Z)
 
+**Phase 1 is complete and stopped before cutover.**
 
-## Live checkpoint — 2026-10-08T08:14:30.336Z
+- Existing Sites project: `appgprj_6ab0c1e933608191b1e667e5e9c4147a`.
+- Existing logical D1 binding: `DB`. No second permanent database was created.
+- The user accepted this verified identity in place of the hidden physical D1
+  name/UUID. Saved Site version 71 is deployed; its source remains
+  `5620cd09d303417d64042847ddf47a02d1a37b2e`.
+- Gate 0: baseline PASS — Blob revision 68, 69 canonical records, source coverage
+  23 Google Sheet / 22 Network HQ, 0 conflicts and 6 preserved status differences.
+- Gates 1–2: additive work_* schema and secure staging API deployed on the same
+  Site/backend. WORK_API_TOKEN remains a server-side Sites secret.
+- Gate 3: live staged copy PASS — 6 hubs, 21 projects, 69 tasks, 34 people links,
+  8 dependencies, 1 resource reference and 114 source aliases.
+- Gate 4: live full parity PASS — independent actual D1 export comparison and
+  server-side verification both report identical identities/fields/links/statuses
+  with 0 validation failures. 96 import-history identities and revisions match.
+- Gate 5: owner-authenticated read-only shadow export is live through
+  `network_work_phase1_state` / `GET /api/work/v1/work/state`. Its hierarchy and
+  all migrated fields match the current Blob source. Production reads are unchanged.
+- Batch: `phase1_68_f2ab6e322ba4`.
+- SHA-256 source checksum: `f2ab6e322ba4fc21fc5013f3746594e1641d8e125ba6ab0d92a36671ece8afad`.
+- Batch database status: `verified`; API stage: `verified-not-active`;
+  `activated_at = null`.
+- Task Manager full /api/state is unchanged at revision 68 on private Blob.
+  /api/reconciliation intentionally remains reconciled-staging / cutoverReady false.
+- Protected pre/post projections for 19 legacy tables are unchanged. 8 profile
+  values and 1 legacy-task value were truncated by the native read interface;
+  those hidden portions were not byte-compared. Other checked projections were complete.
+- Owner migration health still reports 0 unresolved issues. Calendar/Drive
+  configuration and legacy event/schedule/resource/asset/demo data were preserved.
+- Historical Sheet T-023 maps to the separate Drew task A-035, while current Task
+  Manager T-023 remains its distinct canonical task.
+- PR #4 remains draft and unmerged. No activation or Phase 2 action was performed.
 
-The user explicitly authorized proceeding using the verified existing Sites DB
-binding instead of its hidden physical Cloudflare name/UUID.
+The refreshed native Network HQ plugin handled staging and verification. The
+previously authorized Vercel fallback was not used; no credential transfer or
+Sandbox creation occurred. Private source/export inputs were saved separately
+in Network-HQ-Phase1-Verification-Backup-2026-10-08.zip, and the included offline
+verifier reproduced the passing result from that archive.
 
-- Existing Site version 71 deployed successfully at
-  https://creative-network-map.ausarmadison.chatgpt.site.
-- Source commit: `5620cd09d303417d64042847ddf47a02d1a37b2e`.
-- Deployment: `appgdep_6ac74e02f164819192d132fa406e1e36`.
-- Runtime environment revision: 5; WORK_API_TOKEN is a Sites secret. Other keys
-  were preserved. No credential was written to source or browser code.
-- Native overview confirms all 38 existing tables plus exactly 11 work_* tables.
-- Work tasks, hubs, projects, migration batches and history are empty: **the live
-  import has NOT run and live parity has NOT passed**.
-- Native before/after projections match for 19 protected legacy tables.
-  There are 8 truncated values in profiles and 1 in tasks; this verifies the
-  returned projections, not the hidden portions of those large fields.
-- Owner-authenticated migration and schedule tools still respond successfully;
-  migration health has no unresolved issues and baseline counts are unchanged.
-- Task Manager full /api/state is unchanged: revision 68, 69 tasks on private Blob.
-- PR #4 remains draft and unmerged; no source-of-truth cutover is authorized.
-
-### Remaining tooling gate
-
-The deployed Site contains owner-authenticated Phase 1 state/stage/verify tools,
-but this conversation still exposes only the prior plugin tool list. Refresh or
-reconnect the existing Creative Network Map plugin to load the new tools.
-The local execution service and cloud browser reported the workspace offline.
-
-Automatic approval review rejected a temporary Vercel Sandbox fallback because
-it would transfer the Work bearer token and existing Sites authentication token
-to another execution service without explicit authorization. The sandbox was
-not created and the import was not attempted. Do not retry that path without
-explicit approval of that credential transfer. Prefer the native Site plugin.
-
-After tool availability is restored: re-read the Blob/reconciliation baseline,
-build the private payload using the branch builder, stage 69 canonical records,
-export D1 Work state, run full field/identity/link/dependency/alias parity and
-verify the batch, then expose the read-only shadow comparison and STOP.
-Preserve all new tables/data during any behavior rollback to Site version 70.
+See `docs/PHASE-1-VERIFIED-2026-10-08.md` for the verification checkpoint.
+A later cutover requires explicit user approval and its own operational/calendar
+sync validation. Preserve newer data before restoring pre-merger behavior.
