@@ -1,0 +1,599 @@
+diff --git a/app/api/work/[[...path]]/route.ts b/app/api/work/[[...path]]/route.ts
+new file mode 100644
+index 0000000..f20c9c6
+--- /dev/null
++++ b/app/api/work/[[...path]]/route.ts
+@@ -0,0 +1,15 @@
++import { env } from "cloudflare:workers";
++import workWorker from "../../../../shared-backend/worker/src/index.js";
++
++export const dynamic = "force-dynamic";
++
++// This route reuses the Site's existing DB. It has no operational task writes,
++// Calendar mutation, file-byte storage, or cutover endpoint.
++async function handle(request: Request) {
++  const url = new URL(request.url);
++  url.pathname = url.pathname.slice("/api/work".length) || "/";
++  return workWorker.fetch(new Request(url, request), env);
++}
++
++export const GET = handle;
++export const POST = handle;
+diff --git a/app/mcp/route.ts b/app/mcp/route.ts
+index 1e7f979..ae6ac78 100644
+--- a/app/mcp/route.ts
++++ b/app/mcp/route.ts
+@@ -1,3 +1,5 @@
++import { env } from "cloudflare:workers";
++import workWorker from "../../shared-backend/worker/src/index.js";
+ import { listLocations, saveLocation, deleteLocation } from "../lib/location-library";
+ import { isOwnerRequest } from "../lib/ledger";
+ import {
+@@ -29,6 +31,9 @@ type RpcRequest = {
+ };
+ 
+ const tools = [
++  {name:"network_work_phase1_state",description:"Read the staged shared Work structure from the existing Network HQ D1 binding. Read-only shadow data; Task Manager remains on Blob.",inputSchema:{type:"object",properties:{},additionalProperties:false}},
++  {name:"network_work_phase1_stage",description:"Stage a checksum-validated canonical Work migration into additive work_* tables. Refuses another batch or active data. Does not activate it, modify legacy Network HQ records, change Calendar, or change Task Manager's source.",inputSchema:{type:"object",properties:{payload:{type:"object"}},required:["payload"],additionalProperties:false}},
++  {name:"network_work_phase1_verify",description:"Compare a staged Work batch against the full private source payload, including hierarchy, statuses, people, dependencies, resources and source aliases. Marks only verified-not-active after full parity passes.",inputSchema:{type:"object",properties:{batchId:{type:"string"},payload:{type:"object"}},required:["batchId","payload"],additionalProperties:false}},
+   {name:"network_list_locations",description:"Read canonical Shoot Locations, scout photos, relationships, histories and linkable entities from the same private database as Location Library.",inputSchema:{type:"object",properties:{},additionalProperties:false}},
+   {name:"network_save_location",description:"Create or edit a Shoot Location. Updates require expectedRevision inside location. Fields: id,name,area,address,types,status,rate,notes,contactProfileId,placeProfileId (existing venue/studio), photos [{assetId,caption}], coverAssetId, relationships [{entityId,entityType,context}], scouting and logistics notes. Upload bytes through the existing private assets API as location-photo before linking. Read network_list_locations first; never invent place facts.",inputSchema:{type:"object",properties:{location:{type:"object"}},required:["location"],additionalProperties:false}},
+   {name:"network_delete_location",description:"Delete only the Shoot Location role, retaining its venue profile and uploaded bytes. Requires explicit confirm true and current revision.",inputSchema:{type:"object",properties:{location:{type:"object",properties:{id:{type:"string"},expectedRevision:{type:"integer"},confirm:{type:"boolean"}},required:["id","expectedRevision","confirm"]}},required:["location"],additionalProperties:false}},
+@@ -255,6 +260,25 @@ function textResult(value: unknown) {
+ }
+ 
+ async function callTool(name: string, args: Record<string, unknown>, request: Request) {
++  if (name.startsWith("network_work_phase1_")) {
++    // Existing MCP owner authentication is enforced before callTool. The secret
++    // stays server-side and is never returned through discovery or results.
++    if (!env.OWNER_EMAIL || !env.WORK_API_TOKEN) throw new Error("work_staging_not_configured");
++    const paths: Record<string, string> = {
++      network_work_phase1_state: "/v1/work/state",
++      network_work_phase1_stage: "/v1/work/migrations/stage",
++      network_work_phase1_verify: "/v1/work/migrations/" + encodeURIComponent(String(args.batchId || "")) + "/verify",
++    };
++    if (!paths[name]) throw new Error("tool_not_found");
++    const readOnly = name === "network_work_phase1_state";
++    const response = await workWorker.fetch(new Request("https://internal.invalid" + paths[name], {
++      method: readOnly ? "GET" : "POST",
++      headers: {authorization: "Bearer " + env.WORK_API_TOKEN, "content-type": "application/json"},
++      ...(!readOnly ? {body: JSON.stringify(args.payload)} : {}),
++    }), env);
++    const body = await response.json();
++    return { ...textResult(body), ...(!response.ok ? {isError: true} : {}) };
++  }
+   if (name === "network_list_sources") return textResult({ sources: await listProfileSources(args.profileId) });
+   if (name === "network_upsert_source") return textResult(await saveProfileSource(args.source, request, Number(args.expectedRevision) || undefined));
+   if (name === "network_list_activity") return textResult({ activities: await listNetworkActivity(args) });
+diff --git a/cloudflare-env.d.ts b/cloudflare-env.d.ts
+index de3a33b..4109f7b 100644
+--- a/cloudflare-env.d.ts
++++ b/cloudflare-env.d.ts
+@@ -5,5 +5,6 @@ declare namespace Cloudflare {
+     GOOGLE_SHEETS_BRIDGE_URL?: string;
+     NETWORK_BRIDGE_SECRET?: string;
+     OWNER_EMAIL?: string;
++    WORK_API_TOKEN?: string;
+   }
+ }
+diff --git a/db/schema.ts b/db/schema.ts
+index c4400ae..919cb4c 100644
+--- a/db/schema.ts
++++ b/db/schema.ts
+@@ -646,3 +646,6 @@ export const locationPhotos = sqliteTable("location_photos", {
+   sortOrder: integer("sort_order").notNull().default(0),
+   createdAt: text("created_at").notNull(),
+ }, table => [uniqueIndex("idx_location_photo_unique").on(table.locationId, table.assetId)]);
++
++// Phase 1 adds tables; this does not change existing entities.
++export * from "./work-schema";
+diff --git a/db/work-schema.ts b/db/work-schema.ts
+new file mode 100644
+index 0000000..0df180e
+--- /dev/null
++++ b/db/work-schema.ts
+@@ -0,0 +1,199 @@
++// Additive Phase 1 Work schema. Existing Network HQ tables stay unchanged.
++import { sql } from "drizzle-orm";
++import { sqliteTable,text,integer,index,uniqueIndex,primaryKey,check,type AnySQLiteColumn } from "drizzle-orm/sqlite-core";
++
++export const work_schema_meta = sqliteTable("work_schema_meta", {
++  key: text("key").primaryKey(),
++  value: text("value").notNull(),
++  updatedAt: text("updated_at").notNull(),
++});
++
++export const work_migration_batches = sqliteTable("work_migration_batches", {
++  batchId: text("batch_id").primaryKey(),
++  sourceName: text("source_name").notNull(),
++  sourceRevision: text("source_revision"),
++  status: text("status").notNull().default("staged"),
++  expectedTaskCount: integer("expected_task_count"),
++  importedTaskCount: integer("imported_task_count").notNull().default(0),
++  checksum: text("checksum"),
++  notes: text("notes"),
++  createdAt: text("created_at").notNull(),
++  verifiedAt: text("verified_at"),
++  activatedAt: text("activated_at"),
++  rolledBackAt: text("rolled_back_at"),
++}, (t) => [
++  check("work_migration_batches_check_0", sql`status IN ('staged','verified','active','failed','rolled_back')`)
++]);
++
++export const work_hubs = sqliteTable("work_hubs", {
++  id: text("id").primaryKey(),
++  title: text("title").notNull(),
++  summary: text("summary").notNull().default(""),
++  color: text("color").notNull().default(""),
++  priority: integer("priority").notNull().default(50),
++  archived: integer("archived").notNull().default(0),
++  revision: integer("revision").notNull().default(1),
++  createdAt: text("created_at").notNull(),
++  updatedAt: text("updated_at").notNull(),
++  archivedAt: text("archived_at"),
++}, (t) => [
++  check("work_hubs_check_0", sql`archived IN (0,1)`)
++]);
++
++export const work_projects = sqliteTable("work_projects", {
++  id: text("id").primaryKey(),
++  hubId: text("hub_id").notNull().references((): AnySQLiteColumn => work_hubs.id, {"onUpdate": "cascade", "onDelete": "restrict"}),
++  title: text("title").notNull(),
++  summary: text("summary").notNull().default(""),
++  area: text("area").notNull().default(""),
++  goalId: text("goal_id"),
++  parentProjectId: text("parent_project_id").references((): AnySQLiteColumn => work_projects.id, {"onUpdate": "cascade", "onDelete": "set null"}),
++  color: text("color").notNull().default(""),
++  priority: integer("priority").notNull().default(50),
++  archived: integer("archived").notNull().default(0),
++  revision: integer("revision").notNull().default(1),
++  createdAt: text("created_at").notNull(),
++  updatedAt: text("updated_at").notNull(),
++  archivedAt: text("archived_at"),
++}, (t) => [
++  check("work_projects_check_0", sql`archived IN (0,1)`)
++]);
++
++export const work_tasks = sqliteTable("work_tasks", {
++  id: text("id").primaryKey(),
++  displayId: text("display_id"),
++  hubId: text("hub_id").notNull().references((): AnySQLiteColumn => work_hubs.id, {"onUpdate": "cascade", "onDelete": "restrict"}),
++  projectId: text("project_id").notNull().references((): AnySQLiteColumn => work_projects.id, {"onUpdate": "cascade", "onDelete": "restrict"}),
++  parentTaskId: text("parent_task_id").references((): AnySQLiteColumn => work_tasks.id, {"onUpdate": "cascade", "onDelete": "set null"}),
++  title: text("title").notNull(),
++  designation: text("designation").notNull().default("major"),
++  status: text("status").notNull().default("Open"),
++  priority: integer("priority").notNull().default(2),
++  area: text("area").notNull().default(""),
++  goalId: text("goal_id"),
++  milestoneId: text("milestone_id"),
++  microDone: integer("micro_done").notNull().default(0),
++  classificationStatus: text("classification_status").notNull().default("verified"),
++  classificationConfidence: text("classification_confidence"),
++  proposedDesignation: text("proposed_designation"),
++  proposedParentTaskId: text("proposed_parent_task_id").references((): AnySQLiteColumn => work_tasks.id, {"onUpdate": "cascade", "onDelete": "set null"}),
++  flowPhase: text("flow_phase").notNull().default("later"),
++  flowOrder: integer("flow_order").notNull().default(999),
++  durationEstimate: text("duration_estimate").notNull().default(""),
++  timingType: text("timing_type").notNull().default("flexible"),
++  earliestStart: text("earliest_start").notNull().default(""),
++  targetDate: text("target_date").notNull().default(""),
++  dueText: text("due_text").notNull().default(""),
++  dueDate: text("due_date"),
++  timingNote: text("timing_note").notNull().default(""),
++  nextAction: text("next_action").notNull().default(""),
++  waitingOn: text("waiting_on").notNull().default(""),
++  notes: text("notes").notNull().default(""),
++  source: text("source").notNull().default("shared-work-backend"),
++  todayRank: integer("today_rank"),
++  effort: text("effort").notNull().default(""),
++  revision: integer("revision").notNull().default(1),
++  lastChangeSource: text("last_change_source").notNull().default("migration"),
++  migrationBatchId: text("migration_batch_id").references((): AnySQLiteColumn => work_migration_batches.batchId, {"onUpdate": "cascade", "onDelete": "set null"}),
++  createdAt: text("created_at").notNull(),
++  updatedAt: text("updated_at").notNull(),
++  completedAt: text("completed_at"),
++  archivedAt: text("archived_at"),
++}, (t) => [
++  check("work_tasks_check_0", sql`designation IN ('major','micro','outcome')`),
++  check("work_tasks_check_1", sql`status IN ('Open','In Progress','Waiting','Backlog','Done','Archived')`),
++  check("work_tasks_check_2", sql`priority BETWEEN 1 AND 3`),
++  check("work_tasks_check_3", sql`micro_done IN (0,1)`),
++  check("work_tasks_check_4", sql`flow_phase IN ('now','next','later','waiting')`),
++  check("work_tasks_check_5", sql`timing_type IN ('hard','target','dependency','flexible')`),
++  check("work_tasks_check_6", sql`parent_task_id IS NULL OR parent_task_id <> id`),
++  uniqueIndex("idx_work_tasks_display_id").on(t.displayId).where(sql`display_id IS NOT NULL AND display_id <> ''`),
++  index("idx_work_tasks_project").on(t.projectId),
++  index("idx_work_tasks_hub").on(t.hubId),
++  index("idx_work_tasks_parent").on(t.parentTaskId),
++  index("idx_work_tasks_status").on(t.status),
++  index("idx_work_tasks_flow").on(t.projectId,t.flowPhase,t.flowOrder)
++]);
++
++export const work_task_people = sqliteTable("work_task_people", {
++  taskId: text("task_id").notNull().references((): AnySQLiteColumn => work_tasks.id, {"onUpdate": "cascade", "onDelete": "cascade"}),
++  profileId: text("profile_id").notNull(),
++  role: text("role").notNull().default(""),
++  createdAt: text("created_at").notNull(),
++}, (t) => [
++  primaryKey({columns:[t.taskId,t.profileId]}),
++  index("idx_work_task_people_profile").on(t.profileId)
++]);
++
++export const work_task_dependencies = sqliteTable("work_task_dependencies", {
++  taskId: text("task_id").notNull().references((): AnySQLiteColumn => work_tasks.id, {"onUpdate": "cascade", "onDelete": "cascade"}),
++  dependsOnTaskId: text("depends_on_task_id").notNull().references((): AnySQLiteColumn => work_tasks.id, {"onUpdate": "cascade", "onDelete": "cascade"}),
++  dependencyType: text("dependency_type").notNull().default("finish_to_start"),
++  createdAt: text("created_at").notNull(),
++}, (t) => [
++  primaryKey({columns:[t.taskId,t.dependsOnTaskId]}),
++  check("work_task_dependencies_check_0", sql`task_id <> depends_on_task_id`)
++]);
++
++export const work_task_resources = sqliteTable("work_task_resources", {
++  id: text("id").primaryKey(),
++  taskId: text("task_id").notNull().references((): AnySQLiteColumn => work_tasks.id, {"onUpdate": "cascade", "onDelete": "cascade"}),
++  label: text("label").notNull().default(""),
++  url: text("url").notNull().default(""),
++  resourceType: text("resource_type").notNull().default("link"),
++  externalId: text("external_id"),
++  metadataJson: text("metadata_json"),
++  createdAt: text("created_at").notNull(),
++  updatedAt: text("updated_at").notNull(),
++}, (t) => [
++  index("idx_work_task_resources_task").on(t.taskId)
++]);
++
++export const work_source_aliases = sqliteTable("work_source_aliases", {
++  sourceName: text("source_name").notNull(),
++  sourceRecordId: text("source_record_id").notNull(),
++  canonicalTaskId: text("canonical_task_id").notNull().references((): AnySQLiteColumn => work_tasks.id, {"onUpdate": "cascade", "onDelete": "cascade"}),
++  sourceStatus: text("source_status"),
++  sourceRevision: text("source_revision"),
++  sourceTitleHash: text("source_title_hash"),
++  lastSeenAt: text("last_seen_at").notNull(),
++}, (t) => [
++  primaryKey({columns:[t.sourceName,t.sourceRecordId]}),
++  index("idx_work_source_aliases_task").on(t.canonicalTaskId)
++]);
++
++export const work_calendar_links = sqliteTable("work_calendar_links", {
++  id: text("id").primaryKey(),
++  taskId: text("task_id").references((): AnySQLiteColumn => work_tasks.id, {"onUpdate": "cascade", "onDelete": "set null"}),
++  projectId: text("project_id").references((): AnySQLiteColumn => work_projects.id, {"onUpdate": "cascade", "onDelete": "set null"}),
++  provider: text("provider").notNull().default("google_calendar"),
++  calendarId: text("calendar_id").notNull(),
++  externalEventId: text("external_event_id").notNull(),
++  externalEtag: text("external_etag"),
++  syncStatus: text("sync_status").notNull().default("linked"),
++  lastSyncedAt: text("last_synced_at"),
++  lastChangeSource: text("last_change_source"),
++  providerUpdatedAt: text("provider_updated_at"),
++  revision: integer("revision").notNull().default(1),
++  createdAt: text("created_at").notNull(),
++  updatedAt: text("updated_at").notNull(),
++}, (t) => [
++  uniqueIndex("idx_work_calendar_links_external_identity").on(t.provider,t.calendarId,t.externalEventId)
++]);
++
++export const work_changes = sqliteTable("work_changes", {
++  id: text("id").primaryKey(),
++  entityType: text("entity_type").notNull(),
++  entityId: text("entity_id").notNull(),
++  action: text("action").notNull(),
++  beforeJson: text("before_json"),
++  afterJson: text("after_json"),
++  sourceApp: text("source_app").notNull(),
++  sourceRevision: text("source_revision"),
++  entityRevision: integer("entity_revision").notNull(),
++  idempotencyKey: text("idempotency_key"),
++  createdAt: text("created_at").notNull(),
++}, (t) => [
++  index("idx_work_changes_entity").on(t.entityType,t.entityId,t.createdAt),
++  uniqueIndex("idx_work_changes_idempotency").on(t.idempotencyKey).where(sql`idempotency_key IS NOT NULL`)
++]);
+diff --git a/drizzle/0005_mixed_kitty_pryde.sql b/drizzle/0005_mixed_kitty_pryde.sql
+new file mode 100644
+index 0000000..a5b09b8
+--- /dev/null
++++ b/drizzle/0005_mixed_kitty_pryde.sql
+@@ -0,0 +1,200 @@
++CREATE TABLE `work_calendar_links` (
++	`id` text PRIMARY KEY NOT NULL,
++	`task_id` text,
++	`project_id` text,
++	`provider` text DEFAULT 'google_calendar' NOT NULL,
++	`calendar_id` text NOT NULL,
++	`external_event_id` text NOT NULL,
++	`external_etag` text,
++	`sync_status` text DEFAULT 'linked' NOT NULL,
++	`last_synced_at` text,
++	`last_change_source` text,
++	`provider_updated_at` text,
++	`revision` integer DEFAULT 1 NOT NULL,
++	`created_at` text NOT NULL,
++	`updated_at` text NOT NULL,
++	FOREIGN KEY (`task_id`) REFERENCES `work_tasks`(`id`) ON UPDATE cascade ON DELETE set null,
++	FOREIGN KEY (`project_id`) REFERENCES `work_projects`(`id`) ON UPDATE cascade ON DELETE set null
++);
++--> statement-breakpoint
++CREATE UNIQUE INDEX `idx_work_calendar_links_external_identity` ON `work_calendar_links` (`provider`,`calendar_id`,`external_event_id`);--> statement-breakpoint
++CREATE TABLE `work_changes` (
++	`id` text PRIMARY KEY NOT NULL,
++	`entity_type` text NOT NULL,
++	`entity_id` text NOT NULL,
++	`action` text NOT NULL,
++	`before_json` text,
++	`after_json` text,
++	`source_app` text NOT NULL,
++	`source_revision` text,
++	`entity_revision` integer NOT NULL,
++	`idempotency_key` text,
++	`created_at` text NOT NULL
++);
++--> statement-breakpoint
++CREATE INDEX `idx_work_changes_entity` ON `work_changes` (`entity_type`,`entity_id`,`created_at`);--> statement-breakpoint
++CREATE UNIQUE INDEX `idx_work_changes_idempotency` ON `work_changes` (`idempotency_key`) WHERE idempotency_key IS NOT NULL;--> statement-breakpoint
++CREATE TABLE `work_hubs` (
++	`id` text PRIMARY KEY NOT NULL,
++	`title` text NOT NULL,
++	`summary` text DEFAULT '' NOT NULL,
++	`color` text DEFAULT '' NOT NULL,
++	`priority` integer DEFAULT 50 NOT NULL,
++	`archived` integer DEFAULT 0 NOT NULL,
++	`revision` integer DEFAULT 1 NOT NULL,
++	`created_at` text NOT NULL,
++	`updated_at` text NOT NULL,
++	`archived_at` text,
++	CONSTRAINT "work_hubs_check_0" CHECK(archived IN (0,1))
++);
++--> statement-breakpoint
++CREATE TABLE `work_migration_batches` (
++	`batch_id` text PRIMARY KEY NOT NULL,
++	`source_name` text NOT NULL,
++	`source_revision` text,
++	`status` text DEFAULT 'staged' NOT NULL,
++	`expected_task_count` integer,
++	`imported_task_count` integer DEFAULT 0 NOT NULL,
++	`checksum` text,
++	`notes` text,
++	`created_at` text NOT NULL,
++	`verified_at` text,
++	`activated_at` text,
++	`rolled_back_at` text,
++	CONSTRAINT "work_migration_batches_check_0" CHECK(status IN ('staged','verified','active','failed','rolled_back'))
++);
++--> statement-breakpoint
++CREATE TABLE `work_projects` (
++	`id` text PRIMARY KEY NOT NULL,
++	`hub_id` text NOT NULL,
++	`title` text NOT NULL,
++	`summary` text DEFAULT '' NOT NULL,
++	`area` text DEFAULT '' NOT NULL,
++	`goal_id` text,
++	`parent_project_id` text,
++	`color` text DEFAULT '' NOT NULL,
++	`priority` integer DEFAULT 50 NOT NULL,
++	`archived` integer DEFAULT 0 NOT NULL,
++	`revision` integer DEFAULT 1 NOT NULL,
++	`created_at` text NOT NULL,
++	`updated_at` text NOT NULL,
++	`archived_at` text,
++	FOREIGN KEY (`hub_id`) REFERENCES `work_hubs`(`id`) ON UPDATE cascade ON DELETE restrict,
++	FOREIGN KEY (`parent_project_id`) REFERENCES `work_projects`(`id`) ON UPDATE cascade ON DELETE set null,
++	CONSTRAINT "work_projects_check_0" CHECK(archived IN (0,1))
++);
++--> statement-breakpoint
++CREATE TABLE `work_schema_meta` (
++	`key` text PRIMARY KEY NOT NULL,
++	`value` text NOT NULL,
++	`updated_at` text NOT NULL
++);
++--> statement-breakpoint
++CREATE TABLE `work_source_aliases` (
++	`source_name` text NOT NULL,
++	`source_record_id` text NOT NULL,
++	`canonical_task_id` text NOT NULL,
++	`source_status` text,
++	`source_revision` text,
++	`source_title_hash` text,
++	`last_seen_at` text NOT NULL,
++	PRIMARY KEY(`source_name`, `source_record_id`),
++	FOREIGN KEY (`canonical_task_id`) REFERENCES `work_tasks`(`id`) ON UPDATE cascade ON DELETE cascade
++);
++--> statement-breakpoint
++CREATE INDEX `idx_work_source_aliases_task` ON `work_source_aliases` (`canonical_task_id`);--> statement-breakpoint
++CREATE TABLE `work_task_dependencies` (
++	`task_id` text NOT NULL,
++	`depends_on_task_id` text NOT NULL,
++	`dependency_type` text DEFAULT 'finish_to_start' NOT NULL,
++	`created_at` text NOT NULL,
++	PRIMARY KEY(`task_id`, `depends_on_task_id`),
++	FOREIGN KEY (`task_id`) REFERENCES `work_tasks`(`id`) ON UPDATE cascade ON DELETE cascade,
++	FOREIGN KEY (`depends_on_task_id`) REFERENCES `work_tasks`(`id`) ON UPDATE cascade ON DELETE cascade,
++	CONSTRAINT "work_task_dependencies_check_0" CHECK(task_id <> depends_on_task_id)
++);
++--> statement-breakpoint
++CREATE TABLE `work_task_people` (
++	`task_id` text NOT NULL,
++	`profile_id` text NOT NULL,
++	`role` text DEFAULT '' NOT NULL,
++	`created_at` text NOT NULL,
++	PRIMARY KEY(`task_id`, `profile_id`),
++	FOREIGN KEY (`task_id`) REFERENCES `work_tasks`(`id`) ON UPDATE cascade ON DELETE cascade
++);
++--> statement-breakpoint
++CREATE INDEX `idx_work_task_people_profile` ON `work_task_people` (`profile_id`);--> statement-breakpoint
++CREATE TABLE `work_task_resources` (
++	`id` text PRIMARY KEY NOT NULL,
++	`task_id` text NOT NULL,
++	`label` text DEFAULT '' NOT NULL,
++	`url` text DEFAULT '' NOT NULL,
++	`resource_type` text DEFAULT 'link' NOT NULL,
++	`external_id` text,
++	`metadata_json` text,
++	`created_at` text NOT NULL,
++	`updated_at` text NOT NULL,
++	FOREIGN KEY (`task_id`) REFERENCES `work_tasks`(`id`) ON UPDATE cascade ON DELETE cascade
++);
++--> statement-breakpoint
++CREATE INDEX `idx_work_task_resources_task` ON `work_task_resources` (`task_id`);--> statement-breakpoint
++CREATE TABLE `work_tasks` (
++	`id` text PRIMARY KEY NOT NULL,
++	`display_id` text,
++	`hub_id` text NOT NULL,
++	`project_id` text NOT NULL,
++	`parent_task_id` text,
++	`title` text NOT NULL,
++	`designation` text DEFAULT 'major' NOT NULL,
++	`status` text DEFAULT 'Open' NOT NULL,
++	`priority` integer DEFAULT 2 NOT NULL,
++	`area` text DEFAULT '' NOT NULL,
++	`goal_id` text,
++	`milestone_id` text,
++	`micro_done` integer DEFAULT 0 NOT NULL,
++	`classification_status` text DEFAULT 'verified' NOT NULL,
++	`classification_confidence` text,
++	`proposed_designation` text,
++	`proposed_parent_task_id` text,
++	`flow_phase` text DEFAULT 'later' NOT NULL,
++	`flow_order` integer DEFAULT 999 NOT NULL,
++	`duration_estimate` text DEFAULT '' NOT NULL,
++	`timing_type` text DEFAULT 'flexible' NOT NULL,
++	`earliest_start` text DEFAULT '' NOT NULL,
++	`target_date` text DEFAULT '' NOT NULL,
++	`due_text` text DEFAULT '' NOT NULL,
++	`due_date` text,
++	`timing_note` text DEFAULT '' NOT NULL,
++	`next_action` text DEFAULT '' NOT NULL,
++	`waiting_on` text DEFAULT '' NOT NULL,
++	`notes` text DEFAULT '' NOT NULL,
++	`source` text DEFAULT 'shared-work-backend' NOT NULL,
++	`today_rank` integer,
++	`effort` text DEFAULT '' NOT NULL,
++	`revision` integer DEFAULT 1 NOT NULL,
++	`last_change_source` text DEFAULT 'migration' NOT NULL,
++	`migration_batch_id` text,
++	`created_at` text NOT NULL,
++	`updated_at` text NOT NULL,
++	`completed_at` text,
++	`archived_at` text,
++	FOREIGN KEY (`hub_id`) REFERENCES `work_hubs`(`id`) ON UPDATE cascade ON DELETE restrict,
++	FOREIGN KEY (`project_id`) REFERENCES `work_projects`(`id`) ON UPDATE cascade ON DELETE restrict,
++	FOREIGN KEY (`parent_task_id`) REFERENCES `work_tasks`(`id`) ON UPDATE cascade ON DELETE set null,
++	FOREIGN KEY (`proposed_parent_task_id`) REFERENCES `work_tasks`(`id`) ON UPDATE cascade ON DELETE set null,
++	FOREIGN KEY (`migration_batch_id`) REFERENCES `work_migration_batches`(`batch_id`) ON UPDATE cascade ON DELETE set null,
++	CONSTRAINT "work_tasks_check_0" CHECK(designation IN ('major','micro','outcome')),
++	CONSTRAINT "work_tasks_check_1" CHECK(status IN ('Open','In Progress','Waiting','Backlog','Done','Archived')),
++	CONSTRAINT "work_tasks_check_2" CHECK(priority BETWEEN 1 AND 3),
++	CONSTRAINT "work_tasks_check_3" CHECK(micro_done IN (0,1)),
++	CONSTRAINT "work_tasks_check_4" CHECK(flow_phase IN ('now','next','later','waiting')),
++	CONSTRAINT "work_tasks_check_5" CHECK(timing_type IN ('hard','target','dependency','flexible')),
++	CONSTRAINT "work_tasks_check_6" CHECK(parent_task_id IS NULL OR parent_task_id <> id)
++);
++--> statement-breakpoint
++CREATE UNIQUE INDEX `idx_work_tasks_display_id` ON `work_tasks` (`display_id`) WHERE display_id IS NOT NULL AND display_id <> '';--> statement-breakpoint
++CREATE INDEX `idx_work_tasks_project` ON `work_tasks` (`project_id`);--> statement-breakpoint
++CREATE INDEX `idx_work_tasks_hub` ON `work_tasks` (`hub_id`);--> statement-breakpoint
++CREATE INDEX `idx_work_tasks_parent` ON `work_tasks` (`parent_task_id`);--> statement-breakpoint
++CREATE INDEX `idx_work_tasks_status` ON `work_tasks` (`status`);--> statement-breakpoint
++CREATE INDEX `idx_work_tasks_flow` ON `work_tasks` (`project_id`,`flow_phase`,`flow_order`);
+\ No newline at end of file
+diff --git a/drizzle/meta/_journal.json b/drizzle/meta/_journal.json
+index e0f64d3..46c69ff 100644
+--- a/drizzle/meta/_journal.json
++++ b/drizzle/meta/_journal.json
+@@ -36,6 +36,13 @@
+       "when": 1791337181695,
+       "tag": "0004_dapper_nicolaos",
+       "breakpoints": true
++    },
++    {
++      "idx": 5,
++      "version": "6",
++      "when": 1791444311228,
++      "tag": "0005_mixed_kitty_pryde",
++      "breakpoints": true
+     }
+   ]
+ }
+\ No newline at end of file
+diff --git a/scripts/tests/work-phase1.mjs b/scripts/tests/work-phase1.mjs
+new file mode 100644
+index 0000000..6e06928
+--- /dev/null
++++ b/scripts/tests/work-phase1.mjs
+@@ -0,0 +1,73 @@
++import assert from 'node:assert/strict';
++import fs from 'node:fs';
++import {DatabaseSync} from 'node:sqlite';
++import worker from '../../shared-backend/worker/src/index.js';
++import {compareWorkState} from '../../shared-backend/work-parity-core.mjs';
++
++// Private input stays outside Git. This harness never connects to remote D1.
++const source=JSON.parse(fs.readFileSync(process.argv[2],'utf8'));
++const sqlFiles=fs.readdirSync('drizzle').filter(x=>x.endsWith('.sql')).sort();
++function database(){
++  const sqlite=new DatabaseSync(':memory:');
++  for(const file of sqlFiles)sqlite.exec(fs.readFileSync('drizzle/'+file,'utf8'));
++  for(const id of new Set(source.taskPeople.map(x=>x.profileId)))sqlite.prepare('INSERT INTO profiles (id,name,created_at,updated_at) VALUES (?,?,?,?)').run(id,id,'sentinel','sentinel');
++  const execute=(sql,params,mode)=>{
++    const st=sqlite.prepare(sql);
++    if(mode==='first')return st.get(...params)||null;
++    if(mode==='all')return {results:st.all(...params)};
++    return st.run(...params);
++  };
++  const DB={
++    prepare(sql){const statement={sql,params:[],bind(...params){return {...statement,params,first:()=>Promise.resolve(execute(sql,params,'first')),all:()=>Promise.resolve(execute(sql,params,'all')),run:()=>Promise.resolve(execute(sql,params,'run'))};},first:()=>Promise.resolve(execute(sql,[],'first')),all:()=>Promise.resolve(execute(sql,[],'all')),run:()=>Promise.resolve(execute(sql,[],'run'))};return statement;},
++    async batch(statements){sqlite.exec('BEGIN');try{const results=statements.map(s=>execute(s.sql,s.params,'run'));sqlite.exec('COMMIT');return results;}catch(e){sqlite.exec('ROLLBACK');throw e;}}
++  };
++  return {sqlite,DB};
++}
++const envToken='isolated-test-token';
++async function call(env,path,method='GET',body=null,token=envToken){
++  const res=await worker.fetch(new Request('https://isolated.invalid'+path,{method,headers:{authorization:'Bearer '+token,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})}),{...env,WORK_API_TOKEN:envToken});
++  return {status:res.status,body:await res.json()};
++}
++const {sqlite,DB}=database();
++const untouched=()=>JSON.stringify(sqlite.prepare("SELECT name,sql FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'work_%' ORDER BY name").all().map(t=>[t,sqlite.prepare('SELECT * FROM "'+t.name+'"').all()]));
++const before=untouched();
++assert.equal((await call({DB},'/v1/work/state','GET',null,'wrong-token')).status,401);
++const staged=await call({DB},'/v1/work/migrations/stage','POST',source);
++assert.equal(staged.status,201);assert.equal(staged.body.stage,'staged-not-active');
++const exported=(await call({DB},'/v1/work/state')).body;
++assert.equal(compareWorkState(source,exported).summary.pass,true);
++const verified=await call({DB},'/v1/work/migrations/'+source.batchId+'/verify','POST',source);
++assert.equal(verified.status,200);assert.equal(verified.body.stage,'verified-not-active');assert.equal(verified.body.historyMatches,true);
++assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM work_changes').get().n,source.tasks.length+source.hubs.length+source.projects.length);
++assert.equal((await call({DB},'/v1/work/migrations/stage','POST',source)).status,200);
++assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM work_changes').get().n,source.tasks.length+source.hubs.length+source.projects.length);
++assert.equal((await call({DB},'/v1/work/migrations/'+source.batchId+'/activate','POST',source)).status,404);
++assert.equal(untouched(),before);
++
++const mutations=[
++  x=>x.tasks[0].status='Backlog',x=>x.tasks[0].notes+='changed',x=>x.tasks[0].revision++,
++  x=>x.taskPeople.pop(),x=>x.dependencies.pop(),x=>x.sourceAliases.pop(),
++  x=>x.sourceAliases[0].source_status='changed',x=>x.projects[0].title+='changed',
++  x=>x.hubs[0].summary+='changed',x=>x.resources[0].url+='changed',
++  x=>x.tasks.push({...x.tasks[0]}),x=>x.tasks[0].parent_task_id=x.tasks[0].id,
++];
++for(const mutate of mutations){const changed=structuredClone(exported);mutate(changed);assert.equal(compareWorkState(source,changed).summary.pass,false);}
++sqlite.prepare("UPDATE work_tasks SET notes='corrupted' WHERE id=?").run(source.tasks[0].id);
++sqlite.prepare("UPDATE work_migration_batches SET status='staged' WHERE batch_id=?").run(source.batchId);
++assert.equal((await call({DB},'/v1/work/migrations/'+source.batchId+'/verify','POST',source)).status,409);
++assert.equal(sqlite.prepare('SELECT status FROM work_migration_batches').get().status,'staged');
++
++const blank=database();
++const bad=structuredClone(source);bad.taskPeople[0].profileId='unrecognized-profile';
++assert.equal((await call(blank,'/v1/work/migrations/stage','POST',bad)).status,500);
++assert.equal(blank.sqlite.prepare('SELECT COUNT(*) AS n FROM work_tasks').get().n,0);
++const corrupt=structuredClone(source);corrupt.checksum='wrong';
++assert.equal((await call(blank,'/v1/work/migrations/stage','POST',corrupt)).status,500);
++assert.equal(blank.sqlite.prepare('SELECT COUNT(*) AS n FROM work_migration_batches').get().n,0);
++const cycle=structuredClone(source);cycle.dependencies=[{taskId:source.tasks[0].id,dependsOnTaskId:source.tasks[1].id},{taskId:source.tasks[1].id,dependsOnTaskId:source.tasks[0].id}];
++assert.equal(compareWorkState(cycle,cycle).summary.pass,false);
++
++const aliases=new Map(source.sourceAliases.map(x=>[x.sourceName+':'+x.sourceRecordId,x.canonicalTaskId]));
++assert.notEqual(aliases.get('google-sheet:T-023'),aliases.get('task-manager:T-023'));
++assert.equal(aliases.get('google-sheet:T-023'),aliases.get('task-manager:A-035'));
++console.log(JSON.stringify({pass:true,isolatedSqlite:true,canonicalTasks:source.tasks.length,peopleLinks:source.taskPeople.length,dependencies:source.dependencies.length,aliases:source.sourceAliases.length,historyRows:source.tasks.length+source.hubs.length+source.projects.length,negativeParityChecks:mutations.length,legacyCollisionPreserved:true,existingTablesUnchanged:true,activationUnavailable:true}));
