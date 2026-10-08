@@ -66,3 +66,12 @@ Next safe task: obtain/review the current Apps Script bridge source and OAuth ma
 
 Follow-up in the same session: the saved Library connector source v2 was located and read after Drive discovery did not establish it. A small additive auth-preserving dispatcher patch was prepared; 20 more isolated bridge checks passed (122 total). Saved source is not proof of the currently deployed version, and its private secret was excluded from GitHub. Remaining gate: match deployed source/manifest, reconcile legacy iCalendar UIDs to REST event IDs explicitly, then validate real app/provider behavior. Phase 2 draft PR: https://github.com/amadison6/creative-network-demo/pull/6 (unmerged).
 
+
+
+## 2026-10-08 — App development integration continuation
+
+Owner instruction: “ok bet. lets continue.” Scope remains Phase 2 development/testing, no production cutover. Added separate development screens in both source projects, fixed dev_* isolation within the existing DB, trusted owner/server identity, signed session handoff and server-only Task Manager-to-Sites transport. Existing production screens and routes were preserved.
+
+174 isolated assertions now pass (102 original + 20 bridge + 52 app integration). The Sites bundle builds. Full typecheck retains the previously known schedule-route optional DB error; browser QA and actual deployed auth/OAuth are not verified. No test migration, secrets or Google bridge extension was applied remotely. Fresh Phase 1 shadow still matches the authoritative 69-task payload with zero parity failures and no activation. Blob was not freshly read in this continuation.
+
+See [app integration checkpoint](PHASE-2-APP-INTEGRATION-2026-10-08.md) for exact code, evidence, isolation/credential responsibilities and next safe gates. These are separate development screens, not acceptance of the final unified interface. Deployed Apps Script source/version/manifest remains unavailable through both connected Drive accounts.

@@ -120,3 +120,10 @@ Do not try to enable this isolated development Worker against the current produc
 Owner grants access to GitHub, the existing Sites source/env management, Vercel project and the existing Google bridge. Sites hides physical Cloudflare resource identifiers; DB is the accepted logical identity. WORK_API_TOKEN, NETWORK_BRIDGE_SECRET, Google tokens and any test allowlist configuration are server-side only. Use existing provisioning screens; do not publish values or private exports in this repo.
 
 Before restoring earlier production behavior, freeze writes/sync jobs and preserve newer Blob state, D1 rows, audit history, receipts, outbox/cursors, and provider events. Validate the checksummed export and keep original backups. Production recovery must reconcile newer writes; this code offers no destructive restore endpoint. The successful restore test used a separate in-memory DB only.
+
+
+## App integration continuation (2026-10-08)
+
+See [the app integration checkpoint](PHASE-2-APP-INTEGRATION-2026-10-08.md). Run `node shared-backend/tests/app-integration.mjs` for the 52 additional server-boundary checks. The reusable UI/proxy/session modules live in shared-backend; Task Manager deployment copies are self-contained under task-manager (browser assets and lib/work), and Sites route templates are under sites-integration.
+
+The prepared 003_development_namespace.sql creates only a fixed dev_* namespace and synthetic profile table; it has not been applied to live D1. Do not apply 002 directly to the verified checkpoint for development. Server-only configuration names needed for a separately reviewed integration test include WORK_DEVELOPMENT_ENABLED, WORK_DEVELOPMENT_APP_ORIGIN, WORK_DEVELOPMENT_OWNER_ID, WORK_DEVELOPMENT_SESSION_KEY and WORK_DEVELOPMENT_SITES_AUTH, alongside the existing WORK_API_TOKEN and OWNER_EMAIL. No values are in this record, and no credentials were provisioned/transferred in this continuation. Keep Google provider and scheduler unbound until the deployed bridge is verified.
